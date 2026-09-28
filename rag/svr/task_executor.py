@@ -15,6 +15,11 @@ from common.log_utils import init_root_logger, getLogger
 init_root_logger("task_executor")
 logger = getLogger("TaskExecutor")
 
+import threading
+
+# Add imports for Document Model
+from api.db.db_models import db, Document, Knowledgebase
+
 STREAM_NAME = "rag_flow:tasks"
 CONSUMER_GROUP = "rag_flow_workers"
 CONSUMER_NAME = f"worker_{os.getpid()}"
@@ -31,27 +36,79 @@ def init_stream():
         else:
             logger.error(f"Error creating consumer group: {e}")
 
+def report_status():
+    """Distributed Heartbeat Manager pushing to Redis ZSET TASKEXE"""
+    while True:
+        try:
+            # RAGFlow heartbeat mechanism (IP, PID, etc).
+            heartbeat_data = json.dumps({
+                "pid": os.getpid(),
+                "status": "alive"
+            })
+            # Use current timestamp as score in Sorted Set
+            REDIS_CLIENT.zadd("TASKEXE", {heartbeat_data: time.time()})
+        except Exception as e:
+            logger.error(f"Failed to report heartbeat: {e}")
+        time.sleep(30)
+
 def process_message(msg_id, payload):
-    """Simulate document parsing or advanced indexing execution."""
+    """Orchestrates processing logic and manages the Document's state machine."""
     task_type = payload.get('task_type', '')
     kb_id = payload.get('kb_id', '')
+    doc_id = payload.get('doc_id', '')
     
     logger.info(f"Processing Task [{msg_id}]: {task_type} for KB {kb_id}")
     
-    # Simulate processing time
-    time.sleep(2)
-    
-    if task_type == 'graphrag_build':
+    doc = None
+    if doc_id:
+        # Avoid peewee connection issues across threads by ensuring connection
+        if db.is_closed():
+            db.connect()
+        doc = Document.get_or_none(Document.id == doc_id)
+
+    if doc and task_type == 'document_parse':
+        try:
+            # 1. State: RUNNING ('2')
+            doc.status = '2'
+            doc.save()
+            logger.info(f"Document {doc_id} state -> RUNNING")
+
+            # Simulate processing time / parsing logic (OCR, NLP chunking)
+            time.sleep(2)
+            
+            # 2. State: DONE ('3')
+            doc.status = '3'
+            doc.progress = 1.0
+            doc.save()
+            logger.info(f"Document {doc_id} state -> DONE")
+            
+        except Exception as e:
+            # 3. State: FAILED ('4')
+            if doc:
+                doc.status = '4'
+                doc.progress_msg = f"[Exception]: {str(e)}"
+                doc.save()
+            logger.error(f"Document {doc_id} state -> FAILED: {str(e)}")
+            
+    elif task_type == 'graphrag_build':
+        # Simulate processing time
+        time.sleep(2)
         logger.info(f"GraphRAG indexing completed for KB {kb_id}.")
-    elif task_type == 'document_parse':
-        logger.info(f"Document parsing completed for KB {kb_id}.")
         
     # Acknowledge the message to remove it from the pending list
-    REDIS_CLIENT.xack(STREAM_NAME, CONSUMER_GROUP, msg_id)
-    logger.info(f"Acknowledged Task [{msg_id}]")
+    try:
+        REDIS_CLIENT.xack(STREAM_NAME, CONSUMER_GROUP, msg_id)
+        logger.info(f"Acknowledged Task [{msg_id}]")
+    except Exception as e:
+        logger.error(f"Failed to ACK Task [{msg_id}]: {e}")
 
 def run():
     init_stream()
+    
+    # Start Distributed Heartbeat Manager Thread
+    heartbeat_thread = threading.Thread(target=report_status, daemon=True)
+    heartbeat_thread.start()
+    
     logger.info(f"Starting Background Task Executor [{CONSUMER_NAME}]... Waiting for tasks.")
     
     # Connect to DB to ensure it's available for workers
