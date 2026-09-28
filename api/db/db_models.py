@@ -123,6 +123,14 @@ class Knowledgebase(DataBaseModel):
     parser_config = TextField(null=False, default='{"pages": [[1, 1000000]]}')
     status = CharField(max_length=1, null=True, default="1", index=True)
 
+    # Advanced Indexing Flags
+    graphrag_task_id = CharField(max_length=32, null=True, help_text="Graph RAG task ID", index=True)
+    graphrag_task_finish_at = DateTimeField(null=True)
+    raptor_task_id = CharField(max_length=32, null=True, help_text="RAPTOR task ID", index=True)
+    raptor_task_finish_at = DateTimeField(null=True)
+    mindmap_task_id = CharField(max_length=32, null=True, help_text="Mindmap task ID", index=True)
+    mindmap_task_finish_at = DateTimeField(null=True)
+
     class Meta:
         table_name = 'knowledgebase'
 

@@ -103,6 +103,15 @@ type Knowledgebase struct {
 	ParserID               string  `gorm:"index;type:varchar(32);default:'naive'"`
 	ParserConfig           string  `gorm:"type:text"`
 	Status                 string  `gorm:"index;type:varchar(1);default:'1'"`
+
+	// Advanced Indexing Flags
+	GraphragTaskID        string     `gorm:"index;type:varchar(32)"`
+	GraphragTaskFinishAt  *time.Time `gorm:"type:datetime"`
+	RaptorTaskID          string     `gorm:"index;type:varchar(32)"`
+	RaptorTaskFinishAt    *time.Time `gorm:"type:datetime"`
+	MindmapTaskID         string     `gorm:"index;type:varchar(32)"`
+	MindmapTaskFinishAt   *time.Time `gorm:"type:datetime"`
+
 	BaseModel
 }
 
