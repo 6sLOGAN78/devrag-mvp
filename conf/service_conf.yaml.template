@@ -1,0 +1,14 @@
+mysql:
+  host: ${MYSQL_HOST}
+  port: ${MYSQL_PORT}
+  user: root
+  password: ${MYSQL_PASSWORD}
+  db: ${MYSQL_DBNAME}
+
+redis:
+  url: redis://:${REDIS_PASSWORD}@127.0.0.1:${REDIS_PORT}/0
+
+minio:
+  endpoint: 127.0.0.1:${MINIO_PORT}
+  user: ${MINIO_USER}
+  password: ${MINIO_PASSWORD}

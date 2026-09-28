@@ -1,0 +1,21 @@
+sequenceDiagram
+    autonumber
+    participant Webhook as External Webhook / API Client
+    participant API as agent_api.py (webhook / completion)
+    participant Snapshot as CanvasReplicaService
+    participant Engine as Graph Engine (agent/canvas.py)
+    participant DB as MySQL DB (agent_session)
+
+    Webhook->>API: POST /v1/agent/{id}/webhook
+    API->>API: Security Signature & Auth Validation
+    API->>Snapshot: Commit Runtime Replica Snapshot
+    Snapshot->>DB: INSERT INTO canvas_replica
+    API->>Engine: Graph(replica_dsl).run(input_payload)
+    
+    loop Component DAG Processing
+        Engine->>Engine: Run component logic & emit SSE events
+    end
+
+    Engine-->>API: Execution Result Artifacts
+    API->>DB: INSERT INTO agent_session (status='SUCCESS', outputs)
+    API-->>Webhook: 200 OK Response Payload

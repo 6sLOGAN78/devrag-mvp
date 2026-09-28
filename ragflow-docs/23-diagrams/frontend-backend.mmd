@@ -1,0 +1,17 @@
+sequenceDiagram
+    autonumber
+    participant UI as React UI (routes.tsx)
+    participant Nginx as Nginx Proxy
+    participant Backend as Python API (user_api / document_api / chat_api)
+    participant Service as DB Service Layer
+    participant DB as MySQL DB
+
+    UI->>Nginx: HTTP Request (Headers: Authorization / Cookie)
+    Nginx->>Backend: Forward to Quart/Gin Backend
+    Backend->>Backend: Validate Request & Auth Context
+    Backend->>Service: Invoke Service Method
+    Service->>DB: Execute SQL Query / Transaction
+    DB-->>Service: Database Result / Rows
+    Service-->>Backend: Return Domain Entity Data
+    Backend-->>Nginx: 200 OK Response (JSON / SSE Stream)
+    Nginx-->>UI: Deliver Response to Frontend Component

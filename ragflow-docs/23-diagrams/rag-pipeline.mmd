@@ -1,0 +1,35 @@
+flowchart LR
+    subgraph Input Phase
+        Q[User Question]
+    end
+
+    subgraph Hybrid Retrieval Phase
+        T[RAG Tokenizer]
+        V[LLMBundle Vector Embedder]
+        BM25[Sparse BM25 Search]
+        VEC[Dense Cosine Search]
+    end
+
+    subgraph Reranking & Context Phase
+        FUSION[Hybrid Score Fusion]
+        RERANK[Cross-Encoder Reranker]
+        FMT[chunks_format Context Builder]
+    end
+
+    subgraph Generation Phase
+        PROMPT[System Prompt + Context + History]
+        LLM[LLMBundle Chat Streamly]
+        SSE[SSE Event Stream to React UI]
+    end
+
+    Q --> T
+    Q --> V
+    T --> BM25
+    V --> VEC
+    BM25 --> FUSION
+    VEC --> FUSION
+    FUSION --> RERANK
+    RERANK --> FMT
+    FMT --> PROMPT
+    PROMPT --> LLM
+    LLM --> SSE

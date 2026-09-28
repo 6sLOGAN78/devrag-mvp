@@ -1,0 +1,5 @@
+quart
+peewee
+pymysql
+minio
+pyyaml

@@ -1,0 +1,21 @@
+sequenceDiagram
+    autonumber
+    participant Client as REST API / Chat Service
+    participant Dealer as Search Dealer (search.py)
+    participant Tokenizer as Query Tokenizer
+    participant ES as ElasticSearch / Infinity
+    participant Reranker as Rerank Model
+
+    Client->>Dealer: search(query, kb_ids, top_k)
+    Dealer->>Tokenizer: Tokenize & extract keywords
+    Tokenizer-->>Dealer: Terms & query vector
+    
+    par Dual Search
+        Dealer->>ES: BM25 Match Query (Sparse)
+        Dealer->>ES: Cosine Vector Similarity (Dense)
+    end
+    
+    ES-->>Dealer: BM25 & Vector Candidate Sets
+    Dealer->>Reranker: Re-score combined candidates
+    Reranker-->>Dealer: Top-K reranked chunk list with scores
+    Dealer-->>Client: Final SearchResult object

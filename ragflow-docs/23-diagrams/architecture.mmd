@@ -1,0 +1,50 @@
+graph TD
+    subgraph Client Layer
+        UI["React Frontend SPA (Web/src)"]
+        SDK["Python/REST API Clients"]
+    end
+
+    subgraph Gateway & Routing Layer
+        NGINX["Nginx Reverse Proxy"]
+        PY_SRV["Python Quart API Server (api/ragflow_server.py)"]
+        GO_SRV["Go Gin API Server (internal/server/server.go)"]
+    end
+
+    subgraph Service & Task Layer
+        TASK_MGR["Task Manager & Dispatcher"]
+        REDIS_Q[("Redis Task Queue (ragflow_TASK_EXE_QUEUE)")]
+        WORKER["Task Executor Worker (rag/svr/task_executor.py)"]
+    end
+
+    subgraph Engine & AI Components
+        DEEPDOC["DeepDoc Parser Engine (Layout + OCR + Bounding Box)"]
+        EMBED["LLMBundle Embedding Engine"]
+        SEARCH["Search Engine (rag/nlp/search.py)"]
+        RERANK["Cross-Encoder Reranker"]
+        CANVAS["Agent Canvas Engine (agent/canvas.py)"]
+    end
+
+    subgraph Storage & Infrastructure
+        MYSQL[("MySQL Database (Metadata, Users, Sessions)")]
+        MINIO[("MinIO / S3 Object Storage (Raw Files, Images)")]
+        VEC_STORE[("Vector Store (Elasticsearch / Infinity)")]
+    end
+
+    UI --> NGINX
+    SDK --> NGINX
+    NGINX --> PY_SRV
+    NGINX --> GO_SRV
+    PY_SRV --> MYSQL
+    GO_SRV --> MYSQL
+    PY_SRV --> MINIO
+    PY_SRV --> REDIS_Q
+    REDIS_Q --> WORKER
+    WORKER --> DEEPDOC
+    WORKER --> EMBED
+    WORKER --> VEC_STORE
+    WORKER --> MINIO
+    PY_SRV --> SEARCH
+    SEARCH --> VEC_STORE
+    SEARCH --> RERANK
+    PY_SRV --> CANVAS
+    CANVAS --> EMBED

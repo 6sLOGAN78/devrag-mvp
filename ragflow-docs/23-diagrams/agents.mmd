@@ -1,0 +1,14 @@
+flowchart TD
+    BEGIN[Begin Node: Read Input] --> ROUTE{Categorize Node}
+    ROUTE -->|Doc Query| RETRIEVE[Retrieval Node: Hybrid Search]
+    ROUTE -->|Database Query| SQL[ExeSQL Node: Run Query]
+    ROUTE -->|General Chat| PROMPT[Generate Node]
+
+    RETRIEVE --> LLM[LLM Node: Synthesize Response]
+    SQL --> LLM
+    PROMPT --> LLM
+
+    LLM --> SWITCH{Switch Node: Check Quality}
+    SWITCH -->|Sufficient| ANSWER[Answer Node: Stream Output]
+    SWITCH -->|Insufficient| REWRITE[Rewrite Question Node]
+    REWRITE --> RETRIEVE
