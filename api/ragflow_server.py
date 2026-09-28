@@ -1,12 +1,18 @@
 from quart import Quart, jsonify
+from quart_auth import QuartAuth
 from api.db.db_models import db
 from api.utils import redis_conn, storage_client
 from api.apps.user_app import user_app
-from api.apps.kb_app import kb_app
+from api.apps.dataset_api import dataset_app
 
 app = Quart(__name__)
+app.secret_key = "devrag-super-secret-key-12345-long-enough-for-sha256"
+app.config["QUART_AUTH_COOKIE_NAME"] = "ragflow_session"
+app.config["QUART_AUTH_COOKIE_SECURE"] = False
+QuartAuth(app)
+
 app.register_blueprint(user_app)
-app.register_blueprint(kb_app)
+app.register_blueprint(dataset_app)
 
 def check_db():
     try:

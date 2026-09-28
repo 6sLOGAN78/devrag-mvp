@@ -16,46 +16,46 @@ def test():
         py_url = "http://localhost:9380/api"
         
         # Register User A (Alice) & User B (Bob)
-        requests.post(f"{py_url}/register", json={"email": "alice_kb@devrag.com", "password": "pass", "tenant_name": "Alice Corp"})
-        requests.post(f"{py_url}/register", json={"email": "bob_kb@devrag.com", "password": "pass", "tenant_name": "Bob Inc"})
+        requests.post(f"{py_url}/register", json={"email": "alice_dataset@devrag.com", "password": "pass", "tenant_name": "Alice Corp"})
+        requests.post(f"{py_url}/register", json={"email": "bob_dataset@devrag.com", "password": "pass", "tenant_name": "Bob Inc"})
+
+        session_a = requests.Session()
+        session_b = requests.Session()
 
         # Login A & B
-        token_a = requests.post(f"{py_url}/login", json={"email": "alice_kb@devrag.com", "password": "pass"}).json()["token"]
-        token_b = requests.post(f"{py_url}/login", json={"email": "bob_kb@devrag.com", "password": "pass"}).json()["token"]
+        session_a.post(f"{py_url}/login", json={"email": "alice_dataset@devrag.com", "password": "pass"})
+        session_b.post(f"{py_url}/login", json={"email": "bob_dataset@devrag.com", "password": "pass"})
 
-        headers_a = {"Authorization": f"Bearer {token_a}"}
-        headers_b = {"Authorization": f"Bearer {token_b}"}
-
-        print("--- Create KB ---")
-        resp_a = requests.post(f"{py_url}/knowledge-base", json={"name": "Alice KB 1"}, headers=headers_a)
+        print("--- Create Dataset ---")
+        resp_a = session_a.post(f"{py_url}/dataset", json={"name": "Alice Dataset 1"})
         kb_a_id = resp_a.json()["data"]["id"]
-        print(f"Alice created KB: {kb_a_id}")
+        print(f"Alice created Dataset: {kb_a_id}")
 
-        resp_b = requests.post(f"{py_url}/knowledge-base", json={"name": "Bob KB 1"}, headers=headers_b)
+        resp_b = session_b.post(f"{py_url}/dataset", json={"name": "Bob Dataset 1"})
         kb_b_id = resp_b.json()["data"]["id"]
-        print(f"Bob created KB: {kb_b_id}")
+        print(f"Bob created Dataset: {kb_b_id}")
 
-        print("--- List KB Isolation ---")
-        list_a = requests.get(f"{py_url}/knowledge-base", headers=headers_a).json()["data"]
-        print(f"Alice sees KBs: {[k['name'] for k in list_a]}")
+        print("--- List Dataset Isolation ---")
+        list_a = session_a.get(f"{py_url}/dataset").json()["data"]
+        print(f"Alice sees Datasets: {[k['name'] for k in list_a]}")
         assert len(list_a) == 1 and list_a[0]["id"] == kb_a_id
         
-        list_b = requests.get(f"{py_url}/knowledge-base", headers=headers_b).json()["data"]
-        print(f"Bob sees KBs: {[k['name'] for k in list_b]}")
+        list_b = session_b.get(f"{py_url}/dataset").json()["data"]
+        print(f"Bob sees Datasets: {[k['name'] for k in list_b]}")
         assert len(list_b) == 1 and list_b[0]["id"] == kb_b_id
 
-        print("--- Delete KB Isolation ---")
-        # Alice tries to delete Bob's KB
-        del_attempt = requests.delete(f"{py_url}/knowledge-base/{kb_b_id}", headers=headers_a)
-        print(f"Alice deleting Bob's KB -> Status: {del_attempt.status_code} (Expected 404)")
+        print("--- Delete Dataset Isolation ---")
+        # Alice tries to delete Bob's Dataset
+        del_attempt = session_a.delete(f"{py_url}/dataset/{kb_b_id}")
+        print(f"Alice deleting Bob's Dataset -> Status: {del_attempt.status_code} (Expected 404)")
         assert del_attempt.status_code == 404
 
-        # Bob successfully deletes his own KB
-        del_success = requests.delete(f"{py_url}/knowledge-base/{kb_b_id}", headers=headers_b)
-        print(f"Bob deleting Bob's KB -> Status: {del_success.status_code} (Expected 200)")
+        # Bob successfully deletes his own Dataset
+        del_success = session_b.delete(f"{py_url}/dataset/{kb_b_id}")
+        print(f"Bob deleting Bob's Dataset -> Status: {del_success.status_code} (Expected 200)")
         assert del_success.status_code == 200
 
-        print("\nALL KB TESTS PASSED!")
+        print("\nALL DATASET TESTS PASSED WITH QUART_AUTH!")
 
     finally:
         py_proc.terminate()

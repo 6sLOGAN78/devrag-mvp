@@ -3,9 +3,9 @@ from api.db.db_models import Knowledgebase, db
 from api.utils.auth_middleware import login_required
 import uuid
 
-kb_app = Blueprint('kb_app', __name__)
+dataset_app = Blueprint('dataset_app', __name__)
 
-@kb_app.route('/api/knowledge-base', methods=['POST'])
+@dataset_app.route('/api/dataset', methods=['POST'])
 @login_required
 async def create_kb():
     data = await request.get_json()
@@ -31,7 +31,7 @@ async def create_kb():
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
-@kb_app.route('/api/knowledge-base', methods=['GET'])
+@dataset_app.route('/api/dataset', methods=['GET'])
 @login_required
 async def list_kbs():
     try:
@@ -50,7 +50,7 @@ async def list_kbs():
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
-@kb_app.route('/api/knowledge-base/<kb_id>', methods=['DELETE'])
+@dataset_app.route('/api/dataset/<kb_id>', methods=['DELETE'])
 @login_required
 async def delete_kb(kb_id):
     try:
