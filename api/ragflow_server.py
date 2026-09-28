@@ -1,3 +1,9 @@
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+from common.log_utils import init_root_logger, getLogger
+init_root_logger("ragflow_server")
+logger = getLogger("Server")
 from quart import Quart, jsonify
 from quart_auth import QuartAuth
 from api.db.db_models import db

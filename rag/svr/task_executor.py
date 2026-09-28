@@ -10,9 +10,10 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../'
 
 from api.utils.redis_conn import REDIS_CLIENT
 from api.db.db_models import db
+from common.log_utils import init_root_logger, getLogger
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-logger = logging.getLogger("TaskExecutor")
+init_root_logger("task_executor")
+logger = getLogger("TaskExecutor")
 
 STREAM_NAME = "rag_flow:tasks"
 CONSUMER_GROUP = "rag_flow_workers"
