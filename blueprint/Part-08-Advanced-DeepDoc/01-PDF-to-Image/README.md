@@ -4,7 +4,7 @@
 To convert a multi-page PDF document into an array of high-resolution images so that computer vision models can analyze them.
 
 ## 2. Documentation Basis
-*   `ragflow-docs/06-document-processing/vision-models.md`: DOCUMENTED - YOLO layout analysis operates on images, not native PDF text layers.
+*   `docs/06-document-processing/vision-models.md`: DOCUMENTED - YOLO layout analysis operates on images, not native PDF text layers.
 
 ## 3. Prerequisites
 *   Task Worker (Part 05.02) setup to intercept `.pdf` files.

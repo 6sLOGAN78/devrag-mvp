@@ -4,7 +4,7 @@
 To query the Vector Database using the raw text string to find exact keyword matches. This complements semantic search (e.g., finding exact ID numbers or names).
 
 ## 2. Documentation Basis
-*   `ragflow-docs/07-retrieval/hybrid-search.md`: DOCUMENTED - RAGFlow uses BM25 alongside Vector Search.
+*   `docs/07-retrieval/hybrid-search.md`: DOCUMENTED - RAGFlow uses BM25 alongside Vector Search.
 
 ## 3. Prerequisites
 *   Vector DB populated with chunks from Part 05.

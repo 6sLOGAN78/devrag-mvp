@@ -20,7 +20,7 @@ RAGFlow is organized as a unified monorepo accommodating the frontend web applic
 ├── helm/                     # Helm chart templates for Kubernetes deployment
 ├── internal/                 # Go backend code (routers, handlers, services, DAOs, ingestion)
 ├── rag/                      # Core RAG retrieval engine (hybrid search, embeddings, reranking)
-├── ragflow-docs/ # Reverse-engineered technical documentation suite
+├── docs/ # Reverse-engineered technical documentation suite
 └── web/                      # React SPA Frontend (TypeScript, Tailwind, Zustand, React Router 7)
 ```
 

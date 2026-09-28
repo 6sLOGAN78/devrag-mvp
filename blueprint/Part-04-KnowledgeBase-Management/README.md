@@ -3,7 +3,7 @@
 ## 5.1 Part Objective
 The objective of this part is to build the REST API required to manage Knowledge Bases (KBs). In RAGFlow, a Knowledge Base acts as a logical container (a folder) for documents. All searches and chats are scoped to a specific Knowledge Base.
 
-*Relevant Docs*: `ragflow-docs/04-api/knowledge-base.md`.
+*Relevant Docs*: `docs/04-api/knowledge-base.md`.
 
 ## 5.2 Prerequisites
 *   **Required previous parts**: `Part-03-Authentication-Tenancy` must be complete. The multi-tenancy middleware is mandatory here.
@@ -33,4 +33,4 @@ This part is small and linear. Define the model -> Apply Migrations -> Write the
 *   Complex KB settings (like overriding embedding models per KB) are deferred.
 
 ## 5.8 Documentation References
-*   `ragflow-docs/04-api/knowledge-base.md`
+*   `docs/04-api/knowledge-base.md`

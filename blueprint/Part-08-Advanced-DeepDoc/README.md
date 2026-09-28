@@ -3,7 +3,7 @@
 ## 5.1 Part Objective
 This part upgrades the Document Ingestion pipeline (Part 05) to handle complex unstructured formats like PDFs, PPTs, and images. It replaces the naive text chunker with a Computer Vision pipeline that uses YOLO for layout analysis (detecting tables vs paragraphs vs images) and PaddleOCR for text extraction. This is the defining feature of RAGFlow.
 
-*Relevant Docs*: `ragflow-docs/06-document-processing/parsers.md`, `ragflow-docs/06-document-processing/vision-models.md`.
+*Relevant Docs*: `docs/06-document-processing/parsers.md`, `docs/06-document-processing/vision-models.md`.
 
 ## 5.2 Prerequisites
 *   **Required previous parts**: `Part-05-Document-Ingestion` (The worker infrastructure).
@@ -40,5 +40,5 @@ Sequential. You cannot analyze a PDF without rasterizing it (01). You cannot run
 *   Multimodal LLMs (sending images directly to GPT-4o for parsing) are excluded here, as DeepDoc relies on local specialized vision models to save costs.
 
 ## 5.8 Documentation References
-*   `ragflow-docs/06-document-processing/parsers.md`
-*   `ragflow-docs/06-document-processing/vision-models.md`
+*   `docs/06-document-processing/parsers.md`
+*   `docs/06-document-processing/vision-models.md`

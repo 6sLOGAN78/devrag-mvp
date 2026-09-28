@@ -4,7 +4,7 @@
 To extract text from the sorted bounding boxes using OCR, and specifically convert tables into Markdown representations using Table Structure Recognition.
 
 ## 2. Documentation Basis
-*   `ragflow-docs/06-document-processing/vision-models.md`: DOCUMENTED - PaddleOCR.
+*   `docs/06-document-processing/vision-models.md`: DOCUMENTED - PaddleOCR.
 
 ## 3. Prerequisites
 *   `02-Layout-Analysis` (Sorted Bounding Boxes).

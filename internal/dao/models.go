@@ -76,6 +76,7 @@ type Document struct {
 	ChunkNum    int     `gorm:"default:0"`
 	Progress    float64 `gorm:"default:0.0"`
 	ProgressMsg string  `gorm:"type:text"`
+	Run         string  `gorm:"index;type:varchar(1);default:'0'"`
 	Status      string  `gorm:"index;type:varchar(1);default:'1'"`
 	ContentHash string  `gorm:"index;type:varchar(64)"`
 	BaseModel
@@ -83,6 +84,21 @@ type Document struct {
 
 func (Document) TableName() string {
 	return "document"
+}
+
+type Task struct {
+	ID          string  `gorm:"primaryKey;type:varchar(32)"`
+	DocID       string  `gorm:"index;type:varchar(32);not null"`
+	FromPage    int     `gorm:"default:0"`
+	ToPage      int     `gorm:"default:1000000"`
+	TaskType    string  `gorm:"type:varchar(32);not null;default:''"`
+	Progress    float64 `gorm:"index;default:0.0"`
+	ProgressMsg string  `gorm:"type:text"`
+	BaseModel
+}
+
+func (Task) TableName() string {
+	return "task"
 }
 
 // Knowledgebase Model

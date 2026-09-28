@@ -4,7 +4,7 @@
 To scaffold the basic directory structure of the backend application and expose a minimal web server that can accept HTTP requests.
 
 ## 2. Documentation Basis
-*   `ragflow-docs/03-backend/architecture.md`: IMPLEMENTATION DECISION - RAGFlow uses Go and Python. You are initializing a unified backend project here using **both** languages (Python with Quart and Go with Gin, just like the original codebase).
+*   `docs/03-backend/architecture.md`: IMPLEMENTATION DECISION - RAGFlow uses Go and Python. You are initializing a unified backend project here using **both** languages (Python with Quart and Go with Gin, just like the original codebase).
 
 ## 3. Prerequisites
 *   Python 3.x and Go 1.20+ installed locally.

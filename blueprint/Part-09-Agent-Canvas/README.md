@@ -3,7 +3,7 @@
 ## 5.1 Part Objective
 This part builds the execution engine that replaces the hardcoded Chat flow (Part 07) with dynamic, user-configurable Directed Acyclic Graphs (DAGs). This allows users to build workflows that execute multiple LLM calls, run conditional routing, and call external tools (like Web Search).
 
-*Relevant Docs*: `ragflow-docs/13-agents/canvas.md`, `ragflow-docs/14-workflows/execution.md`.
+*Relevant Docs*: `docs/13-agents/canvas.md`, `docs/14-workflows/execution.md`.
 
 ## 5.2 Prerequisites
 *   **Required previous parts**: `Part-07-Chat-and-Streaming` (LLM clients and Streaming must be understood).
@@ -42,4 +42,4 @@ Sequential. The Engine (01) is the core logic. Nodes (02) plug into the Engine. 
 *   Visual UI builder.
 
 ## 5.8 Documentation References
-*   `ragflow-docs/13-agents/canvas.md`
+*   `docs/13-agents/canvas.md`

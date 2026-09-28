@@ -48,20 +48,21 @@ def test():
         
         db.connect()
         doc = Document.get_by_id(doc_id)
-        print(f"Initial Document Status: '{doc.status}' (Expected '1' / UNSTART)")
-        assert doc.status == '1'
+        print(f"Initial Document Run State: '{doc.run}' (Expected '0' / UNSTART)")
+        assert doc.run == '0'
         
         # 4. Trigger Parsing
         print("Triggering Parsing...")
         session.post(f"{base_url}/dataset/{kb_id}/document/parse", json={"document_ids": [doc_id]})
         
         # 5. Wait for worker and verify state
-        print("Waiting 4 seconds for worker to process...")
-        time.sleep(4)
+        # The aggregation thread takes 6 seconds, we'll wait 8 seconds.
+        print("Waiting 8 seconds for worker and aggregation thread to process...")
+        time.sleep(8)
         
         doc = Document.get_by_id(doc_id)
-        print(f"Final Document Status: '{doc.status}' (Expected '3' / DONE)")
-        assert doc.status == '3'
+        print(f"Final Document Run State: '{doc.run}' (Expected '3' / DONE)")
+        assert doc.run == '3'
         assert doc.progress == 1.0
         
         print("\nALL WORKER STATE TESTS PASSED!")

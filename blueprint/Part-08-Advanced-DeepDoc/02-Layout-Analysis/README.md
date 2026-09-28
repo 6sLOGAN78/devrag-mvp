@@ -4,7 +4,7 @@
 To use a YOLO object detection model to identify the bounding boxes of paragraphs, headers, tables, and images on a page, allowing the system to understand the structural layout (e.g., 2-column formats) and avoid reading headers/footers.
 
 ## 2. Documentation Basis
-*   `ragflow-docs/06-document-processing/vision-models.md`: DOCUMENTED - YOLO usage for layout.
+*   `docs/06-document-processing/vision-models.md`: DOCUMENTED - YOLO usage for layout.
 
 ## 3. Prerequisites
 *   `01-PDF-to-Image` (Image objects).

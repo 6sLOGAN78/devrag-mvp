@@ -4,7 +4,7 @@
 To build the endpoint that accepts a file, stores it safely in S3, records its initial state in the database, and delegates the processing workload to a Redis queue.
 
 ## 2. Documentation Basis
-*   `ragflow-docs/06-document-processing/upload.md`: DOCUMENTED - The upload and task delegation flow.
+*   `docs/06-document-processing/upload.md`: DOCUMENTED - The upload and task delegation flow.
 
 ## 3. Prerequisites
 *   `Part-04-KnowledgeBase-Management` (KB Model exists).

@@ -4,7 +4,7 @@
 To provision a relational database container (MySQL or PostgreSQL) that serves as the central transactional state store for Users, Tenants, Documents, and other entities in the RAGFlow application. This allows the backend to persist the application state securely.
 
 ## 2. Documentation Basis
-*   `ragflow-docs/08-database/architecture.md`: Confirms the use of a relational store (MySQL) for metadata.
+*   `docs/08-database/architecture.md`: Confirms the use of a relational store (MySQL) for metadata.
 *   **DOCUMENTED**: Exact Docker compose configuration, `.env` files, and `init.sql`.
 *   **DOCUMENTED**: Peewee ORM definitions for User, Tenant, and Document tables.
 

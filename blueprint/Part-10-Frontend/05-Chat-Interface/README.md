@@ -4,8 +4,8 @@
 To build the conversational interface where users can ask questions against a selected Knowledge Base and receive streaming, cited answers from the LLM. This completes the end-to-end devRAG user experience.
 
 ## 2. Documentation Basis
-*   `ragflow-docs/12-chat/ui-integration.md`: DOCUMENTED - The frontend must consume Server-Sent Events (SSE).
-*   `ragflow-docs/05-rag-pipeline/prompt-engineering.md`: DOCUMENTED - The UI must parse `##0$$` markers into clickable citations.
+*   `docs/12-chat/ui-integration.md`: DOCUMENTED - The frontend must consume Server-Sent Events (SSE).
+*   `docs/05-rag-pipeline/prompt-engineering.md`: DOCUMENTED - The UI must parse `##0$$` markers into clickable citations.
 
 ## 3. Prerequisites
 *   `01-Frontend-Core` (App Shell).

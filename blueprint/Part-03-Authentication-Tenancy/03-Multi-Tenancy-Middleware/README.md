@@ -4,7 +4,7 @@
 To build the most critical security boundary in the application. This middleware intercepts incoming API requests, validates the JWT, extracts the `tenant_id`, and ensures that all subsequent database operations are strictly scoped to that tenant.
 
 ## 2. Documentation Basis
-*   `ragflow-docs/16-auth/multi-tenancy.md`: DOCUMENTED - Strict data isolation is mandatory in RAGFlow.
+*   `docs/16-auth/multi-tenancy.md`: DOCUMENTED - Strict data isolation is mandatory in RAGFlow.
 
 ## 3. Prerequisites
 *   `02-Auth-APIs` (You need a JWT to test this).

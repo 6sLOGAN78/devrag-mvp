@@ -3,7 +3,7 @@
 ## 5.1 Part Objective
 This part builds the foundational security layer. RAGFlow is a multi-tenant system designed for enterprise use; data leakage between users is catastrophic. This part implements the ORM models, the authentication JWT flow, and crucially, the middleware that guarantees strict `tenant_id` isolation across all database queries.
 
-*Relevant Docs*: `ragflow-docs/16-auth/authentication.md`, `ragflow-docs/16-auth/multi-tenancy.md`.
+*Relevant Docs*: `docs/16-auth/authentication.md`, `docs/16-auth/multi-tenancy.md`.
 
 ## 5.2 Prerequisites
 *   **Required previous parts**: `Part-02-Core-Backend` (ORM and API server must be functional).
@@ -41,5 +41,5 @@ The order is sequential. You cannot write login APIs (02) without the user table
 *   Password reset flows and email verification are excluded.
 
 ## 5.8 Documentation References
-*   `ragflow-docs/16-auth/authentication.md`
-*   `ragflow-docs/16-auth/multi-tenancy.md`
+*   `docs/16-auth/authentication.md`
+*   `docs/16-auth/multi-tenancy.md`

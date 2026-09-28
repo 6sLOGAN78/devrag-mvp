@@ -4,7 +4,7 @@
 To expose the DAG Engine via a REST endpoint that accepts streaming connections.
 
 ## 2. Documentation Basis
-*   `ragflow-docs/14-workflows/execution.md`: DOCUMENTED.
+*   `docs/14-workflows/execution.md`: DOCUMENTED.
 
 ## 3. Prerequisites
 *   `02-Base-Nodes` completed.

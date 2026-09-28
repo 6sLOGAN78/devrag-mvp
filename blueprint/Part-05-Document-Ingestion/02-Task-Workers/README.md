@@ -4,7 +4,7 @@
 To build the background worker process that consumes ingestion tasks from Redis, manages the Document's state machine (`UNSTART` -> `RUNNING` -> `DONE`/`FAILED`), and orchestrates the processing logic.
 
 ## 2. Documentation Basis
-*   `ragflow-docs/10-cache-and-queues/workers.md`: DOCUMENTED - The worker polling mechanism.
+*   `docs/10-cache-and-queues/workers.md`: DOCUMENTED - The worker polling mechanism.
 
 ## 3. Prerequisites
 *   `Part-05/01-Upload-API` completed. Redis must contain tasks.

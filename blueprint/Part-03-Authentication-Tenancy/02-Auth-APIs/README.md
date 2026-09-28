@@ -4,7 +4,7 @@
 To implement the REST endpoints required for a user to create an account and authenticate themselves, yielding a JSON Web Token (JWT).
 
 ## 2. Documentation Basis
-*   `ragflow-docs/16-auth/authentication.md`: DOCUMENTED - Basic auth flows.
+*   `docs/16-auth/authentication.md`: DOCUMENTED - Basic auth flows.
 
 ## 3. Prerequisites
 *   `01-User-Tenant-Models` completed (Tables exist).

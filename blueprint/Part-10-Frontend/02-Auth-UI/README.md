@@ -4,7 +4,7 @@
 To build the unauthenticated pages where a user can register for a new account or log in to an existing one, and store the resulting JWT.
 
 ## 2. Documentation Basis
-*   `ragflow-docs/16-auth/authentication.md`: DOCUMENTED - The system relies on email/password login resulting in a token.
+*   `docs/16-auth/authentication.md`: DOCUMENTED - The system relies on email/password login resulting in a token.
 
 ## 3. Prerequisites
 *   `01-Frontend-Core` (Router and API Client).

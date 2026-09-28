@@ -4,7 +4,7 @@
 To build the HTTP endpoint that wires everything together: Receiving a POST request, calling Retrieval, building the Prompt, calling the LLM, and streaming the response back over HTTP using Server-Sent Events (SSE).
 
 ## 2. Documentation Basis
-*   `ragflow-docs/12-chat/streaming.md`: DOCUMENTED - The endpoint uses SSE (`Content-Type: text/event-stream`).
+*   `docs/12-chat/streaming.md`: DOCUMENTED - The endpoint uses SSE (`Content-Type: text/event-stream`).
 
 ## 3. Prerequisites
 *   Auth Middleware (Part 03.03).

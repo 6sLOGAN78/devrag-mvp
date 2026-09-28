@@ -4,7 +4,7 @@
 To provision a Vector Database capable of storing high-dimensional embeddings and performing both dense vector similarity search and sparse keyword (BM25) search. This is the heart of the retrieval engine.
 
 ## 2. Documentation Basis
-*   `ragflow-docs/08-database/vector-db.md`: Documents the necessity of a database supporting Hybrid Search. 
+*   `docs/08-database/vector-db.md`: Documents the necessity of a database supporting Hybrid Search. 
 *   **DOCUMENTED**: The original application handles hybrid search via Elasticsearch (configured as `es01` in Docker).
 
 ## 3. Prerequisites

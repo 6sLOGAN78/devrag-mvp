@@ -4,7 +4,7 @@
 To implement the specific executable blocks that plug into the DAG Engine, wrapping your existing RAG capabilities.
 
 ## 2. Documentation Basis
-*   `ragflow-docs/13-agents/canvas.md`: DOCUMENTED - Built-in nodes like LLM and Retrieval.
+*   `docs/13-agents/canvas.md`: DOCUMENTED - Built-in nodes like LLM and Retrieval.
 
 ## 3. Prerequisites
 *   `01-DAG-Engine` completed.

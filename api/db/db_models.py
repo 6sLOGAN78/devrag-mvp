@@ -96,11 +96,28 @@ class Document(DataBaseModel):
     chunk_num = IntegerField(default=0)
     progress = FloatField(default=0.0)
     progress_msg = TextField(null=True)
+    
+    # RAGFlow architectural alignment:
+    # `run` tracks processing execution (0=UNSTART, 1=RUNNING, 2=CANCEL, 3=DONE, 4=FAIL)
+    run = CharField(max_length=1, null=True, default='0', index=True)
+    # `status` tracks valid vs deleted (1=validate, 0=wasted/deleted)
     status = CharField(max_length=1, null=True, default='1', index=True)
     content_hash = CharField(max_length=64, null=True, index=True)
     
     class Meta:
         table_name = 'document'
+
+class Task(DataBaseModel):
+    id = CharField(max_length=32, primary_key=True)
+    doc_id = CharField(max_length=32, null=False, index=True)
+    from_page = IntegerField(default=0)
+    to_page = IntegerField(default=1000000)
+    task_type = CharField(max_length=32, null=False, default="")
+    progress = FloatField(default=0.0, index=True)
+    progress_msg = TextField(null=True, default="")
+
+    class Meta:
+        table_name = 'task'
 
 
 # 7. Define Knowledgebase Model

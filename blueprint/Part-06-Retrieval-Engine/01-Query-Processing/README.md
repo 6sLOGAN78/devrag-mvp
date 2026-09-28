@@ -4,7 +4,7 @@
 To convert the user's natural language string into a vector embedding so it can be mathematically compared against the chunks in the database.
 
 ## 2. Documentation Basis
-*   `ragflow-docs/07-retrieval/hybrid-search.md`: INFERRED - Standard dense retrieval requirement.
+*   `docs/07-retrieval/hybrid-search.md`: INFERRED - Standard dense retrieval requirement.
 
 ## 3. Prerequisites
 *   LLM Embedding Client (Built in Part 05.03).

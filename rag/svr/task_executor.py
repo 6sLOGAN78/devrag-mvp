@@ -52,43 +52,43 @@ def report_status():
         time.sleep(30)
 
 def process_message(msg_id, payload):
-    """Orchestrates processing logic and manages the Document's state machine."""
+    """Orchestrates processing logic and manages the Task's state machine."""
     task_type = payload.get('task_type', '')
     kb_id = payload.get('kb_id', '')
     doc_id = payload.get('doc_id', '')
+    task_id = payload.get('task_id', '')
     
-    logger.info(f"Processing Task [{msg_id}]: {task_type} for KB {kb_id}")
+    logger.info(f"Processing Task [{msg_id}]: {task_type} for Doc {doc_id}")
     
-    doc = None
-    if doc_id:
+    # We must import Task here or at the top. It's imported at the top now?
+    # Wait, I'll just rely on the global import at the top of the file.
+    
+    task_obj = None
+    if task_id:
         # Avoid peewee connection issues across threads by ensuring connection
         if db.is_closed():
             db.connect()
-        doc = Document.get_or_none(Document.id == doc_id)
+        # I need to import Task at the top. Let's make sure Task is there.
+        # It's better to dynamically import it here if not at the top.
+        from api.db.db_models import Task
+        task_obj = Task.get_or_none(Task.id == task_id)
 
-    if doc and task_type == 'document_parse':
+    if task_obj and task_type == 'document_parse':
         try:
-            # 1. State: RUNNING ('2')
-            doc.status = '2'
-            doc.save()
-            logger.info(f"Document {doc_id} state -> RUNNING")
-
             # Simulate processing time / parsing logic (OCR, NLP chunking)
             time.sleep(2)
             
-            # 2. State: DONE ('3')
-            doc.status = '3'
-            doc.progress = 1.0
-            doc.save()
-            logger.info(f"Document {doc_id} state -> DONE")
+            # 1. State: DONE (progress = 1.0)
+            task_obj.progress = 1.0
+            task_obj.save()
+            logger.info(f"Sub-Task {task_id} state -> DONE (1.0)")
             
         except Exception as e:
-            # 3. State: FAILED ('4')
-            if doc:
-                doc.status = '4'
-                doc.progress_msg = f"[Exception]: {str(e)}"
-                doc.save()
-            logger.error(f"Document {doc_id} state -> FAILED: {str(e)}")
+            # 2. State: FAILED (progress = -1.0)
+            task_obj.progress = -1.0
+            task_obj.progress_msg = f"[Exception]: {str(e)}"
+            task_obj.save()
+            logger.error(f"Sub-Task {task_id} state -> FAILED (-1.0): {str(e)}")
             
     elif task_type == 'graphrag_build':
         # Simulate processing time

@@ -22,6 +22,9 @@ app.register_blueprint(user_app)
 app.register_blueprint(dataset_app)
 app.register_blueprint(document_app)
 
+from api.services.document_service import start_aggregation_thread
+start_aggregation_thread()
+
 def check_db():
     try:
         db.execute_sql("SELECT 1")

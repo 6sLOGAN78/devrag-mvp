@@ -4,7 +4,7 @@
 To define the relational database schemas for Users and Tenants using your ORM, and to apply these migrations to the database.
 
 ## 2. Documentation Basis
-*   `ragflow-docs/08-database/schema.md`: INFERRED - The basic structural relationship where a User belongs to a Tenant.
+*   `docs/08-database/schema.md`: INFERRED - The basic structural relationship where a User belongs to a Tenant.
 
 ## 3. Prerequisites
 *   Part 02 completed (ORM connected).

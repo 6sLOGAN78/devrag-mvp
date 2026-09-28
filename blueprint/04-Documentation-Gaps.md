@@ -1,16 +1,16 @@
 # Documentation Gaps
 
-This document identifies areas where the original `ragflow-docs` do not provide sufficient detail to create an exact replica. These gaps require either source-code investigation or architectural decisions during implementation.
+This document identifies areas where the original `docs` do not provide sufficient detail to create an exact replica. These gaps require either source-code investigation or architectural decisions during implementation.
 
 ## GAP-01: Internal API Contracts
 *   **Area**: Core Backend
-*   **Description**: The exact JSON schemas for internal API requests (e.g., creating a Knowledge Base, updating a document status) are not exhaustively documented in `ragflow-docs/04-api/`.
+*   **Description**: The exact JSON schemas for internal API requests (e.g., creating a Knowledge Base, updating a document status) are not exhaustively documented in `docs/04-api/`.
 *   **Impact**: Frontend and Backend cannot communicate without a defined contract.
 *   **Suggested Investigation**: You must define these REST contracts yourself (`PROPOSED`) based on the required ORM models, or inspect network requests on a live RAGFlow instance.
 
 ## GAP-02: Chunking Algorithm Nuances
 *   **Area**: Document Ingestion
-*   **Description**: The documentation mentions 14 specific chunkers (`ragflow-docs/06-document-processing/chunking.md`) but does not provide the algorithmic logic for how the "Paper" chunker differs from the "Resume" chunker.
+*   **Description**: The documentation mentions 14 specific chunkers (`docs/06-document-processing/chunking.md`) but does not provide the algorithmic logic for how the "Paper" chunker differs from the "Resume" chunker.
 *   **Impact**: Exact parity with RAGFlow's chunking quality is impossible from docs alone.
 *   **Suggested Investigation**: Build a generic Recursive Character Splitter for the MVP. Advanced heuristics require source code reading of the DeepDoc module.
 

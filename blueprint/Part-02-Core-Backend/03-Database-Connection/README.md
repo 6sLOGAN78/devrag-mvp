@@ -4,7 +4,7 @@
 To establish a connection pool to the relational database using an Object-Relational Mapper (ORM) and verify that the backend can successfully talk to the infrastructure provisioned in Part 01.
 
 ## 2. Documentation Basis
-*   `ragflow-docs/08-database/schema.md`: INFERRED - An ORM is required to map the documented schemas to application objects securely without writing raw SQL.
+*   `docs/08-database/schema.md`: INFERRED - An ORM is required to map the documented schemas to application objects securely without writing raw SQL.
 
 ## 3. Prerequisites
 *   `Part-01-Infrastructure/01-Relational-DB` (The DB container must be running).

@@ -4,8 +4,8 @@
 To implement the actual data transformation: downloading the raw text, splitting it into semantic chunks, generating vector embeddings, and inserting them into the Vector DB.
 
 ## 2. Documentation Basis
-*   `ragflow-docs/06-document-processing/chunking.md`: IMPLEMENTATION DECISION - Using a generic text chunker instead of 14 specialized ones for MVP.
-*   `ragflow-docs/05-rag-pipeline/ingestion-pipeline.md`: DOCUMENTED - The Embedding and VDB insertion flow.
+*   `docs/06-document-processing/chunking.md`: IMPLEMENTATION DECISION - Using a generic text chunker instead of 14 specialized ones for MVP.
+*   `docs/05-rag-pipeline/ingestion-pipeline.md`: DOCUMENTED - The Embedding and VDB insertion flow.
 
 ## 3. Prerequisites
 *   `Part-05/02-Task-Workers` completed (Worker state machine is ready).

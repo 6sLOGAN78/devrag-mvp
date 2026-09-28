@@ -4,7 +4,7 @@
 To build a programmatic state machine that can parse a JSON graph (nodes and edges), topologically sort it, and execute nodes in the correct order, passing variables between them.
 
 ## 2. Documentation Basis
-*   `ragflow-docs/14-workflows/execution.md`: DOCUMENTED - Node execution lifecycle.
+*   `docs/14-workflows/execution.md`: DOCUMENTED - Node execution lifecycle.
 
 ## 3. Prerequisites
 *   None.

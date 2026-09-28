@@ -61,7 +61,7 @@ flowchart TD
     *   *Dependencies*: None.
     *   *Expected inputs*: Dev commands.
     *   *Expected outputs*: Running localhost server with an empty shell.
-    *   *Related docs*: `ragflow-docs/02-frontend/architecture.md`
+    *   *Related docs*: `docs/02-frontend/architecture.md`
     *   *Priority*: High
 *   **02-Auth-UI**:
     *   *Objective*: Build Login/Register screens.

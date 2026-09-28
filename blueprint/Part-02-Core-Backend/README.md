@@ -3,7 +3,7 @@
 ## 5.1 Part Objective
 The objective of this part is to scaffold the backend application server. This creates the execution environment, establishes the API routing layer, and wires up connections to the infrastructure provisioned in Part 01. It is the necessary foundation for all subsequent business logic and machine learning tasks.
 
-*Relevant Docs*: `ragflow-docs/03-backend/architecture.md`.
+*Relevant Docs*: `docs/03-backend/architecture.md`.
 
 ## 5.2 Prerequisites
 *   **Required previous parts**: `Part-01-Infrastructure` must be complete and running.
@@ -43,4 +43,4 @@ The order is strictly sequential. You must initialize the project (01) before yo
 *   Vector DB connections are excluded from this phase to keep the initial client setup simple; they will be implemented in the Ingestion phase.
 
 ## 5.8 Documentation References
-*   `ragflow-docs/03-backend/architecture.md`
+*   `docs/03-backend/architecture.md`

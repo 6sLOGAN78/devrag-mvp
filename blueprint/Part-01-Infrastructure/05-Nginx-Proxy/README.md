@@ -4,9 +4,9 @@
 To configure an NGINX reverse proxy to act as the edge router for the devRAG application. NGINX will serve the static frontend assets and securely route API traffic to the backend server.
 
 ## 2. Documentation Basis
-*   `ragflow-docs/18-deployment/deployment-overview.md`: DOCUMENTED - Nginx Reverse Proxy sits at the edge on ports 80/443.
-*   `ragflow-docs/22-code-tracing/frontend-to-backend.md`: DOCUMENTED - Proxies HTTP / SSE Requests from UI to backend.
-*   `ragflow-docs/03-backend/backend-architecture.md`: INFERRED - Originally used to split traffic between Go and Python. In devRAG, it routes all `/api` to the unified backend.
+*   `docs/18-deployment/deployment-overview.md`: DOCUMENTED - Nginx Reverse Proxy sits at the edge on ports 80/443.
+*   `docs/22-code-tracing/frontend-to-backend.md`: DOCUMENTED - Proxies HTTP / SSE Requests from UI to backend.
+*   `docs/03-backend/backend-architecture.md`: INFERRED - Originally used to split traffic between Go and Python. In devRAG, it routes all `/api` to the unified backend.
 
 ## 3. Prerequisites
 *   Docker and Docker Compose installed.

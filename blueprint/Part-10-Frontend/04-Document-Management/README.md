@@ -4,8 +4,8 @@
 To build the interface where users manage a specific Knowledge Base, upload raw files, and monitor the asynchronous parsing/chunking pipeline.
 
 ## 2. Documentation Basis
-*   `ragflow-docs/06-document-processing/upload.md`: DOCUMENTED - File upload.
-*   `ragflow-docs/10-cache-and-queues/workers.md`: INFERRED - The UI must poll or use websockets to detect when the background worker finishes processing.
+*   `docs/06-document-processing/upload.md`: DOCUMENTED - File upload.
+*   `docs/10-cache-and-queues/workers.md`: INFERRED - The UI must poll or use websockets to detect when the background worker finishes processing.
 
 ## 3. Prerequisites
 *   `03-KB-Dashboard` (Navigation to this route).

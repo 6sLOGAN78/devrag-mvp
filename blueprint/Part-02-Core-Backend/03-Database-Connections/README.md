@@ -4,7 +4,7 @@
 To establish a connection pool to the relational database using an Object-Relational Mapper (ORM) and verify that both the Python and Go backends can successfully talk to the infrastructure provisioned in Part 01.
 
 ## 2. Documentation Basis
-*   `ragflow-docs/08-database/schema.md`: INFERRED - An ORM is required to map the documented schemas to application objects securely without writing raw SQL.
+*   `docs/08-database/schema.md`: INFERRED - An ORM is required to map the documented schemas to application objects securely without writing raw SQL.
 *   The architecture implies a dual-backend setup where both Python and Go must connect to the same central database container using the credentials loaded from the configuration singleton.
 
 ## 3. Prerequisites

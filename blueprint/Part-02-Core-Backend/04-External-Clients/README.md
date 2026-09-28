@@ -4,8 +4,8 @@
 To initialize singleton client objects for communicating with Redis (for caching and task queues) and MinIO (for blob storage). This officially completes the Core Backend scaffolding for both Python and Go engines.
 
 ## 2. Documentation Basis
-*   `ragflow-docs/09-storage/s3.md`
-*   `ragflow-docs/10-cache-and-queues/redis.md`
+*   `docs/09-storage/s3.md`
+*   `docs/10-cache-and-queues/redis.md`
 *   RAGFlow Architecture: Dual-backend deployment requires both Go and Python to securely connect to the singletons on boot.
 
 ## 3. Prerequisites

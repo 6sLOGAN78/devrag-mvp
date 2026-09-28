@@ -3,7 +3,7 @@
 ## 5.1 Part Objective
 This part builds the conversational interface of the backend. It takes a user query, fetches context via the Retrieval Engine, injects citation markers, queries a chat LLM, and streams the answer back to the user via Server-Sent Events (SSE).
 
-*Relevant Docs*: `ragflow-docs/05-rag-pipeline/prompt-engineering.md`, `ragflow-docs/12-chat/streaming.md`.
+*Relevant Docs*: `docs/05-rag-pipeline/prompt-engineering.md`, `docs/12-chat/streaming.md`.
 
 ## 5.2 Prerequisites
 *   **Required previous parts**: `Part-06-Retrieval-Engine` (to fetch context).
@@ -40,4 +40,4 @@ Sequential. Build the string manipulator (01), wrap the external LLM API (02), a
 *   Frontend UI: This is purely backend SSE streaming.
 
 ## 5.8 Documentation References
-*   `ragflow-docs/12-chat/streaming.md`
+*   `docs/12-chat/streaming.md`

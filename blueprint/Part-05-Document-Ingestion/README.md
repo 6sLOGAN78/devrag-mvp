@@ -3,7 +3,7 @@
 ## 5.1 Part Objective
 This part builds the core data processing pipeline. It orchestrates the journey of a user's file from an HTTP upload to searchable vector embeddings in the database.
 
-*Relevant Docs*: `ragflow-docs/05-rag-pipeline/ingestion-pipeline.md`, `ragflow-docs/06-document-processing/upload.md`.
+*Relevant Docs*: `docs/05-rag-pipeline/ingestion-pipeline.md`, `docs/06-document-processing/upload.md`.
 
 ## 5.2 Prerequisites
 *   **Required previous parts**: `Part-04-KnowledgeBase-Management`. You need a KB ID to attach the document to.
@@ -45,4 +45,4 @@ The implementation must follow the data flow. Build the Upload API first (01), t
 *   DeepDoc Vision parsing (YOLO, PDFs) is deferred to Part 08. This part focuses exclusively on plain text (`.txt` or `.md`) files to validate the pipeline infrastructure.
 
 ## 5.8 Documentation References
-*   `ragflow-docs/05-rag-pipeline/ingestion-pipeline.md`
+*   `docs/05-rag-pipeline/ingestion-pipeline.md`

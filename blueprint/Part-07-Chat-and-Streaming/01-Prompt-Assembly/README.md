@@ -4,7 +4,7 @@
 To concatenate the raw text chunks retrieved from the database into a single cohesive string, injecting specific citation markers so the LLM knows how to reference them.
 
 ## 2. Documentation Basis
-*   `ragflow-docs/05-rag-pipeline/prompt-engineering.md`: DOCUMENTED - RAGFlow uses specific markers (like `##0$$`) to teach the LLM to cite its sources.
+*   `docs/05-rag-pipeline/prompt-engineering.md`: DOCUMENTED - RAGFlow uses specific markers (like `##0$$`) to teach the LLM to cite its sources.
 
 ## 3. Prerequisites
 *   `Part-06` completed (Retrieval engine returns chunks).

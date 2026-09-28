@@ -4,7 +4,7 @@
 To provision a Redis container that will act as the message broker for the asynchronous document processing workers and provide distributed locking mechanisms.
 
 ## 2. Documentation Basis
-*   `ragflow-docs/10-cache-and-queues/redis.md`: Explicitly documents Redis as the backing store for `ragflow_TASK_EXE_QUEUE`.
+*   `docs/10-cache-and-queues/redis.md`: Explicitly documents Redis as the backing store for `ragflow_TASK_EXE_QUEUE`.
 *   **DOCUMENTED**: Redis is provisioned using the `valkey/valkey:8` image, requires a password, and is capped at 128mb with a `volatile-lru` eviction policy.
 
 ## 3. Prerequisites

@@ -4,7 +4,7 @@
 To implement a secure, central mechanism for the application to load environment variables (like database passwords and API keys) rather than hardcoding them in the source code.
 
 ## 2. Documentation Basis
-*   `ragflow-docs/03-backend/architecture.md`: INFERRED - Standard backend security practice. RAGFlow relies on a three-step Template Replacement Mechanism during startup to resolve `.env` variables into a literal YAML file that the backends parse.
+*   `docs/03-backend/architecture.md`: INFERRED - Standard backend security practice. RAGFlow relies on a three-step Template Replacement Mechanism during startup to resolve `.env` variables into a literal YAML file that the backends parse.
 
 ## 3. Prerequisites
 *   `Part-02-Core-Backend/01-Project-Initialization` completed.

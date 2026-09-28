@@ -3,7 +3,7 @@
 ## 5.1 Part Objective
 This part builds the search backend. It takes a user's natural language query and finds the most relevant chunks of text stored in the Vector Database, strictly filtering by tenant isolation. 
 
-*Relevant Docs*: `ragflow-docs/07-retrieval/hybrid-search.md`.
+*Relevant Docs*: `docs/07-retrieval/hybrid-search.md`.
 
 ## 5.2 Prerequisites
 *   **Required previous parts**: `Part-05-Document-Ingestion`. You cannot build a search engine without populated data.
@@ -44,4 +44,4 @@ Sequential. You must process the query (01) before searching (02/03). You must s
 *   HTTP APIs: The retrieval engine is an internal service.
 
 ## 5.8 Documentation References
-*   `ragflow-docs/07-retrieval/hybrid-search.md`
+*   `docs/07-retrieval/hybrid-search.md`

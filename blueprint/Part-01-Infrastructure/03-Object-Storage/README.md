@@ -4,7 +4,7 @@
 To provision an S3-compatible object storage service (MinIO) to securely store raw user document uploads (PDFs, PPTs) and intermediate generated images.
 
 ## 2. Documentation Basis
-*   `ragflow-docs/09-storage/object-storage.md`: Documents the requirement for blob storage to hold raw files before processing.
+*   `docs/09-storage/object-storage.md`: Documents the requirement for blob storage to hold raw files before processing.
 *   **DOCUMENTED**: `MINIO_ENDPOINT`, `MINIO_ACCESS_KEY`, `MINIO_SECRET_KEY` are used by the Storage Factory.
 
 ## 3. Prerequisites

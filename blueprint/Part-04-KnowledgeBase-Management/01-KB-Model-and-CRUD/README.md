@@ -4,7 +4,7 @@
 To implement the database tables and REST API for Knowledge Base management, ensuring strict tenant isolation.
 
 ## 2. Documentation Basis
-*   `ragflow-docs/04-api/knowledge-base.md`: DOCUMENTED - The REST contracts for managing KBs.
+*   `docs/04-api/knowledge-base.md`: DOCUMENTED - The REST contracts for managing KBs.
 
 ## 3. Prerequisites
 *   `Part-03-Authentication-Tenancy` completed.

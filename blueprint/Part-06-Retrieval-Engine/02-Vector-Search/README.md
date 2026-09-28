@@ -4,7 +4,7 @@
 To query the Vector Database using the query embedding to find the most semantically similar text chunks, while strictly enforcing multi-tenancy.
 
 ## 2. Documentation Basis
-*   `ragflow-docs/07-retrieval/hybrid-search.md`: DOCUMENTED - Cosine similarity search.
+*   `docs/07-retrieval/hybrid-search.md`: DOCUMENTED - Cosine similarity search.
 
 ## 3. Prerequisites
 *   `01-Query-Processing` (The query vector).

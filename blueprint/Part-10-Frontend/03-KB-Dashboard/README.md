@@ -4,7 +4,7 @@
 To build the primary landing page for authenticated users, allowing them to view, create, and manage their Knowledge Bases.
 
 ## 2. Documentation Basis
-*   `ragflow-docs/04-api/knowledge-base.md`: DOCUMENTED - KBs are the primary organizational unit.
+*   `docs/04-api/knowledge-base.md`: DOCUMENTED - KBs are the primary organizational unit.
 
 ## 3. Prerequisites
 *   `01-Frontend-Core` (App Shell).

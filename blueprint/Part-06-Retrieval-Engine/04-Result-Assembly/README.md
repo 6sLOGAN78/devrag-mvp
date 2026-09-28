@@ -4,7 +4,7 @@
 To merge the results from Vector Search and BM25 Search, deduplicate chunks that were found by both methods, and apply a final ranking algorithm.
 
 ## 2. Documentation Basis
-*   `ragflow-docs/07-retrieval/hybrid-search.md`: DOCUMENTED - The merging of multiple retrieval strategies.
+*   `docs/07-retrieval/hybrid-search.md`: DOCUMENTED - The merging of multiple retrieval strategies.
 
 ## 3. Prerequisites
 *   `02-Vector-Search` and `03-BM25-Search` completed.

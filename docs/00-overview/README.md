@@ -43,12 +43,12 @@ Unlike conventional naive RAG engines that perform arbitrary chunking (e.g., cha
 
 | Document | Description | Key Topics |
 | :--- | :--- | :--- |
-| [what-is-ragflow.md](file:///home/logan78/Desktop/ragflow/ragflow-docs/00-overview/what-is-ragflow.md) | High-level summary of RAGFlow | Core capabilities, vision, multi-modal ingestion, DeepDoc parsing. |
-| [why-ragflow-exists.md](file:///home/logan78/Desktop/ragflow/ragflow-docs/00-overview/why-ragflow-exists.md) | Problem state & motivation | Naive RAG limitations, visual layout understanding, zero-hallucination guarantee. |
-| [high-level-architecture.md](file:///home/logan78/Desktop/ragflow/ragflow-docs/00-overview/high-level-architecture.md) | Layered subsystem breakdown | Presentation, Routing, Core RAG, DeepDoc, Persistence, Engine. |
-| [architecture-diagram.md](file:///home/logan78/Desktop/ragflow/ragflow-docs/00-overview/architecture-diagram.md) | Complete visual architecture | Comprehensive Mermaid diagram of dual-stack services & components. |
-| [repository-map.md](file:///home/logan78/Desktop/ragflow/ragflow-docs/00-overview/repository-map.md) | High-level repository map | Top-level folder structure, python/go backend split, web workspace. |
-| [technology-stack.md](file:///home/logan78/Desktop/ragflow/ragflow-docs/00-overview/technology-stack.md) | Tech stack inventory | React 18, Go Gin, Python Quart, Peewee, Redis, MinIO, Vector DBs. |
+| [what-is-ragflow.md](file:///home/logan78/Desktop/ragflow/docs/00-overview/what-is-ragflow.md) | High-level summary of RAGFlow | Core capabilities, vision, multi-modal ingestion, DeepDoc parsing. |
+| [why-ragflow-exists.md](file:///home/logan78/Desktop/ragflow/docs/00-overview/why-ragflow-exists.md) | Problem state & motivation | Naive RAG limitations, visual layout understanding, zero-hallucination guarantee. |
+| [high-level-architecture.md](file:///home/logan78/Desktop/ragflow/docs/00-overview/high-level-architecture.md) | Layered subsystem breakdown | Presentation, Routing, Core RAG, DeepDoc, Persistence, Engine. |
+| [architecture-diagram.md](file:///home/logan78/Desktop/ragflow/docs/00-overview/architecture-diagram.md) | Complete visual architecture | Comprehensive Mermaid diagram of dual-stack services & components. |
+| [repository-map.md](file:///home/logan78/Desktop/ragflow/docs/00-overview/repository-map.md) | High-level repository map | Top-level folder structure, python/go backend split, web workspace. |
+| [technology-stack.md](file:///home/logan78/Desktop/ragflow/docs/00-overview/technology-stack.md) | Tech stack inventory | React 18, Go Gin, Python Quart, Peewee, Redis, MinIO, Vector DBs. |
 
 ---
 

@@ -4,7 +4,7 @@
 To initialize the frontend project, install the necessary routing and state management dependencies, configure the global API client (to inject JWTs), and establish the structural Application Shell (Sidebar + Topbar).
 
 ## 2. Documentation Basis
-*   `ragflow-docs/02-frontend/architecture.md`: INFERRED - The docs mention standard SPA architecture, but exact tooling is unspecified.
+*   `docs/02-frontend/architecture.md`: INFERRED - The docs mention standard SPA architecture, but exact tooling is unspecified.
 *   **PROPOSED**: Use React with React Router, Tailwind CSS for styling, and a pre-built component library (like shadcn/ui or MUI) to accelerate development.
 
 ## 3. Prerequisites

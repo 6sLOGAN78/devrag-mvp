@@ -1,5 +1,5 @@
 from quart import Blueprint, request, jsonify, g
-from api.db.db_models import Knowledgebase, Document, db
+from api.db.db_models import Knowledgebase, Document, Task, db
 from api.utils.auth_middleware import login_required
 from api.utils.storage_client import STORAGE_CLIENT
 from api.utils.redis_conn import REDIS_CLIENT
@@ -88,23 +88,31 @@ async def parse_documents(dataset_id):
         if not doc:
             continue
             
-        # Update state to RUNNING ('2')
-        doc.status = '2'
+        # Update run state to RUNNING ('1' for execution logic)
+        doc.run = '1'
         doc.save()
         
-        # Redis Queueing (Simulating task chunks for the MVP)
-        # RAGFlow splits by pages, we'll just push a single parse task per doc for now
+        # 1. Create sub-task records in DB (Task Chunking Simulation)
+        task_id = uuid.uuid4().hex
+        task = Task.create(
+            id=task_id,
+            doc_id=doc.id,
+            from_page=0,
+            to_page=1000000,
+            task_type="document_parse"
+        )
+        
+        # 2. Redis Queueing (Push sub-tasks to Stream)
         task_payload = {
             "task_type": "document_parse",
+            "task_id": task.id,
             "doc_id": doc.id,
             "kb_id": kb.id,
-            "tenant_id": g.tenant_id,
-            "from_page": 0,
-            "to_page": -1 # Indicates full document for MVP
+            "tenant_id": g.tenant_id
         }
         
-        task_id = REDIS_CLIENT.xadd("rag_flow:tasks", task_payload)
-        dispatched.append({"doc_id": doc.id, "task_id": task_id})
+        REDIS_CLIENT.xadd("rag_flow:tasks", task_payload)
+        dispatched.append({"doc_id": doc.id, "task_id": task.id})
 
     return jsonify({"status": "ok", "message": "Parsing tasks queued", "data": dispatched}), 200
 
