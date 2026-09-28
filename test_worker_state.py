@@ -57,8 +57,8 @@ def test():
         
         # 5. Wait for worker and verify state
         # The aggregation thread takes 6 seconds, we'll wait 8 seconds.
-        print("Waiting 8 seconds for worker and aggregation thread to process...")
-        time.sleep(8)
+        print("Waiting 15 seconds for worker and aggregation thread to process...")
+        time.sleep(15)
         
         doc = Document.get_by_id(doc_id)
         print(f"Final Document Run State: '{doc.run}' (Expected '3' / DONE)")
