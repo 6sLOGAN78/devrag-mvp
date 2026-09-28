@@ -65,26 +65,60 @@ def process_message(msg_id, payload):
     
     task_obj = None
     if task_id:
-        # Avoid peewee connection issues across threads by ensuring connection
         if db.is_closed():
             db.connect()
-        # I need to import Task at the top. Let's make sure Task is there.
-        # It's better to dynamically import it here if not at the top.
-        from api.db.db_models import Task
+        from api.db.db_models import Task, Document
         task_obj = Task.get_or_none(Task.id == task_id)
 
     if task_obj and task_type == 'document_parse':
         try:
-            # Simulate processing time / parsing logic (OCR, NLP chunking)
-            time.sleep(2)
+            doc = Document.get_or_none(Document.id == task_obj.doc_id)
+            if not doc:
+                raise Exception(f"Document {task_obj.doc_id} not found")
+                
+            tenant_id = payload.get('tenant_id')
+            kb_id = payload.get('kb_id')
             
-            # 1. State: DONE (progress = 1.0)
+            # Phase 1: Fetch Raw Bytes
+            from api.utils.storage_client import STORAGE_CLIENT
+            bucket_name = "devrag-documents"
+            location = doc.location
+            if not location:
+                raise Exception("Document location is missing")
+                
+            response = STORAGE_CLIENT.get_object(bucket_name, location)
+            raw_text = response.read().decode('utf-8')
+            response.close()
+            response.release_conn()
+            
+            # Phase 2: Chunking (build_chunks)
+            from rag.app import naive
+            chunks = naive.chunk(raw_text)
+            
+            # Decorate chunks with metadata
+            import uuid
+            for c in chunks:
+                c["_id"] = uuid.uuid4().hex
+                c["doc_id"] = doc.id
+                c["kb_id"] = kb_id
+                c["tenant_id"] = tenant_id
+                
+            # Phase 3: Embedding
+            from rag.llm.embedding_model import embed_chunks
+            chunks = embed_chunks(chunks, tenant_id)
+            
+            # Phase 4: Vector Store Insertion
+            from common.doc_store.es_conn_base import docStoreConn
+            index_name = f"devrag_{tenant_id}" # Tenant isolated index
+            docStoreConn.insert(index_name, chunks)
+            
+            # 5. State: DONE (progress = 1.0)
             task_obj.progress = 1.0
             task_obj.save()
-            logger.info(f"Sub-Task {task_id} state -> DONE (1.0)")
+            logger.info(f"Sub-Task {task_id} state -> DONE (Inserted {len(chunks)} chunks)")
             
         except Exception as e:
-            # 2. State: FAILED (progress = -1.0)
+            # State: FAILED (progress = -1.0)
             task_obj.progress = -1.0
             task_obj.progress_msg = f"[Exception]: {str(e)}"
             task_obj.save()
