@@ -77,6 +77,7 @@ type Document struct {
 	Progress    float64 `gorm:"default:0.0"`
 	ProgressMsg string  `gorm:"type:text"`
 	Status      string  `gorm:"index;type:varchar(1);default:'1'"`
+	ContentHash string  `gorm:"index;type:varchar(64)"`
 	BaseModel
 }
 

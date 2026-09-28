@@ -13,10 +13,12 @@ def test():
     try:
         base_url = "http://localhost:9380/api"
         
+        session = requests.Session()
+
         # 1. Register
         print("Testing Registration...")
-        reg_resp = requests.post(f"{base_url}/register", json={
-            "email": "test@devrag.com",
+        reg_resp = session.post(f"{base_url}/register", json={
+            "email": "test_auth@devrag.com",
             "password": "SecurePassword123!",
             "tenant_name": "DevRAG Workspace"
         })
@@ -25,17 +27,19 @@ def test():
 
         # 2. Login
         print("Testing Login...")
-        login_resp = requests.post(f"{base_url}/login", json={
-            "email": "test@devrag.com",
+        login_resp = session.post(f"{base_url}/login", json={
+            "email": "test_auth@devrag.com",
             "password": "SecurePassword123!"
         })
         print(f"Login status: {login_resp.status_code}, response: {login_resp.text}")
         assert login_resp.status_code == 200
-        token = login_resp.json().get("token")
-        assert token is not None
-        print(f"Acquired JWT: {token[:20]}...")
+        
+        # Verify cookie is set
+        cookies = session.cookies.get_dict()
+        assert "ragflow_session" in cookies
+        print(f"Acquired Auth Cookie: {cookies['ragflow_session'][:20]}...")
 
-        print("ALL TESTS PASSED!")
+        print("\nALL AUTH ENDPOINT TESTS PASSED WITH QUART_AUTH!")
     finally:
         proc.terminate()
         proc.wait()

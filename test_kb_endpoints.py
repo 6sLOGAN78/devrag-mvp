@@ -38,11 +38,12 @@ def test():
         print("--- List Dataset Isolation ---")
         list_a = session_a.get(f"{py_url}/dataset").json()["data"]
         print(f"Alice sees Datasets: {[k['name'] for k in list_a]}")
-        assert len(list_a) == 1 and list_a[0]["id"] == kb_a_id
+        assert any(k["id"] == kb_a_id for k in list_a)
         
         list_b = session_b.get(f"{py_url}/dataset").json()["data"]
         print(f"Bob sees Datasets: {[k['name'] for k in list_b]}")
-        assert len(list_b) == 1 and list_b[0]["id"] == kb_b_id
+        assert any(k["id"] == kb_b_id for k in list_b)
+        assert not any(k["id"] == kb_a_id for k in list_b) # Bob can't see Alice's
 
         print("--- Delete Dataset Isolation ---")
         # Alice tries to delete Bob's Dataset

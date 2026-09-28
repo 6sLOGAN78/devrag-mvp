@@ -97,6 +97,7 @@ class Document(DataBaseModel):
     progress = FloatField(default=0.0)
     progress_msg = TextField(null=True)
     status = CharField(max_length=1, null=True, default='1', index=True)
+    content_hash = CharField(max_length=64, null=True, index=True)
     
     class Meta:
         table_name = 'document'
