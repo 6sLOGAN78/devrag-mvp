@@ -1,0 +1,7 @@
+This is the first paragraph. It contains some basic information about RAG systems. Retrieval-Augmented Generation is a powerful technique.
+
+This is the second paragraph. It introduces vector databases. We use Elasticsearch for this MVP. It allows us to perform dense vector search and BM25 sparse search.
+
+This is the third paragraph. Chunking is an essential part of the process. If a document is too long, the LLM loses context. We split it into 500 token chunks.
+
+This is the fourth paragraph, meant to simulate a slightly longer document. By adding more text, we guarantee the naive chunker processes multiple segments and inserts them individually into the Elasticsearch cluster.

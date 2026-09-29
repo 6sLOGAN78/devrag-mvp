@@ -39,18 +39,35 @@ class LLMBundle:
                 vectors.append(vec.tolist())
             return np.array(vectors)
 
-def embed_chunks(chunks: list, tenant_id: str):
-    """Takes chunk dicts, embeds content, adds vector to dict."""
+def embed_chunks(chunks: list, tenant_id: str, doc_name: str = ""):
+    """Takes chunk dicts, embeds content, adds vector to dict using Mixed Embeddings."""
     llm = LLMBundle(tenant_id)
+    
+    # -------------------------------------------------------------
+    # CHANGE: Implementing RAGFlow Mixed Embeddings (Title + Content)
+    # -------------------------------------------------------------
+    title_w = 0.1 # RAGFlow default title weight
     
     # Extract strings
     texts = [c["content"] for c in chunks]
     
-    # Embed
-    vectors = llm.embed(texts)
+    # Embed Content
+    cnts_vectors = llm.embed(texts)
     
-    # Append to chunks
-    for i, chunk in enumerate(chunks):
-        chunk["q_1536_vec"] = vectors[i].tolist()
+    # Embed Title (batching the same title for efficiency, or just doing it once and repeating)
+    if doc_name:
+        tts_vector = llm.embed([doc_name])[0]
+        # Mix the embeddings mathematically
+        for i, chunk in enumerate(chunks):
+            cnt_vec = np.array(cnts_vectors[i])
+            tts_vec = np.array(tts_vector)
+            mixed_vec = (title_w * tts_vec) + ((1.0 - title_w) * cnt_vec)
+            # Re-normalize
+            mixed_vec = mixed_vec / np.linalg.norm(mixed_vec)
+            chunk["q_1536_vec"] = mixed_vec.tolist()
+    else:
+        # Fallback if no title
+        for i, chunk in enumerate(chunks):
+            chunk["q_1536_vec"] = cnts_vectors[i].tolist()
         
     return chunks

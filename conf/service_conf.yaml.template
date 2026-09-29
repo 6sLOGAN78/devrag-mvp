@@ -1,14 +1,22 @@
-mysql:
-  host: ${MYSQL_HOST}
-  port: ${MYSQL_PORT}
-  user: root
-  password: ${MYSQL_PASSWORD}
-  db: ${MYSQL_DBNAME}
+# RAGFlow Configuration Template
+ragflow:
+  host: "0.0.0.0"
+  port: 9380
+
+doc_store:
+  type: "elasticsearch"
 
 redis:
-  url: redis://:${REDIS_PASSWORD}@127.0.0.1:${REDIS_PORT}/0
+  uri: "redis://localhost:6380/0"
+  
+mysql:
+  name: "devrag"
+  user: "root"
+  password: "ragflow_password"
+  host: "127.0.0.1"
+  port: 3306
 
 minio:
-  endpoint: 127.0.0.1:${MINIO_PORT}
-  user: ${MINIO_USER}
-  password: ${MINIO_PASSWORD}
+  endpoint: "localhost:9000"
+  access_key: "minioadmin"
+  secret_key: "minioadmin"

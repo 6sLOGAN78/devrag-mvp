@@ -92,8 +92,23 @@ def process_message(msg_id, payload):
             response.release_conn()
             
             # Phase 2: Chunking (build_chunks)
+            # -------------------------------------------------------------
+            # CHANGE: Implementing FACTORY dispatch pattern matching RAGFlow
+            # -------------------------------------------------------------
             from rag.app import naive
-            chunks = naive.chunk(raw_text)
+            
+            FACTORY = {
+                "naive": naive,
+                # In RAGFlow: "resume", "book", "laws", "qa", etc.
+            }
+            
+            parser_id = doc.parser_id if hasattr(doc, 'parser_id') and doc.parser_id else "naive"
+            if parser_id not in FACTORY:
+                logger.warning(f"Parser {parser_id} not implemented, falling back to naive")
+                parser_id = "naive"
+                
+            parser_module = FACTORY[parser_id]
+            chunks = parser_module.chunk(raw_text)
             
             # Decorate chunks with metadata
             import uuid
@@ -104,11 +119,17 @@ def process_message(msg_id, payload):
                 c["tenant_id"] = tenant_id
                 
             # Phase 3: Embedding
+            # -------------------------------------------------------------
+            # CHANGE: Passing doc.name to enable RAGFlow Mixed Embeddings
+            # -------------------------------------------------------------
             from rag.llm.embedding_model import embed_chunks
-            chunks = embed_chunks(chunks, tenant_id)
+            chunks = embed_chunks(chunks, tenant_id, doc_name=doc.name or "")
             
             # Phase 4: Vector Store Insertion
-            from common.doc_store.es_conn_base import docStoreConn
+            # -------------------------------------------------------------
+            # CHANGE: Abstraction mapping matching RAGFlow
+            # -------------------------------------------------------------
+            from common.doc_store import docStoreConn
             index_name = f"devrag_{tenant_id}" # Tenant isolated index
             docStoreConn.insert(index_name, chunks)
             
