@@ -28,22 +28,10 @@ class ElasticsearchConnection:
         """Bulk insert documents to an isolated tenant index."""
         # 1. Ensure index exists with a basic mapping (supporting 1536 dim vectors)
         if not self.client.indices.exists(index=index_name):
-            mapping = {
-                "mappings": {
-                    "properties": {
-                        "content": {"type": "text"},
-                        "doc_id": {"type": "keyword"},
-                        "kb_id": {"type": "keyword"},
-                        "tenant_id": {"type": "keyword"},
-                        "q_1536_vec": {
-                            "type": "dense_vector",
-                            "dims": 1536,
-                            "index": True,
-                            "similarity": "cosine"
-                        }
-                    }
-                }
-            }
+            import json
+            mapping_file = os.path.join(os.path.dirname(__file__), '../../conf/doc_meta_es_mapping.json')
+            with open(mapping_file, 'r') as f:
+                mapping = json.load(f)
             self.client.indices.create(index=index_name, body=mapping)
             logger.info(f"Created Elasticsearch index: {index_name}")
 

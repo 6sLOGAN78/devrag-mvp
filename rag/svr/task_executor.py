@@ -110,13 +110,19 @@ def process_message(msg_id, payload):
             parser_module = FACTORY[parser_id]
             chunks = parser_module.chunk(raw_text)
             
-            # Decorate chunks with metadata
-            import uuid
+            # Decorate chunks with metadata exactly as RAGFlow does
+            import xxhash
+            from datetime import datetime
             for c in chunks:
-                c["_id"] = uuid.uuid4().hex
+                # Use xxhash based on content and doc_id for determinism
+                c["id"] = xxhash.xxh64((c["content_with_weight"] + str(doc.id)).encode("utf-8", "surrogatepass")).hexdigest()
                 c["doc_id"] = doc.id
                 c["kb_id"] = kb_id
                 c["tenant_id"] = tenant_id
+                c["create_time"] = str(datetime.now()).replace("T", " ")[:19]
+                c["create_timestamp_flt"] = datetime.now().timestamp()
+                # Ensure the primary key _id is set for ES
+                c["_id"] = c["id"]
                 
             # Phase 3: Embedding
             # -------------------------------------------------------------
