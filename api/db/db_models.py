@@ -80,6 +80,15 @@ class UserTenant(DataBaseModel):
     class Meta:
         table_name = 'user_tenant'
 
+class TenantLLM(DataBaseModel):
+    id = CharField(max_length=32, primary_key=True)
+    tenant_id = CharField(max_length=32, null=False, index=True)
+    provider = CharField(max_length=64, null=False) # 'openai' or 'openrouter'
+    api_key = CharField(max_length=255, null=False)
+
+    class Meta:
+        table_name = 'tenant_llm'
+
 # 6. Define the Document Model
 class Document(DataBaseModel):
     id = CharField(max_length=32, primary_key=True)

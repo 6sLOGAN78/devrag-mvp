@@ -5,8 +5,30 @@ import numpy as np
 class LLMBundle:
     def __init__(self, tenant_id=None):
         self.tenant_id = tenant_id
-        # In a real app, this would fetch the tenant's model config from DB
-        self.api_key = os.environ.get("OPENAI_API_KEY", None)
+        self.api_key = None
+        self.provider = "mock"
+        
+        # 1. Check database for tenant-specific key (OpenAI prioritized for embeddings)
+        if self.tenant_id:
+            from api.db.db_models import TenantLLM, db
+            if db.is_closed():
+                db.connect()
+            
+            # Fetch openai key (since we use text-embedding-3-small)
+            tenant_key = TenantLLM.get_or_none(
+                (TenantLLM.tenant_id == self.tenant_id) & 
+                (TenantLLM.provider == 'openai')
+            )
+            
+            if tenant_key:
+                self.api_key = tenant_key.api_key
+                self.provider = "openai"
+                
+        # 2. Fallback to global environment variable if no tenant key is set
+        if not self.api_key:
+            self.api_key = os.environ.get("OPENAI_API_KEY", None)
+            if self.api_key:
+                self.provider = "openai"
 
     def embed(self, texts: list) -> np.ndarray:
         """Embeds a list of strings into 1536-dimensional vectors."""

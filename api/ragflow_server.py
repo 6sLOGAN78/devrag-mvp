@@ -11,6 +11,7 @@ from api.utils import redis_conn, storage_client
 from api.apps.user_app import user_app
 from api.apps.dataset_api import dataset_app
 from api.apps.document_api import document_app
+from api.apps.llm_api import llm_app
 
 app = Quart(__name__)
 app.secret_key = "devrag-super-secret-key-12345-long-enough-for-sha256"
@@ -21,6 +22,7 @@ QuartAuth(app)
 app.register_blueprint(user_app)
 app.register_blueprint(dataset_app)
 app.register_blueprint(document_app)
+app.register_blueprint(llm_app)
 
 from api.services.document_service import start_aggregation_thread
 start_aggregation_thread()
