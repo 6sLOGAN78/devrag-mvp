@@ -1,0 +1,8 @@
+# Pending user review - possible credential material
+docs/apikey llm.md
+
+.pytest_cache/
+.benchmarks/
+__pycache__/
+node_modules/
+.env
