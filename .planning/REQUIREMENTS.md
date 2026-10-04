@@ -619,6 +619,21 @@ Requirements for initial release. Each maps to exactly one roadmap phase.
 - [ ] **TEST-11**: Database tests and pipeline tests
 - [ ] **TEST-12**: Performance benchmarks
 
+### E2E — Acceptance flows (must each pass against the real stack, no mocks)
+
+- [ ] **E2E-01**: User registration creates user, tenant, owner link — passes against the real stack with no mocks (covers AUTH-01..04; flow: `21-end-to-end-flows/user-registration.md`)
+- [ ] **E2E-02**: Login returns token, user, tenant, default models — passes against the real stack with no mocks (covers AUTH-05..07; flow: `21-.../login.md`)
+- [ ] **E2E-03**: Create knowledge base provisions DB row and docstore index — passes against the real stack with no mocks (covers KB-01..03, IDX-05; flow: `21-.../create-knowledge-base.md`)
+- [ ] **E2E-04**: Upload document stores blob and creates UNSTART document — passes against the real stack with no mocks (covers DOC-01..07, STOR; flow: `21-.../upload-document.md`)
+- [ ] **E2E-05**: Document processing: parse request, queue, worker, DeepDoc, chunks — passes against the real stack with no mocks (covers DOC-09, ING, PARSE, CHUNK; flow: `21-.../document-processing.md`)
+- [ ] **E2E-06**: Indexing: embed, optional enrichment, bulk insert, document finished — passes against the real stack with no mocks (covers IDX, CHUNK-22..26; flow: `21-.../indexing.md`)
+- [ ] **E2E-07**: Ask question: tokenize, embed query, concurrent BM25 + vector search — passes against the real stack with no mocks (covers RETR-01..08; flow: `21-.../ask-question.md`)
+- [ ] **E2E-08**: RAG answer: rerank, format context with citations, generate, persist — passes against the real stack with no mocks (covers RETR-11, CHAT-16..21; flow: `21-.../rag-answer.md`)
+- [ ] **E2E-09**: Chat streaming over SSE with reference payload and final persistence — passes against the real stack with no mocks (covers CHAT-12, CHAT-13, UI-21, UI-23; flow: `21-.../chat-streaming.md`)
+- [ ] **E2E-10**: Agent execution: load DSL, run graph, stream node events — passes against the real stack with no mocks (covers AGT-06, FLOW; flow: `21-.../agent-execution.md`)
+- [ ] **E2E-11**: Workflow execution by webhook with replica snapshot and session persistence — passes against the real stack with no mocks (covers AGT-36..38; flow: `21-.../workflow-execution.md`)
+- [ ] **E2E-12**: One request, full story: upload through cited streamed answer in the UI — passes against the real stack with no mocks (covers all of the above; flow: `21-.../ragflow-one-request.md`)
+
 ### BILL — Metered billing and API-key platform (from `docs/apis.md`, user-confirmed in scope)
 
 - [ ] **BILL-01**: API keys stored as SHA-256 hash plus prefix, shown once, with ACTIVE/REVOKED/EXPIRED states, `last_used_at`, expiry
@@ -668,9 +683,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 |-------------|-------|--------|
 
 **Coverage:**
-- v1 requirements: 536 total
+- v1 requirements: 548 total
 - Mapped to phases: 0
-- Unmapped: 536 ⚠️
+- Unmapped: 548 ⚠️
 
 ---
 *Requirements defined: 2026-10-05*
