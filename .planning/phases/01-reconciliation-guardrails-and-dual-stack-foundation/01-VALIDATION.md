@@ -39,7 +39,7 @@ Readiness rule: tests wait on `scripts/wait_stack.sh` and the one `wait_until` h
 
 ## Per-Task Verification Map
 
-Task IDs are assigned by the planner; this map is keyed by success criterion and requirement until plans exist. The planner must attach each row to a task.
+Task IDs below are assigned (format `plan-task`, e.g. `01-03-T1`). The Automated Command column keeps the research wording; the actual test file names used by the plans are listed in the Task Attachment table that follows.
 
 | Ref | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |-----|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
@@ -95,3 +95,26 @@ Task IDs are assigned by the planner; this map is keyed by success criterion and
 - [ ] `nyquist_compliant: true` set in frontmatter
 
 **Approval:** pending
+
+### Task Attachment (assigned by the planner)
+
+| Ref | Task ID(s) | Concrete test / command |
+|-----|-----------|-------------------------|
+| SC-1a | 01-01-T2, 01-02-T3 | `python3 scripts/ci/check_decisions.py`; `test/unit_test/test_check_decisions.py` |
+| SC-1b | 01-01-T1, 01-02-T3 | `git check-ignore` assertions; `test/unit_test/test_repo_hygiene.py` (replaces `test_gitignore.py`) |
+| SC-1c | 01-03-T1, 01-03-T2 | `scripts/ci/tests/*`, `test/unit_test/test_unpickle.py`, `make ci` |
+| SC-2a | 01-04-T2 | `test/unit_test/test_preflight.py` |
+| SC-2b | 01-04-T3, 01-13-T3, 01-15-T2 | `test/integration/test_compose_infra.py`, `test_app_container.py`, `scripts/clean_room.sh --runs 3` |
+| SC-3 | 01-06-T3, 01-07-T3, 01-11-T2 | `test_migration_runner.py`, `test_schema.py`, `go test -tags=integration ./internal/dao/...`, `go run ./cmd --migrate` |
+| DATA-03/04/08 | 01-06-T2, 01-11-T3 | `test/integration/test_db_core.py` (serial), `internal/dao/transaction_integration_test.go` |
+| SC-4a..4e | 01-14-T1, 01-14-T2, 01-14-T3 | `test/testcases/test_routing.py`, `test_route_ownership.py`, `test_system_routes.py`, `test_envelope.py`, `test_dependency_outage.py`; `go test -tags=e2e ./internal/e2e/...` |
+| API-06 | 01-08-T3, 01-09-T2 | `test/unit_test/test_layering.py`, `internal/layering_test.go` |
+| API-07, SEC-10 | 01-08-T3, 01-03-T3 | `test/unit_test/test_validation.py`, `ruff check --select S` in `make ci` |
+| API-08 | 01-08-T2, 01-12-T3, 01-14-T2 | `scripts/export_openapi.py --check`, `npm run gen:api && npm run typecheck`, `test_openapi.py` |
+| API-12, API-13 | 01-09-T3, 01-08-T3 | `go test ./cmd/...`, `test/integration/test_boot.py` |
+| DEPLOY-11, DEPLOY-12 | 01-04-T1, 01-05-T2, 01-14-T3 | `test_env_catalog.py`, `test_nginx.py`, `test_tls.py` |
+| SC-5a | 01-12-T1, 01-12-T2, 01-14 | `npm run test -- --run`, `npm run build:check`, `spa-shell.live.test.ts` |
+| SC-5b | 01-10-T2, 01-10-T3, 01-15-T2 | `http.test.ts`, `http.live.test.ts` |
+| SC-5c | 01-02-T2, 01-09-T3, 01-10-T3, 01-15-T2 | harnesses via `scripts/clean_room.sh` |
+| TEST-04 tiers | 01-09-T3, 01-14-T2 | integration, e2e, manual, cgo tag tests |
+

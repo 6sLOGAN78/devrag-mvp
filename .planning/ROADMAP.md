@@ -36,7 +36,23 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. The schema is created from an empty database by a single migration owner, and the Go server's `--migrate` verification passes against that same schema
   4. Through Nginx, `GET /health` and `GET /api/v1/system/ping` are answered by Go with `X-API-Source: go`, `GET /system/healthz` is answered by Python, `GET /api/v1/language` names the answering engine, `GET /system/status` reports the live state of database, Redis, storage and docstore, and every response (including an unhandled error) uses the one decided envelope
   5. The SPA shell loads through Nginx with lazy routes and its HTTP client surfaces a non-zero envelope code as an error notification; the pytest, `go test` (with build-tag tiers) and frontend component harnesses all run green against the live stack
-**Plans**: TBD
+**Plans**: 15 plans
+Plans:
+- [ ] 01-01-PLAN.md — Decision register (R-01..R-73), BLOCKERS.md, ignore rules, completeness gate
+- [ ] 01-02-PLAN.md — Package legitimacy checkpoint, Python 3.13 toolchain, run_tests.py, wait helper
+- [ ] 01-03-PLAN.md — CI guardrails: placeholder, pickle, no-sleep, secrets gates; make ci
+- [ ] 01-04-PLAN.md — Compose base (MySQL, Valkey, MinIO, ES), env catalog, preflight, wait_stack
+- [ ] 01-05-PLAN.md — routes.yaml, generated Nginx config and Vite proxy, SSE-safe proxy, TLS check
+- [ ] 01-06-PLAN.md — Config, redacting logging, retrying pool, transactions, DB lock, migration runner, first real DB write
+- [ ] 01-07-PLAN.md — 38-table Peewee schema, baseline migration, schema.json export
+- [ ] 01-08-PLAN.md — Quart server: envelope, errors, CORS, probes, OpenAPI, boot sequence
+- [ ] 01-09-PLAN.md — Go Gin server: envelope, system routes, run modes, Go test tiers
+- [ ] 01-10-PLAN.md — SPA scaffold, HTTP client (envelope, token, toast, 401 purge), vitest unit and live projects
+- [ ] 01-11-PLAN.md — Generated GORM entities, verify-only --migrate, Go transactions
+- [ ] 01-12-PLAN.md — SPA shell: lazy routes, layouts, System status page, generated API types
+- [ ] 01-13-PLAN.md — App image, init job, app compose, healthcheck, bind-mounted logs
+- [ ] 01-14-PLAN.md — Live ingress, ownership, envelope, outage and TLS tests
+- [ ] 01-15-PLAN.md — Clean-room exit gate x3, memory budget, browser check, final records
 **UI hint**: yes
 
 Scope notes: merges research stages 0 and 1. The decision register has no REQ-ID of its own; it is mandated by the PROJECT.md "Documentation" constraint and is a hard exit criterion for this phase. Host blockers marked "user action" in STATE.md must be cleared before criterion 2 can pass. Docs to read first: `docs/spec.md`, `00-overview`, `03-backend`, `08-database`, `18-deployment`, `04-api/api-overview.md`, `04-api/endpoint-catalog.md`.
