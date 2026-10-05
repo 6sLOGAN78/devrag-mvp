@@ -1,0 +1,27 @@
+# Keep credential material and local state out of the build context and image (T-13-01).
+docs/
+.git/
+.gitignore
+.planning/
+.serena/
+.claude/
+.env
+.env.*
+**/.env
+**/.env.*
+*.pem
+*.key
+.venv/
+**/node_modules
+**/dist
+/bin/
+ragflow-logs/
+docker/nginx/certs/
+conf/service_conf.yaml
+**/__pycache__
+**/.pytest_cache
+.ruff_cache/
+*.log
+test/
+htmlcov/
+.coverage
