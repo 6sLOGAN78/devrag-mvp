@@ -31,6 +31,9 @@ def create_app(settings: Settings | None = None, extra_blueprints: Iterable[Blue
     register_error_handlers(app)
     register_middleware(app, settings)
 
+    from api.apps.restful_apis.system_api import system_bp
+
+    app.register_blueprint(system_bp)
     for blueprint in extra_blueprints:
         app.register_blueprint(blueprint)
     return app
