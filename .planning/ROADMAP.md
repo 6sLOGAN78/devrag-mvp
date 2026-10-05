@@ -48,7 +48,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 01-02-PLAN.md — Package legitimacy checkpoint, Python 3.13 toolchain, run_tests.py, wait helper
+- [x] 01-02-PLAN.md — Package legitimacy checkpoint, Python 3.13 toolchain, run_tests.py, wait helper
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
