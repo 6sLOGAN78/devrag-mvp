@@ -602,7 +602,7 @@ Requirements for initial release. Each maps to exactly one roadmap phase.
 ### TEST — Testing
 
 - [x] **TEST-01**: Python unit tests (services, API, RAG) run by pytest via a `run_tests.py` runner with coverage and parallel options
-- [ ] **TEST-02**: Python API integration/E2E test cases against a running stack
+- [x] **TEST-02**: Python API integration/E2E test cases against a running stack
 - [x] **TEST-03**: Go unit tests (`go test ./internal/...`, with `-race`)
 - [x] **TEST-04**: Go test tiers by build tag: `integration`, `e2e`, `manual`, `cgo`
 - [ ] **TEST-05**: CLI lexer/parser unit tests
@@ -1191,7 +1191,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SEC-10 | Phase 1 | Complete |
 | SEC-11 | Phase 8 | Pending |
 | TEST-01 | Phase 1 | Complete |
-| TEST-02 | Phase 1 | Pending |
+| TEST-02 | Phase 1 | Complete |
 | TEST-03 | Phase 1 | Complete |
 | TEST-04 | Phase 1 | Complete |
 | TEST-05 | Phase 8 | Pending |

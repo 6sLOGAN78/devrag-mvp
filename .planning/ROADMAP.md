@@ -78,7 +78,7 @@ Plans:
 
 **Wave 8** *(blocked on Wave 7 completion)*
 
-- [ ] 01-14-PLAN.md — Live ingress, ownership, envelope, outage and TLS tests
+- [x] 01-14-PLAN.md — Live ingress, ownership, envelope, outage and TLS tests
 
 **Wave 9** *(blocked on Wave 8 completion)*
 
