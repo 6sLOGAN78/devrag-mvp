@@ -11,7 +11,8 @@ describe("live http client", () => {
   it("waits for the ingress health route", async () => {
     await waitUntil(
       async () => {
-        const response = await fetch("/health");
+        // Node's fetch has no base URL; resolve against the jsdom origin like the other live tests.
+        const response = await fetch(new URL("/health", window.location.origin));
         return response.ok;
       },
       { describe: "GET /health on the ingress", timeout: 60_000 },

@@ -48,7 +48,8 @@ describe("live SPA shell through the ingress", () => {
     const scripts = assetRefs(page.text).filter((r) => r.endsWith(".js"));
     expect(scripts.length).toBeGreaterThanOrEqual(1);
     const entry = await getText(scripts[0]);
-    const lazy = [...entry.text.matchAll(/assets\/([\w.-]+\.js)/g)].map((m) => `/assets/${m[1]}`);
+    // Vite emits lazy chunks as dynamic imports relative to the entry ("./index-<hash>.js"); older output used "assets/<name>.js".
+    const lazy = [...entry.text.matchAll(/(?:\.\/|assets\/)([\w.-]+\.js)/g)].map((m) => `/assets/${m[1]}`);
     const distinct = new Set([...scripts, ...lazy]);
     expect(distinct.size).toBeGreaterThanOrEqual(2);
     for (const asset of distinct) {
