@@ -69,5 +69,6 @@ def service_health(service: str) -> str:
     ).stdout.split()
     if not ids:
         return ""
-    out = subprocess.run([DOCKER, "inspect", "--format", "{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}", ids[0]], capture_output=True, text=True, check=False, timeout=30)
+    fmt = "{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}"
+    out = subprocess.run([DOCKER, "inspect", "--format", fmt, ids[0]], capture_output=True, text=True, check=False, timeout=30)
     return out.stdout.strip()
