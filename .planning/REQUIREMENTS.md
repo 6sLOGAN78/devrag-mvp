@@ -555,12 +555,12 @@ Requirements for initial release. Each maps to exactly one roadmap phase.
 
 - [ ] **DATA-01**: MySQL schema for the documented entities (User, Tenant, UserTenant, InvitationCode, LLMFactories, LLM, TenantLLM, TenantLangfuse, Knowledgebase, Document, File, File2Document, Task, Dialog, Conversation, APIToken, API4Conversation, UserCanvas, CanvasTemplate, UserCanvasVersion, MCPServer, Search, Connector, Connector2Kb, ChatChannel, SyncLogs, PipelineOperationLog, CompilationTemplate, CompilationTemplateGroup, Memory, SystemSettings, FileCommit, FileCommitItem, TenantModel*)
 - [ ] **DATA-02**: Documented secondary indexes on `document`, `task`, `knowledgebase`, `file`
-- [ ] **DATA-03**: Pooled connections with retry and exponential backoff on connection loss (5 retries)
-- [ ] **DATA-04**: Multi-step mutations run in transactions
-- [ ] **DATA-05**: Schema migrations (column add, type change, index creation); `--migrate` flag on the Go server
+- [x] **DATA-03**: Pooled connections with retry and exponential backoff on connection loss (5 retries)
+- [x] **DATA-04**: Multi-step mutations run in transactions
+- [x] **DATA-05**: Schema migrations (column add, type change, index creation); `--migrate` flag on the Go server
 - [ ] **DATA-06**: Both servers share one schema (Peewee models and GORM structs)
 - [ ] **DATA-07**: PostgreSQL and OceanBase as alternative relational backends
-- [ ] **DATA-08**: DB-backed lock (`DatabaseLock`)
+- [x] **DATA-08**: DB-backed lock (`DatabaseLock`)
 
 ### DEPLOY — Deployment
 
@@ -1153,12 +1153,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 | UI-44 | Phase 8 | Pending |
 | DATA-01 | Phase 1 | Pending |
 | DATA-02 | Phase 1 | Pending |
-| DATA-03 | Phase 1 | Pending |
-| DATA-04 | Phase 1 | Pending |
-| DATA-05 | Phase 1 | Pending |
+| DATA-03 | Phase 1 | Complete |
+| DATA-04 | Phase 1 | Complete |
+| DATA-05 | Phase 1 | Complete |
 | DATA-06 | Phase 1 | Pending |
 | DATA-07 | Phase 8 | Pending |
-| DATA-08 | Phase 1 | Pending |
+| DATA-08 | Phase 1 | Complete |
 | DEPLOY-01 | Phase 8 | Pending |
 | DEPLOY-02 | Phase 1 | Complete |
 | DEPLOY-03 | Phase 1 | Pending |
