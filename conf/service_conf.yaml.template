@@ -1,0 +1,33 @@
+# Rendered by scripts/render_conf.py into conf/service_conf.yaml (never committed).
+# Variable forms: dash-default uses the default when unset or empty; question-mark form aborts when unset or empty.
+ragflow:
+  host: '${RAGFLOW_HOST:-0.0.0.0}'
+  http_port: ${SVR_HTTP_PORT:-9380}
+mysql:
+  name: '${MYSQL_DBNAME:-rag_flow}'
+  user: '${MYSQL_USER:-ragflow_app}'
+  password: '${MYSQL_PASSWORD:?MYSQL_PASSWORD is required (run make init-env)}'
+  host: '${MYSQL_HOST:-mysql}'
+  port: ${MYSQL_PORT:-3306}
+  max_connections: ${MYSQL_MAX_CONNECTIONS:-100}
+  stale_timeout: ${MYSQL_STALE_TIMEOUT:-300}
+redis:
+  host: '${REDIS_HOST:-redis}'
+  port: ${REDIS_PORT:-6379}
+  password: '${REDIS_PASSWORD:?REDIS_PASSWORD is required (run make init-env)}'
+  db: ${REDIS_DB:-1}
+minio:
+  user: '${MINIO_USER:-rag_flow}'
+  password: '${MINIO_PASSWORD:?MINIO_PASSWORD is required (run make init-env)}'
+  host: '${MINIO_HOST:-minio}'
+  port: ${MINIO_PORT:-9000}
+es:
+  hosts: 'http://${ES_HOST:-es01}:${ES_PORT:-9200}'
+  username: '${ES_USER:-elastic}'
+  password: '${ELASTIC_PASSWORD:?ELASTIC_PASSWORD is required (run make init-env)}'
+# Empty allowed_origins means same-origin only (D-14).
+cors:
+  allowed_origins: '${CORS_ALLOWED_ORIGINS:-}'
+logging:
+  dir: '${LOG_DIR:-}'
+  level: '${LOG_LEVEL:-INFO}'
