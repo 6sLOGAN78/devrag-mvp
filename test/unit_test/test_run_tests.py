@@ -41,3 +41,10 @@ def test_unknown_flag_exits_nonzero_with_usage(repo_root):
     out = dry_run(repo_root, "--bogus")
     assert out.returncode != 0
     assert "usage" in out.stderr.lower()
+
+
+def test_parallel_runs_serial_tests_in_a_separate_non_parallel_pass(repo_root):
+    lines = dry_run(repo_root, "-p", "-m", "e2e").stdout.strip().splitlines()
+    assert len(lines) == 2
+    assert "-m (e2e) and not serial" in lines[0] and "-n auto" in lines[0]
+    assert "-m (e2e) and serial" in lines[1] and "-n auto" not in lines[1]

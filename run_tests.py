@@ -7,20 +7,31 @@ import subprocess
 import sys
 
 
-def build_argv(args: argparse.Namespace) -> list[str]:
+def build_argv(args: argparse.Namespace, markers: str | None = None, parallel: bool | None = None) -> list[str]:
+    markers = args.markers if markers is None else markers
+    parallel = args.parallel if parallel is None else parallel
     argv = [sys.executable, "-m", "pytest"]
-    if args.markers:
-        argv += ["-m", args.markers]
+    if markers:
+        argv += ["-m", markers]
     if args.test:
         argv += ["-k", args.test]
     for path in args.ignore:
         argv += ["--ignore", path]
-    if args.parallel:
+    if parallel:
         argv += ["-n", "auto"]
     if args.coverage:
         argv += ["--cov"]
     argv += args.passthrough
     return argv
+
+
+def plan(args: argparse.Namespace) -> list[list[str]]:
+    """Commands to run. In parallel mode, tests marked ``serial`` never share a run with xdist workers:
+    they run in a second, non-parallel pass (destructive tests stop and restart live services)."""
+    if not args.parallel:
+        return [build_argv(args)]
+    base = f"({args.markers}) and " if args.markers else ""
+    return [build_argv(args, f"{base}not serial", True), build_argv(args, f"{base}serial", False)]
 
 
 def parser() -> argparse.ArgumentParser:
@@ -37,11 +48,18 @@ def parser() -> argparse.ArgumentParser:
 
 def main(argv: list[str] | None = None) -> int:
     args = parser().parse_args(argv)
-    cmd = build_argv(args)
+    commands = plan(args)
     if args.dry_run:
-        print(" ".join(cmd[1:]))
+        for cmd in commands:
+            print(" ".join(cmd[1:]))
         return 0
-    return subprocess.run(cmd, check=False).returncode
+    worst = 0
+    for cmd in commands:
+        code = subprocess.run(cmd, check=False).returncode  # noqa: S603
+        # pytest exit code 5 means "no tests collected" (e.g. no serial tests selected): not a failure here.
+        if code not in (0, 5):
+            worst = worst or code
+    return worst
 
 
 if __name__ == "__main__":

@@ -54,3 +54,20 @@ def stack_ready(ingress: httpx.Client) -> httpx.Client:
 
 def exec_app(*cmd: str) -> subprocess.CompletedProcess[str]:
     return subprocess.run([DOCKER, "compose", "-p", PROJECT, "exec", "-T", "app", *cmd], capture_output=True, text=True, check=False, timeout=60, cwd=REPO_ROOT)
+
+
+def pytest_collection_modifyitems(items: list[pytest.Item]) -> None:
+    """Destructive (serial) tests run last so an outage never overlaps ordinary live tests."""
+    items.sort(key=lambda item: item.get_closest_marker("serial") is not None)  # stable sort
+
+
+def service_health(service: str) -> str:
+    """Docker health status of a ``devrag-stack`` service container ('' when absent)."""
+    ids = subprocess.run(
+        [DOCKER, "ps", "-aq", "--filter", f"label=com.docker.compose.project={PROJECT}", "--filter", f"label=com.docker.compose.service={service}"],
+        capture_output=True, text=True, check=False, timeout=30,
+    ).stdout.split()
+    if not ids:
+        return ""
+    out = subprocess.run([DOCKER, "inspect", "--format", "{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}", ids[0]], capture_output=True, text=True, check=False, timeout=30)
+    return out.stdout.strip()
