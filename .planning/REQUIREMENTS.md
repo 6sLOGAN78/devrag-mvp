@@ -508,7 +508,7 @@ Requirements for initial release. Each maps to exactly one roadmap phase.
 
 - [ ] **UI-01**: SPA with lazy-loaded routes and layout wrappers (standard with header, full-bleed for canvas)
 - [ ] **UI-02**: Auth guard redirects unauthenticated users to the login route
-- [ ] **UI-03**: HTTP client injects the bearer token, unwraps the envelope, surfaces non-zero codes as error notifications
+- [x] **UI-03**: HTTP client injects the bearer token, unwraps the envelope, surfaces non-zero codes as error notifications
 - [ ] **UI-04**: HTTP 401 clears the token and session cache and redirects to login
 - [ ] **UI-05**: SSE client streams tokens into UI state
 - [ ] **UI-06**: Login and registration page
@@ -610,7 +610,7 @@ Requirements for initial release. Each maps to exactly one roadmap phase.
 - [ ] **TEST-07**: Sandbox security tests (seccomp, memory limit, blocked modules)
 - [ ] **TEST-08**: Vector-engine integration tests against live engines
 - [ ] **TEST-09**: Sandbox RPC integration tests
-- [ ] **TEST-10**: Frontend component tests (React Testing Library with Jest or Vitest)
+- [x] **TEST-10**: Frontend component tests (React Testing Library with Jest or Vitest)
 - [ ] **TEST-11**: Database tests and pipeline tests
 - [ ] **TEST-12**: Performance benchmarks
 
@@ -1109,7 +1109,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CLI-18 | Phase 8 | Pending |
 | UI-01 | Phase 1 | Pending |
 | UI-02 | Phase 2 | Pending |
-| UI-03 | Phase 1 | Pending |
+| UI-03 | Phase 1 | Complete |
 | UI-04 | Phase 2 | Pending |
 | UI-05 | Phase 5 | Pending |
 | UI-06 | Phase 2 | Pending |
@@ -1199,7 +1199,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | TEST-07 | Phase 7 | Pending |
 | TEST-08 | Phase 3 | Pending |
 | TEST-09 | Phase 7 | Pending |
-| TEST-10 | Phase 1 | Pending |
+| TEST-10 | Phase 1 | Complete |
 | TEST-11 | Phase 4 | Pending |
 | TEST-12 | Phase 8 | Pending |
 | E2E-01 | Phase 2 | Pending |

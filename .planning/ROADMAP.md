@@ -59,7 +59,7 @@ Plans:
 **Wave 4** *(blocked on Wave 3 completion)*
 
 - [x] 01-06-PLAN.md — Config, redacting logging, retrying pool, transactions, DB lock, migration runner, first real DB write
-- [ ] 01-10-PLAN.md — SPA scaffold, HTTP client (envelope, token, toast, 401 purge), vitest unit and live projects
+- [x] 01-10-PLAN.md — SPA scaffold, HTTP client (envelope, token, toast, 401 purge), vitest unit and live projects
 
 **Wave 5** *(blocked on Wave 4 completion)*
 
