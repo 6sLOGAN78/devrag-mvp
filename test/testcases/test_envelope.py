@@ -1,0 +1,45 @@
+"""One error envelope on both route families, live (API-09)."""
+from __future__ import annotations
+
+import uuid
+
+import httpx
+import pytest
+
+pytestmark = pytest.mark.e2e
+
+LEAKS = ("Traceback", "panic", ".py", ".go", "goroutine")
+
+
+def _assert_envelope(resp: httpx.Response, code: int) -> None:
+    assert resp.status_code == code
+    assert resp.headers["content-type"].startswith("application/json")
+    body = resp.json()
+    assert list(body) == ["code", "message", "data"]
+    assert body["code"] == code
+    assert body["data"] is None
+    assert not [w for w in LEAKS if w in resp.text]
+
+
+def test_python_404_envelope(ingress: httpx.Client) -> None:
+    resp = ingress.get(f"/api/v1/does-not-exist-{uuid.uuid4().hex}")
+    assert resp.headers["x-api-source"] == "python"
+    _assert_envelope(resp, 404)
+
+
+def test_go_405_envelope(ingress: httpx.Client) -> None:
+    resp = ingress.post("/health")
+    assert resp.headers["x-api-source"] == "go"
+    _assert_envelope(resp, 405)
+
+
+def test_python_405_envelope(ingress: httpx.Client) -> None:
+    resp = ingress.post("/api/v1/system/healthz")
+    assert resp.headers["x-api-source"] == "python"
+    _assert_envelope(resp, 405)
+
+
+def test_go_404_envelope(ingress: httpx.Client) -> None:
+    resp = ingress.get(f"/v1/user/probe-{uuid.uuid4().hex}")
+    assert resp.headers["x-api-source"] == "go"
+    _assert_envelope(resp, 404)
