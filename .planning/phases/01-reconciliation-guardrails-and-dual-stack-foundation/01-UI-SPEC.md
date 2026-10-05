@@ -1,7 +1,8 @@
 ---
 phase: 1
 slug: reconciliation-guardrails-and-dual-stack-foundation
-status: draft
+status: approved
+reviewed_at: 2026-10-05
 shadcn_initialized: false
 preset: none
 created: 2026-10-05
@@ -319,3 +320,13 @@ Third-party registries: none declared. No third-party block may enter the projec
 - [ ] Dimension 6 Registry Safety: PASS
 
 **Approval:** pending
+
+## Checker Flags (non-blocking, 2026-10-05)
+
+The UI checker approved this contract with five recommendations. The planner should apply them:
+
+1. Empty-state headings name the thing ("No {noun} yet"); "Nothing here yet" is a fallback only.
+2. Destructive-confirmation dismiss button (later phases): use "Keep {noun}" or "Close", or record "Cancel" as an explicit exception.
+3. Phase 1 401 toast: use "Your session ended. Reload the page to continue." until `/login` exists in Phase 2.
+4. Focal points: on `/`, the overall status badge reads first, then the two engine cards; on Not Found and Error pages, the heading.
+5. Accent on icons stays limited to the active navigation icon.
