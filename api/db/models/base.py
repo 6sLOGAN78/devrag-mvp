@@ -21,6 +21,18 @@ def timestamp_to_date(timestamp_ms: int) -> datetime.datetime:
     return datetime.datetime.fromtimestamp(timestamp_ms / 1000, datetime.UTC).replace(tzinfo=None, microsecond=0)
 
 
+def db_default(value: int | float | str) -> list[peewee.SQL]:
+    """Column constraint that makes a default a real MySQL ``DEFAULT`` (documented DDL, D-11).
+
+    Only trusted constants are accepted; strings cannot contain a quote or backslash.
+    """
+    if isinstance(value, str):
+        if "'" in value or "\\" in value:
+            raise ValueError("unsafe default literal")
+        return [peewee.SQL("DEFAULT '%s'" % value)]
+    return [peewee.SQL("DEFAULT %s" % value)]
+
+
 class LongTextField(peewee.TextField):
     field_type = "LONGTEXT"
 
@@ -52,3 +64,15 @@ class BaseModel(peewee.Model):
         self.update_time = now
         self.update_date = timestamp_to_date(now)
         return super().save(*args, **kwargs)
+
+
+def index_specs(model: type[peewee.Model]) -> list[tuple[str, tuple[str, ...], bool]]:
+    """Secondary indexes of a model as ``(name, columns, unique)``, sorted by name.
+
+    Uses Peewee's ``fields_to_index`` so the migration and the schema exporter agree exactly.
+    """
+    specs: list[tuple[str, tuple[str, ...], bool]] = []
+    for index in model._meta.fields_to_index():
+        columns = tuple(getattr(expr, "column_name", None) or str(getattr(expr, "sql", expr)) for expr in index._expressions)
+        specs.append((index._name, columns, bool(index._unique)))
+    return sorted(specs)
