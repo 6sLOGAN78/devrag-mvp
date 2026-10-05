@@ -459,9 +459,9 @@ Requirements for initial release. Each maps to exactly one roadmap phase.
 ### API — API-layer conventions and backend cross-cutting
 
 - [ ] **API-01**: Two backend servers: Go (Gin) for auth/user/tenant/system/search-bot/MCP; Python (Quart) for datasets/documents/chat/agents
-- [ ] **API-02**: Path-based routing in the reverse proxy sends each prefix to the owning server
+- [x] **API-02**: Path-based routing in the reverse proxy sends each prefix to the owning server
 - [ ] **API-03**: All JSON responses use one envelope with numeric code, message, data
-- [ ] **API-04**: Routes are versioned under `/api/v1` and `/v1`
+- [x] **API-04**: Routes are versioned under `/api/v1` and `/v1`
 - [ ] **API-05**: Go responses carry `X-API-Source: go`
 - [ ] **API-06**: Layered Handler, Service, DAO/Model structure in both servers
 - [ ] **API-07**: Request bodies are schema-validated before reaching services
@@ -574,7 +574,7 @@ Requirements for initial release. Each maps to exactly one roadmap phase.
 - [ ] **DEPLOY-09**: `ragflow-go` profile with NATS
 - [ ] **DEPLOY-10**: Entrypoint renders `service_conf.yaml` from a template with environment substitution, then starts Nginx, Go server, Python server, task executor
 - [x] **DEPLOY-11**: `.env`-driven configuration covering the documented variable catalog
-- [ ] **DEPLOY-12**: Nginx reverse proxy: serves the SPA, routes API prefixes, TLS termination, SSE-safe buffering
+- [x] **DEPLOY-12**: Nginx reverse proxy: serves the SPA, routes API prefixes, TLS termination, SSE-safe buffering
 - [x] **DEPLOY-13**: Single bridge network with service DNS aliases; only documented ports exposed
 - [ ] **DEPLOY-14**: Container health check on the app health endpoint every 10s
 - [x] **DEPLOY-15**: MySQL initialized from `init.sql` on first boot
@@ -1069,9 +1069,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SYS-07 | Phase 1 | Pending |
 | SYS-09 | Phase 8 | Pending |
 | API-01 | Phase 1 | Pending |
-| API-02 | Phase 1 | Pending |
+| API-02 | Phase 1 | Complete |
 | API-03 | Phase 1 | Pending |
-| API-04 | Phase 1 | Pending |
+| API-04 | Phase 1 | Complete |
 | API-05 | Phase 1 | Pending |
 | API-06 | Phase 1 | Pending |
 | API-07 | Phase 1 | Pending |
@@ -1169,7 +1169,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DEPLOY-09 | Phase 8 | Pending |
 | DEPLOY-10 | Phase 8 | Pending |
 | DEPLOY-11 | Phase 1 | Complete |
-| DEPLOY-12 | Phase 1 | Pending |
+| DEPLOY-12 | Phase 1 | Complete |
 | DEPLOY-13 | Phase 1 | Complete |
 | DEPLOY-14 | Phase 1 | Pending |
 | DEPLOY-15 | Phase 1 | Complete |

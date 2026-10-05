@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: milestone
 status: executing
 stopped_at: Phase 1 UI-SPEC approved
-last_updated: "2026-10-05T05:20:23.084Z"
+last_updated: "2026-10-05T05:22:27.842Z"
 last_activity: 2026-10-05
 progress:
   total_phases: 8
   completed_phases: 0
   total_plans: 15
-  completed_plans: 4
+  completed_plans: 5
   percent: 0
 ---
 
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-10-05)
 ## Current Position
 
 Phase: 1 (Reconciliation, Guardrails and Dual-Stack Foundation) — EXECUTING
-Plan: 5 of 15
+Plan: 6 of 15
 Status: Ready to execute
 Last activity: 2026-10-05
 
-Progress: [███░░░░░░░] 27%
+Progress: [███░░░░░░░] 33%
 
 ## Performance Metrics
 
@@ -69,6 +69,7 @@ Recent decisions affecting current work:
 - [Roadmap]: `DocStoreConnection` port and the Elasticsearch adapter land in Phase 3 (not Phase 4) so dataset creation is verified against a real index.
 - [Phase 01]: Plan 01-01: only R-03/R-17/R-18/R-48 user-confirmed; register R-01..R-73 in DECISIONS.md
 - [Phase 01]: 01-03: pickle gate rejects Unpickler subclasses; gate-ok honoured only in test trees; secrets gate skips docs/, scripts/ci/, .planning/
+- [Phase 01]: 01-05: Go exact-only under /api/v1/system/ (R-53); Python catch-alls /api/ and /v1/
 
 ### Pending Todos
 
@@ -104,6 +105,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-10-05T05:20:23.073Z
+Last session: 2026-10-05T05:22:23.899Z
 Stopped at: Phase 1 UI-SPEC approved
 Resume file: None
