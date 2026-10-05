@@ -1,0 +1,12 @@
+# TLS override: run `scripts/gen_selfsigned.sh` first (it creates docker/nginx/certs).
+services:
+  app:
+    environment:
+      NGINX_TLS: "1"
+    volumes:
+      - type: bind
+        source: ./nginx/certs
+        target: /etc/nginx/certs
+        read_only: true
+        bind:
+          create_host_path: false

@@ -1,0 +1,77 @@
+# Application stack: one-shot `init` (migrations, bucket, Go schema verify) then `app`
+# (Nginx + Go + Python under tini). Infrastructure comes from docker-compose-base.yml.
+# Source: docs/18-deployment/docker-compose.md; behaviour decisions D-23, D-24, D-29, R-64.
+include:
+  - docker-compose-base.yml
+
+x-app-env: &app-env
+  # In-network ports are fixed: REDIS_PORT in docker/.env is the HOST mapping (6380) and must not leak here.
+  MYSQL_HOST: mysql
+  MYSQL_PORT: "3306"
+  MYSQL_DBNAME: ${MYSQL_DBNAME:-rag_flow}
+  MYSQL_USER: ${MYSQL_USER:-ragflow_app}
+  MYSQL_PASSWORD: ${MYSQL_PASSWORD:?MYSQL_PASSWORD is unset; run scripts/init_env.sh}
+  REDIS_HOST: redis
+  REDIS_PORT: "6379"
+  REDIS_PASSWORD: ${REDIS_PASSWORD:?REDIS_PASSWORD is unset; run scripts/init_env.sh}
+  MINIO_HOST: minio
+  MINIO_PORT: "9000"
+  MINIO_USER: ${MINIO_USER:-rag_flow}
+  MINIO_PASSWORD: ${MINIO_PASSWORD:?MINIO_PASSWORD is unset; run scripts/init_env.sh}
+  ES_HOST: es01
+  ES_PORT: "9200"
+  ELASTIC_PASSWORD: ${ELASTIC_PASSWORD:?ELASTIC_PASSWORD is unset; run scripts/init_env.sh}
+  SVR_HTTP_PORT: "9380"
+  GO_API_PORT: ${GO_API_PORT:-9384}
+  LOG_DIR: ${LOG_DIR:-/ragflow/logs}
+  TZ: ${TIMEZONE:-UTC}
+
+services:
+  init:
+    profiles: [cpu]
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    image: ${RAGFLOW_IMAGE:-devrag-app:local}
+    restart: "no"
+    entrypoint: ["tini", "--", "/ragflow/docker/entrypoint_init.sh"]
+    environment: *app-env
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      es01:
+        condition: service_healthy
+        required: false
+    networks:
+      - ragflow
+
+  app:
+    profiles: [cpu]
+    image: ${RAGFLOW_IMAGE:-devrag-app:local}
+    pull_policy: never
+    restart: unless-stopped
+    environment:
+      <<: *app-env
+      APP_UID: ${APP_UID:-1000}
+      APP_GID: ${APP_GID:-1000}
+    ports:
+      - ${BIND_HOST:-127.0.0.1}:${SVR_WEB_HTTP_PORT:-8080}:80
+      - ${BIND_HOST:-127.0.0.1}:${SVR_WEB_HTTPS_PORT:-8443}:443
+    volumes:
+      - ../ragflow-logs:/ragflow/logs
+    depends_on:
+      init:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "/ragflow/docker/healthcheck.sh"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    networks:
+      ragflow:
+        aliases: [ragflow-app]

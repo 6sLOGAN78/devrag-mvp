@@ -20,3 +20,13 @@ services:
     mem_limit: 160m
   minio:
     mem_limit: 256m
+  # The app services are profile-gated; image is repeated so this file stays valid on its own
+  # (infra-only runs include this file without the cpu profile).
+  init:
+    profiles: [cpu]
+    image: ${RAGFLOW_IMAGE:-devrag-app:local}
+    mem_limit: 256m
+  app:
+    profiles: [cpu]
+    image: ${RAGFLOW_IMAGE:-devrag-app:local}
+    mem_limit: 768m
