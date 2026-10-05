@@ -48,5 +48,10 @@ target-version = "py313"
 [tool.ruff.lint]
 select = ["E", "F", "I", "ASYNC", "S301", "S403", "S608", "S602", "S605", "S307", "S102", "S105", "S106", "FIX001", "FIX002"]
 
+# S603/S607 fire on every list-form subprocess call with fixed arguments; the shell-based
+# variants (S602, S605) stay enforced. S101 (assert) is the pytest idiom and is allowed in tests only.
+ignore = ["S603", "S607"]
+
 [tool.ruff.lint.per-file-ignores]
-"test/**" = ["S105", "S106"]
+"test/**" = ["S101", "S105", "S106"]
+"scripts/ci/tests/**" = ["S101", "S105", "S106"]

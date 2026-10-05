@@ -1,0 +1,17 @@
+# Mirrors `make ci` and `make test-unit`. Authored but NOT verified here: GitHub Actions cannot
+# be run in this environment (see .planning/BLOCKERS.md, B-06). No secrets are used.
+name: ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  guardrails:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: uv sync --frozen
+      - run: make ci
+      - run: make test-unit
