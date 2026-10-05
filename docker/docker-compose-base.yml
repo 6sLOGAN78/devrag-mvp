@@ -1,0 +1,120 @@
+# Infrastructure services: MySQL, Valkey (Redis protocol), MinIO, Elasticsearch (default doc engine)
+# and Infinity (alternative engine, profile only). Sources: docs/18-deployment/*.
+# Project name is distinct from the earlier `devrag` and `docker` projects (BLOCKERS B-05).
+# Secrets use ${VAR:?} so compose fails fast when scripts/init_env.sh has not been run.
+name: ${COMPOSE_PROJECT_NAME:-devrag-stack}
+
+services:
+  mysql:
+    image: ${MYSQL_IMAGE:-mysql:8.0.40}
+    command:
+      - --max_connections=1000
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --default-authentication-plugin=mysql_native_password
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?MYSQL_ROOT_PASSWORD is unset; run scripts/init_env.sh}
+      MYSQL_DATABASE: ${MYSQL_DBNAME:-rag_flow}
+      MYSQL_USER: ${MYSQL_USER:-ragflow_app}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?MYSQL_PASSWORD is unset; run scripts/init_env.sh}
+      TZ: ${TIMEZONE:-UTC}
+    ports:
+      - ${BIND_HOST:-127.0.0.1}:${MYSQL_PORT:-3306}:3306
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      ragflow:
+        aliases: [mysql]
+    healthcheck:
+      test: ["CMD-SHELL", 'mysqladmin ping -h 127.0.0.1 -uroot -p"$$MYSQL_ROOT_PASSWORD"']
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 20s
+
+  redis:
+    image: valkey/valkey:8
+    command: >
+      sh -c 'exec valkey-server --requirepass "$$REDIS_PASSWORD" --maxmemory 128mb --maxmemory-policy allkeys-lru'
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?REDIS_PASSWORD is unset; run scripts/init_env.sh}
+    ports:
+      - ${BIND_HOST:-127.0.0.1}:${REDIS_PORT:-6380}:6379
+    volumes:
+      - redis_data:/data
+    networks:
+      ragflow:
+        aliases: [redis]
+    healthcheck:
+      test: ["CMD-SHELL", 'valkey-cli -a "$$REDIS_PASSWORD" ping 2>/dev/null | grep -q PONG']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  minio:
+    image: ${MINIO_IMAGE:-pgsty/minio:RELEASE.2026-03-25T00-00-00Z}
+    command: server --console-address ":9001" /data
+    environment:
+      MINIO_ROOT_USER: ${MINIO_USER:-rag_flow}
+      MINIO_ROOT_PASSWORD: ${MINIO_PASSWORD:?MINIO_PASSWORD is unset; run scripts/init_env.sh}
+    ports:
+      - ${BIND_HOST:-127.0.0.1}:${MINIO_PORT:-9000}:9000
+      - ${BIND_HOST:-127.0.0.1}:${MINIO_CONSOLE_PORT:-9001}:9001
+    volumes:
+      - minio_data:/data
+    networks:
+      ragflow:
+        aliases: [minio]
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  es01:
+    profiles: [elasticsearch]
+    image: docker.elastic.co/elasticsearch/elasticsearch:${STACK_VERSION:-8.11.3}
+    environment:
+      discovery.type: single-node
+      xpack.security.enabled: "true"
+      xpack.security.http.ssl.enabled: "false"
+      ELASTIC_PASSWORD: ${ELASTIC_PASSWORD:?ELASTIC_PASSWORD is unset; run scripts/init_env.sh}
+      bootstrap.memory_lock: "false"
+      ES_JAVA_OPTS: ${ES_JAVA_OPTS:--Xms2g -Xmx2g}
+    ports:
+      - ${BIND_HOST:-127.0.0.1}:${ES_PORT:-9200}:9200
+    volumes:
+      - esdata01:/usr/share/elasticsearch/data
+    networks:
+      ragflow:
+        aliases: [es01]
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS -u elastic:$$ELASTIC_PASSWORD 'http://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=5s'"]
+      interval: 15s
+      timeout: 10s
+      retries: 40
+      start_period: 30s
+
+  infinity:
+    # Parse-only in Phase 1: the image is never pulled (DEPLOY-04).
+    profiles: [infinity]
+    image: ${INFINITY_IMAGE:-infiniflow/infinity:v0.7.2-x64-v3}
+    ports:
+      - ${BIND_HOST:-127.0.0.1}:${INFINITY_THRIFT_PORT:-23817}:23817
+      - ${BIND_HOST:-127.0.0.1}:${INFINITY_HTTP_PORT:-23820}:23820
+    volumes:
+      - infinity_data:/var/infinity
+    networks:
+      ragflow:
+        aliases: [infinity]
+
+volumes:
+  mysql_data:
+  redis_data:
+  minio_data:
+  esdata01:
+  infinity_data:
+
+networks:
+  ragflow:

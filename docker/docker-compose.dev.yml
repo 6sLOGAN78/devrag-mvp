@@ -1,0 +1,22 @@
+# Dev memory caps for a 15 GB shared host (D-29, R-56, R-72). Documented values stay in the base file.
+services:
+  es01:
+    mem_limit: 2g
+    environment:
+      ES_JAVA_OPTS: -Xms1g -Xmx1g
+      cluster.routing.allocation.disk.watermark.low: 1gb
+      cluster.routing.allocation.disk.watermark.high: 750mb
+      cluster.routing.allocation.disk.watermark.flood_stage: 500mb
+  mysql:
+    mem_limit: 640m
+    command:
+      - --max_connections=200
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --default-authentication-plugin=mysql_native_password
+      - --innodb-buffer-pool-size=128M
+      - --performance-schema=OFF
+  redis:
+    mem_limit: 160m
+  minio:
+    mem_limit: 256m
