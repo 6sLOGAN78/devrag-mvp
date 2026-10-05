@@ -566,7 +566,7 @@ Requirements for initial release. Each maps to exactly one roadmap phase.
 
 - [ ] **DEPLOY-01**: Multi-stage production image bundling web build, Python env, Go binaries, Nginx
 - [x] **DEPLOY-02**: Base compose file for infrastructure: MySQL 8, Redis/Valkey, MinIO, with health checks and named volumes
-- [ ] **DEPLOY-03**: Application compose file with `cpu` profile; app waits for MySQL healthy
+- [x] **DEPLOY-03**: Application compose file with `cpu` profile; app waits for MySQL healthy
 - [x] **DEPLOY-04**: Vector-engine profiles: `elasticsearch`, `infinity`
 - [ ] **DEPLOY-06**: `gpu` profile with NVIDIA pass-through
 - [ ] **DEPLOY-07**: `sandbox` profile running the executor manager
@@ -576,9 +576,9 @@ Requirements for initial release. Each maps to exactly one roadmap phase.
 - [x] **DEPLOY-11**: `.env`-driven configuration covering the documented variable catalog
 - [x] **DEPLOY-12**: Nginx reverse proxy: serves the SPA, routes API prefixes, TLS termination, SSE-safe buffering
 - [x] **DEPLOY-13**: Single bridge network with service DNS aliases; only documented ports exposed
-- [ ] **DEPLOY-14**: Container health check on the app health endpoint every 10s
+- [x] **DEPLOY-14**: Container health check on the app health endpoint every 10s
 - [x] **DEPLOY-15**: MySQL initialized from `init.sql` on first boot
-- [ ] **DEPLOY-16**: Logs bind-mounted to host
+- [x] **DEPLOY-16**: Logs bind-mounted to host
 - [ ] **DEPLOY-17**: Standalone task-executor container for horizontal scaling
 - [ ] **DEPLOY-18**: TEI (text-embeddings-inference) image for local embedding/rerank
 - [ ] **DEPLOY-19**: Helm chart / Kubernetes deployment
@@ -1161,7 +1161,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DATA-08 | Phase 1 | Complete |
 | DEPLOY-01 | Phase 8 | Pending |
 | DEPLOY-02 | Phase 1 | Complete |
-| DEPLOY-03 | Phase 1 | Pending |
+| DEPLOY-03 | Phase 1 | Complete |
 | DEPLOY-04 | Phase 1 | Complete |
 | DEPLOY-06 | Phase 8 | Pending |
 | DEPLOY-07 | Phase 7 | Pending |
@@ -1171,9 +1171,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DEPLOY-11 | Phase 1 | Complete |
 | DEPLOY-12 | Phase 1 | Complete |
 | DEPLOY-13 | Phase 1 | Complete |
-| DEPLOY-14 | Phase 1 | Pending |
+| DEPLOY-14 | Phase 1 | Complete |
 | DEPLOY-15 | Phase 1 | Complete |
-| DEPLOY-16 | Phase 1 | Pending |
+| DEPLOY-16 | Phase 1 | Complete |
 | DEPLOY-17 | Phase 4 | Pending |
 | DEPLOY-18 | Phase 5 | Pending |
 | DEPLOY-19 | Phase 8 | Pending |

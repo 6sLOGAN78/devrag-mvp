@@ -74,7 +74,7 @@ Plans:
 
 **Wave 7** *(blocked on Wave 6 completion)*
 
-- [ ] 01-13-PLAN.md — App image, init job, app compose, healthcheck, bind-mounted logs
+- [x] 01-13-PLAN.md — App image, init job, app compose, healthcheck, bind-mounted logs
 
 **Wave 8** *(blocked on Wave 7 completion)*
 
