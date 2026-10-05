@@ -85,6 +85,8 @@ Decision register for devRag. `docs/` wins over `spec.md`, existing code, RAGFlo
 | R-71 | UI design contract choices | From 01-UI-SPEC.md Auto-Selected Choices: teal accent, system fonts, 4 type sizes, nav shows only built routes. | accepted (auto, not user-reviewed) | 01-UI-SPEC |
 | R-72 | Dev memory budget | Limits es01 2g, mysql 640m, minio 256m, valkey 160m, app 768m; measured figures appended by plan 01-15. | open | Plan 01-15 |
 | R-73 | Envelope code sharing | Go and Python never share envelope code; defined once per language with a RetCode parity test. | accepted (auto, not user-reviewed) | Orchestrator |
+| R-74 | DB lock connection and in-transaction retry | DatabaseLock holds MySQL GET_LOCK on its own dedicated PyMySQL connection outside the pool (pool recycling or DB.close() cannot release it early). The retrying pool does not retry a statement inside an open transaction (a reconnect would silently drop earlier statements and break atomicity); begin() and standalone statements are retried. | accepted (auto, not user-reviewed) | Plan 01-06, DATA-04/DATA-08 |
+| R-75 | Migration atomicity under MySQL DDL | Each migration runs with its schema.version write inside db.atomic(); MySQL commits DDL implicitly, so migrations must keep DDL idempotent (add_column_if_missing and add_index_if_missing helpers). | accepted (auto, not user-reviewed) | Plan 01-06, DATA-05 |
 
 ## Deviations from docs
 
