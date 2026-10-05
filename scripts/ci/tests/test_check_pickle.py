@@ -71,3 +71,9 @@ def test_skips_when_tree_absent(tmp_path: Path) -> None:
     r = run(tmp_path)
     assert r.returncode == 0
     assert "skipped: tree absent" in r.stdout
+
+
+def test_unpickler_subclass_fails(tmp_path: Path) -> None:
+    put(tmp_path, "api/x.py", "import pickle\n\nclass R(pickle.Unpickler):\n    pass\n")
+    r = run(tmp_path)
+    assert r.returncode == 1 and "api/x.py:3" in r.stdout

@@ -87,3 +87,10 @@ Each entry has: ID `B-NN`, Title, Status (`open` | `mitigated` | `closed`), Affe
 - Evidence: `mysql:8.0.40` has had no security patches since 2026-04-30; docs pin it.
 - Needed from user: approval to move to `mysql:8.4`, after which auth-plugin behaviour with PyMySQL and go-sql-driver must be verified.
 - Workaround in repo: image is parameterised as `MYSQL_IMAGE`, default is the docs pin.
+
+## B-13 numpy-whitelist gadget regression test skipped (numpy not installed)
+- Status: open
+- Affects: SEC-05 (R-38), plan 01-03
+- Evidence: `test/unit_test/test_unpickle.py::test_numpy_allow_list_unpickler_is_bypassable` skips because numpy is not in the user-approved Phase 1 package set, so the gadget demonstration has never run here. The gate and production-tree tests do run.
+- Needed from user: none; the test activates once numpy is installed by a later plan (DeepDoc).
+- Workaround in repo: `check_pickle.py` rejects all unpickling in production trees regardless.

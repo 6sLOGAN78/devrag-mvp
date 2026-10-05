@@ -55,6 +55,13 @@ def findings_for(text: str) -> list[tuple[int, str]]:
                 if f"{node.module}.{a.name}" in BANNED_CALLS:
                     out.append((node.lineno, f"import of {node.module}.{a.name}"))
     for node in ast.walk(tree):
+        if isinstance(node, ast.ClassDef):
+            for base in node.bases:
+                bname = _dotted(base)
+                if bname is not None:
+                    bhead, _, brest = bname.partition(".")
+                    if alias.get(bhead, bhead) + ("." + brest if brest else "") in BANNED_CALLS:
+                        out.append((node.lineno, f"subclass of {bname}"))
         if not isinstance(node, ast.Call):
             continue
         name = _dotted(node.func)
