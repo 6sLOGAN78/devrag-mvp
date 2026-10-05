@@ -1,0 +1,166 @@
+import axios, {
+  type AxiosError,
+  type AxiosRequestConfig,
+  type AxiosResponse,
+  type InternalAxiosRequestConfig,
+} from "axios";
+import type { QueryClient } from "@tanstack/react-query";
+import { copy } from "@/constants/copy";
+import { RetCode } from "@/constants/retcode";
+import type { Envelope } from "@/interfaces/envelope";
+import { useUserStore } from "@/stores/user-store";
+import { getAuthorization, removeAuthorization } from "@/utils/authorization";
+import { notifyError } from "./notify";
+
+declare module "axios" {
+  interface AxiosRequestConfig {
+    /** Suppress the error toast for this request. */
+    silent?: boolean;
+  }
+}
+
+const TIMEOUT_MS = 10_000;
+const MAX_MESSAGE_LENGTH = 160;
+const SESSION_TOAST_ID = "session-expired";
+
+export class ApiError<T = unknown> extends Error {
+  readonly code: number;
+  readonly status: number;
+  readonly requestId?: string;
+  readonly data?: T;
+
+  constructor(init: { code: number; message: string; status: number; requestId?: string; data?: T }) {
+    super(init.message);
+    this.name = "ApiError";
+    this.code = init.code;
+    this.status = init.status;
+    this.requestId = init.requestId;
+    this.data = init.data;
+  }
+}
+
+function isEnvelope(value: unknown): value is Envelope<unknown> {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    typeof (value as Record<string, unknown>).code === "number" &&
+    "data" in value
+  );
+}
+
+function headerValue(headers: unknown, name: string): string | undefined {
+  if (!headers || typeof (headers as { get?: unknown }).get !== "function") return undefined;
+  const value = (headers as { get: (n: string) => unknown }).get(name);
+  return typeof value === "string" && value.length > 0 ? value : undefined;
+}
+
+/** Server message is shown only when it is a short, non-empty string. */
+function safeMessage(message: unknown, fallback: string): string {
+  return typeof message === "string" && message.trim().length > 0 && message.length <= MAX_MESSAGE_LENGTH
+    ? message
+    : fallback;
+}
+
+let queryClient: QueryClient | null = null;
+
+export function registerQueryClient(client: QueryClient): void {
+  queryClient = client;
+}
+
+function purgeSession(): void {
+  removeAuthorization();
+  useUserStore.getState().reset();
+  queryClient?.clear();
+  notifyError({
+    id: SESSION_TOAST_ID,
+    title: copy.toast.session.title,
+    description: copy.toast.session.description,
+  });
+}
+
+function toastFor(error: ApiError, silent: boolean): void {
+  if (silent) return;
+  const { status, code, message } = error;
+  const id = `${status}:${code}:${message}`;
+  if (status === 0) {
+    const timedOut = message === copy.toast.timeout.title;
+    const entry = timedOut ? copy.toast.timeout : copy.toast.network;
+    notifyError({ id, title: entry.title, description: entry.description });
+  } else if (status >= 500 && code === -1) {
+    notifyError({ id, title: copy.toast.serverError.title, description: copy.toast.serverError.description });
+  } else {
+    notifyError({
+      id,
+      title: copy.toast.apiError.title,
+      description: safeMessage(message, copy.toast.apiError.fallback),
+      code,
+    });
+  }
+}
+
+export const http = axios.create({ baseURL: "", timeout: TIMEOUT_MS });
+
+http.interceptors.request.use((config: InternalAxiosRequestConfig) => {
+  const token = getAuthorization();
+  if (token) config.headers.set("Authorization", `Bearer ${token}`);
+  return config;
+});
+
+http.interceptors.response.use(
+  (response: AxiosResponse) => {
+    const body: unknown = response.data;
+    if (!isEnvelope(body)) return response;
+    if (body.code === RetCode.SUCCESS) return response;
+    const error = new ApiError({
+      code: body.code,
+      message: typeof body.message === "string" ? body.message : "",
+      status: response.status,
+      requestId: headerValue(response.headers, "x-request-id"),
+      data: body.data,
+    });
+    if (body.code === RetCode.UNAUTHORIZED) purgeSession();
+    else toastFor(error, response.config.silent === true);
+    return Promise.reject(error);
+  },
+  (failure: AxiosError) => {
+    if (axios.isCancel(failure)) return Promise.reject(failure);
+    const silent = failure.config?.silent === true;
+    const response = failure.response;
+    let error: ApiError;
+    if (!response) {
+      const timedOut = failure.code === "ECONNABORTED" || failure.code === "ETIMEDOUT";
+      error = new ApiError({
+        code: -1,
+        status: 0,
+        message: timedOut ? copy.toast.timeout.title : copy.toast.network.title,
+      });
+    } else {
+      const body: unknown = response.data;
+      const envelope = isEnvelope(body) ? body : null;
+      error = new ApiError({
+        code: envelope ? envelope.code : -1,
+        message: envelope && typeof envelope.message === "string" ? envelope.message : "",
+        status: response.status,
+        requestId: headerValue(response.headers, "x-request-id"),
+        data: envelope?.data,
+      });
+    }
+    if (error.status === 401 || error.code === RetCode.UNAUTHORIZED) purgeSession();
+    else toastFor(error, silent);
+    return Promise.reject(error);
+  },
+);
+
+export async function requestWithMeta<T>(
+  config: AxiosRequestConfig,
+  opts?: { silent?: boolean },
+): Promise<{ data: T; source: string | undefined }> {
+  const response = await http.request({ ...config, silent: opts?.silent ?? config.silent });
+  const body: unknown = response.data;
+  const data = (isEnvelope(body) ? body.data : body) as T;
+  return { data, source: headerValue(response.headers, "x-api-source") };
+}
+
+export async function request<T>(config: AxiosRequestConfig, opts?: { silent?: boolean }): Promise<T> {
+  return (await requestWithMeta<T>(config, opts)).data;
+}
