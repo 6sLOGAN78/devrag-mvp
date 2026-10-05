@@ -58,7 +58,7 @@ Each entry has: ID `B-NN`, Title, Status (`open` | `mitigated` | `closed`), Affe
 - Affects: API-13
 - Evidence: superuser init (Phase 2), plugin load (Phase 7), background daemons (Phase 4) are absent.
 - Needed from user: none.
-- Workaround in repo: boot logger, DB verify and hooks are real; missing items are logged as not built. API-13 complete with blocker.
+- Workaround in repo: boot logger, DB verify (no DDL), hooks and serve are real and tested in order. The missing items are deliberately not stubbed: `register_startup_hook` is the extension point for them. API-13 complete with blocker.
 
 ## B-09 Real model source for Phase 3+
 - Status: open

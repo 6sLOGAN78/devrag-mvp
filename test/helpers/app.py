@@ -5,12 +5,13 @@ import dataclasses
 from collections.abc import Callable
 from typing import Any
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 from quart import Blueprint, Quart
 from quart_schema import validate_request
 
 from api.apps import create_app
 from api.utils.api_utils import json_result
+from api.utils.validation import SafeIdentifier
 from common.settings import (
     CorsSettings,
     EsSettings,
@@ -22,11 +23,9 @@ from common.settings import (
     Settings,
 )
 
-SAFE_NAME_PATTERN = r"^[A-Za-z0-9_-]{1,64}$"
-
 
 class NameBody(BaseModel):
-    name: str = Field(pattern=SAFE_NAME_PATTERN)
+    name: SafeIdentifier
 
 
 def memory_settings(allowed_origins: tuple[str, ...] = (), **sections: Any) -> Settings:
