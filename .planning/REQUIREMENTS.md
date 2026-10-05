@@ -591,12 +591,12 @@ Requirements for initial release. Each maps to exactly one roadmap phase.
 - [ ] **SEC-02**: API keys, access tokens, and LLM credentials are masked in API responses
 - [ ] **SEC-03**: LLM provider keys are encrypted at rest
 - [x] **SEC-04**: Secrets come from environment/config, never hard-coded, never logged
-- [ ] **SEC-05**: Restricted unpickler allows only whitelisted modules (`numpy`, `rag_flow`)
+- [x] **SEC-05**: Restricted unpickler allows only whitelisted modules (`numpy`, `rag_flow`)
 - [ ] **SEC-06**: Upload safety: extension check, sanitized names, UUID object keys, no path traversal
 - [ ] **SEC-07**: Sandboxed code runs as non-root with memory cap, timeout, no-new-privileges, no network, seccomp filter
 - [ ] **SEC-08**: Native document parsing isolated in the `deepdoc` container
 - [ ] **SEC-09**: Tokens validated with an HMAC-signed secret key and expiry
-- [ ] **SEC-10**: Input validation prevents SQL and command injection
+- [x] **SEC-10**: Input validation prevents SQL and command injection
 - [ ] **SEC-11**: Rate limiting backed by Redis
 
 ### TEST — Testing
@@ -1183,12 +1183,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SEC-02 | Phase 3 | Pending |
 | SEC-03 | Phase 3 | Pending |
 | SEC-04 | Phase 1 | Complete |
-| SEC-05 | Phase 1 | Pending |
+| SEC-05 | Phase 1 | Complete |
 | SEC-06 | Phase 3 | Pending |
 | SEC-07 | Phase 7 | Pending |
 | SEC-08 | Phase 6 | Pending |
 | SEC-09 | Phase 2 | Pending |
-| SEC-10 | Phase 1 | Pending |
+| SEC-10 | Phase 1 | Complete |
 | SEC-11 | Phase 8 | Pending |
 | TEST-01 | Phase 1 | Complete |
 | TEST-02 | Phase 1 | Pending |

@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: milestone
 status: executing
 stopped_at: Phase 1 UI-SPEC approved
-last_updated: "2026-10-05T05:07:40.167Z"
+last_updated: "2026-10-05T05:16:05.276Z"
 last_activity: 2026-10-05
 progress:
   total_phases: 8
   completed_phases: 0
   total_plans: 15
-  completed_plans: 2
+  completed_plans: 3
   percent: 0
 ---
 
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-10-05)
 ## Current Position
 
 Phase: 1 (Reconciliation, Guardrails and Dual-Stack Foundation) — EXECUTING
-Plan: 3 of 15
+Plan: 4 of 15
 Status: Ready to execute
 Last activity: 2026-10-05
 
-Progress: [█░░░░░░░░░] 13%
+Progress: [██░░░░░░░░] 20%
 
 ## Performance Metrics
 
@@ -53,6 +53,7 @@ Progress: [█░░░░░░░░░] 13%
 
 *Updated after each plan completion*
 | Phase 01 P01 | 15min | 2 tasks | 4 files |
+| Phase 01 P03 | 30min | 3 tasks | 17 files |
 
 ## Accumulated Context
 
@@ -67,6 +68,7 @@ Recent decisions affecting current work:
 - [Roadmap]: Thin real vertical slice first. Phases 2 to 5 reach the Core Value before any breadth; Phase 5 is a hard gate for Phases 6, 7 and 8.
 - [Roadmap]: `DocStoreConnection` port and the Elasticsearch adapter land in Phase 3 (not Phase 4) so dataset creation is verified against a real index.
 - [Phase 01]: Plan 01-01: only R-03/R-17/R-18/R-48 user-confirmed; register R-01..R-73 in DECISIONS.md
+- [Phase 01]: 01-03: pickle gate rejects Unpickler subclasses; gate-ok honoured only in test trees; secrets gate skips docs/, scripts/ci/, .planning/
 
 ### Pending Todos
 
@@ -102,6 +104,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-10-05T05:07:40.155Z
+Last session: 2026-10-05T05:15:55.752Z
 Stopped at: Phase 1 UI-SPEC approved
 Resume file: None
