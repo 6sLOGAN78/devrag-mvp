@@ -65,7 +65,7 @@ Plans:
 
 - [x] 01-07-PLAN.md — 38-table Peewee schema, baseline migration, schema.json export
 - [x] 01-08-PLAN.md — Quart server: envelope, errors, CORS, probes, OpenAPI, boot sequence
-- [ ] 01-09-PLAN.md — Go Gin server: envelope, system routes, run modes, Go test tiers
+- [x] 01-09-PLAN.md — Go Gin server: envelope, system routes, run modes, Go test tiers
 
 **Wave 6** *(blocked on Wave 5 completion)*
 

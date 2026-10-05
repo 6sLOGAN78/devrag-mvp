@@ -447,29 +447,29 @@ Requirements for initial release. Each maps to exactly one roadmap phase.
 
 ### SYS — System, health, stats
 
-- [ ] **SYS-01**: `GET /health` returns service health without auth
-- [ ] **SYS-02**: `GET /api/v1/system/ping`
-- [ ] **SYS-03**: `GET /api/v1/system/config` returns public configuration
-- [ ] **SYS-04**: `GET /api/v1/system/version`
-- [ ] **SYS-05**: `GET /api/v1/language` reports which engine answered (`go` / `python`)
+- [x] **SYS-01**: `GET /health` returns service health without auth
+- [x] **SYS-02**: `GET /api/v1/system/ping`
+- [x] **SYS-03**: `GET /api/v1/system/config` returns public configuration
+- [x] **SYS-04**: `GET /api/v1/system/version`
+- [x] **SYS-05**: `GET /api/v1/language` reports which engine answered (`go` / `python`)
 - [x] **SYS-06**: `GET /system/status` reports dependency status (database, Redis, storage, docstore)
 - [x] **SYS-07**: `GET /system/healthz`
 - [ ] **SYS-09**: `GET /system/stats` returns usage statistics
 
 ### API — API-layer conventions and backend cross-cutting
 
-- [ ] **API-01**: Two backend servers: Go (Gin) for auth/user/tenant/system/search-bot/MCP; Python (Quart) for datasets/documents/chat/agents
+- [x] **API-01**: Two backend servers: Go (Gin) for auth/user/tenant/system/search-bot/MCP; Python (Quart) for datasets/documents/chat/agents
 - [x] **API-02**: Path-based routing in the reverse proxy sends each prefix to the owning server
 - [x] **API-03**: All JSON responses use one envelope with numeric code, message, data
 - [x] **API-04**: Routes are versioned under `/api/v1` and `/v1`
-- [ ] **API-05**: Go responses carry `X-API-Source: go`
+- [x] **API-05**: Go responses carry `X-API-Source: go`
 - [x] **API-06**: Layered Handler, Service, DAO/Model structure in both servers
 - [x] **API-07**: Request bodies are schema-validated before reaching services
 - [x] **API-08**: OpenAPI v3 schema is generated for the Python API
 - [x] **API-09**: Unhandled exceptions return a standardized error envelope
 - [x] **API-10**: Request logging: method, path, status, duration
 - [x] **API-11**: CORS middleware
-- [ ] **API-12**: Go server run modes via flags: `--api`, `--admin`, `--ingestor`, `--syncer`, `--migrate`
+- [x] **API-12**: Go server run modes via flags: `--api`, `--admin`, `--ingestor`, `--syncer`, `--migrate`
 - [x] **API-13**: Python server boot: logger, DB init, optional superuser init, plugin load, background daemons
 - [ ] **API-14**: Python/HTTP SDK client
 
@@ -603,8 +603,8 @@ Requirements for initial release. Each maps to exactly one roadmap phase.
 
 - [x] **TEST-01**: Python unit tests (services, API, RAG) run by pytest via a `run_tests.py` runner with coverage and parallel options
 - [ ] **TEST-02**: Python API integration/E2E test cases against a running stack
-- [ ] **TEST-03**: Go unit tests (`go test ./internal/...`, with `-race`)
-- [ ] **TEST-04**: Go test tiers by build tag: `integration`, `e2e`, `manual`, `cgo`
+- [x] **TEST-03**: Go unit tests (`go test ./internal/...`, with `-race`)
+- [x] **TEST-04**: Go test tiers by build tag: `integration`, `e2e`, `manual`, `cgo`
 - [ ] **TEST-05**: CLI lexer/parser unit tests
 - [ ] **TEST-06**: Canvas state-machine unit tests and state benchmarks
 - [ ] **TEST-07**: Sandbox security tests (seccomp, memory limit, blocked modules)
@@ -1060,26 +1060,26 @@ Which phases cover which requirements. Updated during roadmap creation.
 | TMPL-02 | Phase 8 | Pending |
 | TMPL-03 | Phase 8 | Pending |
 | TMPL-04 | Phase 8 | Pending |
-| SYS-01 | Phase 1 | Pending |
-| SYS-02 | Phase 1 | Pending |
-| SYS-03 | Phase 1 | Pending |
-| SYS-04 | Phase 1 | Pending |
-| SYS-05 | Phase 1 | Pending |
+| SYS-01 | Phase 1 | Complete |
+| SYS-02 | Phase 1 | Complete |
+| SYS-03 | Phase 1 | Complete |
+| SYS-04 | Phase 1 | Complete |
+| SYS-05 | Phase 1 | Complete |
 | SYS-06 | Phase 1 | Complete |
 | SYS-07 | Phase 1 | Complete |
 | SYS-09 | Phase 8 | Pending |
-| API-01 | Phase 1 | Pending |
+| API-01 | Phase 1 | Complete |
 | API-02 | Phase 1 | Complete |
 | API-03 | Phase 1 | Complete |
 | API-04 | Phase 1 | Complete |
-| API-05 | Phase 1 | Pending |
+| API-05 | Phase 1 | Complete |
 | API-06 | Phase 1 | Complete |
 | API-07 | Phase 1 | Complete |
 | API-08 | Phase 1 | Complete |
 | API-09 | Phase 1 | Complete |
 | API-10 | Phase 1 | Complete |
 | API-11 | Phase 1 | Complete |
-| API-12 | Phase 1 | Pending |
+| API-12 | Phase 1 | Complete |
 | API-13 | Phase 1 | Complete |
 | API-14 | Phase 8 | Pending |
 | ADMIN-01 | Phase 8 | Pending |
@@ -1192,8 +1192,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SEC-11 | Phase 8 | Pending |
 | TEST-01 | Phase 1 | Complete |
 | TEST-02 | Phase 1 | Pending |
-| TEST-03 | Phase 1 | Pending |
-| TEST-04 | Phase 1 | Pending |
+| TEST-03 | Phase 1 | Complete |
+| TEST-04 | Phase 1 | Complete |
 | TEST-05 | Phase 8 | Pending |
 | TEST-06 | Phase 7 | Pending |
 | TEST-07 | Phase 7 | Pending |
