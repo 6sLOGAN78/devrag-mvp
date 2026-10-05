@@ -2,11 +2,19 @@ package dao
 
 import (
 	"context"
+	"encoding/json"
+	"os"
+	"path/filepath"
+	"reflect"
 	"strings"
+	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"gorm.io/gorm/schema"
+
+	"devrag/internal/entity"
 )
 
 type probe struct {
@@ -98,4 +106,66 @@ func TestMetadataQueriesAreSelectOnlyAndParameterised(t *testing.T) {
 		assert.NotContains(t, q, "'", "no inlined literals")
 	}
 	assert.Contains(t, queryColumns, "IN ?")
+}
+
+type schemaJSON struct {
+	Tables []struct {
+		Name    string `json:"name"`
+		Columns []struct {
+			Name     string `json:"name"`
+			Nullable bool   `json:"nullable"`
+		} `json:"columns"`
+	} `json:"tables"`
+}
+
+func repoRoot(t *testing.T) string {
+	t.Helper()
+	dir, err := os.Getwd()
+	require.NoError(t, err)
+	for {
+		if _, err := os.Stat(filepath.Join(dir, "go.mod")); err == nil {
+			return dir
+		}
+		parent := filepath.Dir(dir)
+		require.NotEqual(t, dir, parent, "go.mod not found above test directory")
+		dir = parent
+	}
+}
+
+// TestEntitiesMatchSchemaJSON proves, without a database, that the generated GORM entities carry
+// exactly the tables, ordered columns and nullability of conf/schema.json (DATA-06).
+func TestEntitiesMatchSchemaJSON(t *testing.T) {
+	raw, err := os.ReadFile(filepath.Join(repoRoot(t), "conf", "schema.json"))
+	require.NoError(t, err)
+	var want schemaJSON
+	require.NoError(t, json.Unmarshal(raw, &want))
+	models := entity.All()
+	require.Len(t, models, len(want.Tables))
+	byTable := map[string]*schema.Schema{}
+	for _, m := range models {
+		s, err := schema.Parse(m, &sync.Map{}, schema.NamingStrategy{})
+		require.NoError(t, err)
+		byTable[s.Table] = s
+	}
+	for _, tbl := range want.Tables {
+		s, ok := byTable[tbl.Name]
+		require.True(t, ok, "no entity for table %s", tbl.Name)
+		var gotNames []string
+		nullable := map[string]bool{}
+		for _, f := range s.Fields {
+			if f.DBName == "" {
+				continue
+			}
+			gotNames = append(gotNames, f.DBName)
+			nullable[f.DBName] = f.FieldType.Kind() == reflect.Ptr
+		}
+		var wantNames []string
+		for _, c := range tbl.Columns {
+			wantNames = append(wantNames, c.Name)
+		}
+		assert.Equal(t, wantNames, gotNames, "columns of %s", tbl.Name)
+		for _, c := range tbl.Columns {
+			assert.Equal(t, c.Nullable, nullable[c.Name], "nullability of %s.%s", tbl.Name, c.Name)
+		}
+	}
 }
