@@ -1,8 +1,32 @@
 # Pending user review - possible credential material
 docs/apikey llm.md
 
-.pytest_cache/
-.benchmarks/
-__pycache__/
+# Secrets and environment files (templates stay trackable)
+.env*
+!.env.example
+!docker/.env.example
+*.pem
+*.key
+docker/nginx/certs/
+conf/service_conf.yaml
+
+# Runtime output and logs
+ragflow-logs/
+*.log
+
+# Build and dependency output
 node_modules/
-.env
+.venv/
+bin/
+web/dist/
+.coverage
+htmlcov/
+
+# Caches
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+.benchmarks/
+
+# Tooling
+.serena/
