@@ -506,7 +506,7 @@ Requirements for initial release. Each maps to exactly one roadmap phase.
 
 ### UI — Frontend SPA
 
-- [ ] **UI-01**: SPA with lazy-loaded routes and layout wrappers (standard with header, full-bleed for canvas)
+- [x] **UI-01**: SPA with lazy-loaded routes and layout wrappers (standard with header, full-bleed for canvas)
 - [ ] **UI-02**: Auth guard redirects unauthenticated users to the login route
 - [x] **UI-03**: HTTP client injects the bearer token, unwraps the envelope, surfaces non-zero codes as error notifications
 - [ ] **UI-04**: HTTP 401 clears the token and session cache and redirects to login
@@ -1107,7 +1107,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CLI-16 | Phase 8 | Pending |
 | CLI-17 | Phase 8 | Pending |
 | CLI-18 | Phase 8 | Pending |
-| UI-01 | Phase 1 | Pending |
+| UI-01 | Phase 1 | Complete |
 | UI-02 | Phase 2 | Pending |
 | UI-03 | Phase 1 | Complete |
 | UI-04 | Phase 2 | Pending |

@@ -70,7 +70,7 @@ Plans:
 **Wave 6** *(blocked on Wave 5 completion)*
 
 - [x] 01-11-PLAN.md — Generated GORM entities, verify-only --migrate, Go transactions
-- [ ] 01-12-PLAN.md — SPA shell: lazy routes, layouts, System status page, generated API types
+- [x] 01-12-PLAN.md — SPA shell: lazy routes, layouts, System status page, generated API types
 
 **Wave 7** *(blocked on Wave 6 completion)*
 
