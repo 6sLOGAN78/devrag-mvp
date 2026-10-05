@@ -31,8 +31,10 @@ up: preflight
 	cd "$(CURDIR)" && $(COMPOSE) $(COMPOSE_FILES) --profile cpu --profile elasticsearch up -d --build
 	cd "$(CURDIR)" && scripts/wait_stack.sh
 
+INFRA_FILES = -f docker/docker-compose-base.yml -f docker/docker-compose.dev.yml
+
 infra-up:
-	cd "$(CURDIR)" && $(COMPOSE) -f docker/docker-compose.yml --profile elasticsearch up -d
+	cd "$(CURDIR)" && $(COMPOSE) $(INFRA_FILES) --profile elasticsearch up -d
 	cd "$(CURDIR)" && scripts/wait_stack.sh --infra-only
 
 # Stop only; volumes are never removed here (the guarded removal lives in scripts/clean_room.sh).
