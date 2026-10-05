@@ -37,7 +37,6 @@ func TestUnbuiltModesRefuseWithPhaseAndBlocker(t *testing.T) {
 		"--admin":    {"admin", "Phase 8", "B-07"},
 		"--ingestor": {"ingestor", "v2", "D-01", "B-07"},
 		"--syncer":   {"syncer", "v2", "D-01", "B-07"},
-		"--migrate":  {"migrate", "plan 01-11"},
 	}
 	for flagName, needles := range cases {
 		code, out, ran := runArgs(t, flagName)
@@ -71,4 +70,12 @@ func TestRunAPIFailsWhenSecretMissing(t *testing.T) {
 	t.Setenv("SERVICE_CONF", p)
 	err := runAPI()
 	assert.ErrorContains(t, err, "mysql.user")
+}
+
+func TestMigrateIsBuiltAndFailsOnMissingConfig(t *testing.T) {
+	t.Setenv("SERVICE_CONF", filepath.Join(t.TempDir(), "absent.yaml"))
+	var buf bytes.Buffer
+	code := execute([]string{"--migrate"}, runAPI, &buf)
+	assert.Equal(t, 1, code, buf.String())
+	assert.NotContains(t, buf.String(), "unavailable")
 }

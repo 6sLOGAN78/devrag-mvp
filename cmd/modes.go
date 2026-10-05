@@ -40,7 +40,7 @@ func modeTable(runAPI func() error) []mode {
 		{name: "admin", phase: "Phase 8", blocker: "B-07"},
 		{name: "ingestor", phase: "v2 (mirrors D-01)", blocker: "B-07"},
 		{name: "syncer", phase: "v2 (mirrors D-01)", blocker: "B-07"},
-		{name: "migrate", phase: "plan 01-11 (schema verifier)", blocker: "B-07 and plan 01-11"},
+		{name: "migrate", built: true, run: runMigrate},
 	}
 }
 
