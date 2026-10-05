@@ -53,7 +53,7 @@ Plans:
 **Wave 3** *(blocked on Wave 2 completion)*
 
 - [x] 01-03-PLAN.md — CI guardrails: placeholder, pickle, no-sleep, secrets gates; make ci
-- [ ] 01-04-PLAN.md — Compose base (MySQL, Valkey, MinIO, ES), env catalog, preflight, wait_stack
+- [x] 01-04-PLAN.md — Compose base (MySQL, Valkey, MinIO, ES), env catalog, preflight, wait_stack
 - [ ] 01-05-PLAN.md — routes.yaml, generated Nginx config and Vite proxy, SSE-safe proxy, TLS check
 
 **Wave 4** *(blocked on Wave 3 completion)*
