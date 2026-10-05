@@ -590,7 +590,7 @@ Requirements for initial release. Each maps to exactly one roadmap phase.
 - [ ] **SEC-01**: Every non-public endpoint is behind the auth decorator/middleware
 - [ ] **SEC-02**: API keys, access tokens, and LLM credentials are masked in API responses
 - [ ] **SEC-03**: LLM provider keys are encrypted at rest
-- [ ] **SEC-04**: Secrets come from environment/config, never hard-coded, never logged
+- [x] **SEC-04**: Secrets come from environment/config, never hard-coded, never logged
 - [ ] **SEC-05**: Restricted unpickler allows only whitelisted modules (`numpy`, `rag_flow`)
 - [ ] **SEC-06**: Upload safety: extension check, sanitized names, UUID object keys, no path traversal
 - [ ] **SEC-07**: Sandboxed code runs as non-root with memory cap, timeout, no-new-privileges, no network, seccomp filter
@@ -1182,7 +1182,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SEC-01 | Phase 2 | Pending |
 | SEC-02 | Phase 3 | Pending |
 | SEC-03 | Phase 3 | Pending |
-| SEC-04 | Phase 1 | Pending |
+| SEC-04 | Phase 1 | Complete |
 | SEC-05 | Phase 1 | Pending |
 | SEC-06 | Phase 3 | Pending |
 | SEC-07 | Phase 7 | Pending |

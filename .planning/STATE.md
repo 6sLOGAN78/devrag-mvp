@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: milestone
 status: executing
 stopped_at: Phase 1 UI-SPEC approved
-last_updated: "2026-10-05T05:00:08.562Z"
-last_activity: 2026-10-05 -- Phase 1 planning complete
+last_updated: "2026-10-05T05:03:52.250Z"
+last_activity: 2026-10-05
 progress:
   total_phases: 8
   completed_phases: 0
   total_plans: 15
-  completed_plans: 0
+  completed_plans: 1
   percent: 0
 ---
 
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-10-05)
 
 **Core value:** A user can upload a document into a knowledge base and get an accurate, cited answer to a question about it, end-to-end through the real pipeline (parse, chunk, embed, index, hybrid retrieve, rerank, generate), with no mocked stages.
-**Current focus:** Phase 1: Reconciliation, Guardrails and Dual-Stack Foundation
+**Current focus:** Phase 1 — Reconciliation, Guardrails and Dual-Stack Foundation
 
 ## Current Position
 
-Phase: 1 of 8 (Reconciliation, Guardrails and Dual-Stack Foundation)
-Plan: 0 of TBD in current phase
+Phase: 1 (Reconciliation, Guardrails and Dual-Stack Foundation) — EXECUTING
+Plan: 2 of 15
 Status: Ready to execute
-Last activity: 2026-10-05 -- Phase 1 planning complete
+Last activity: 2026-10-05
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [█░░░░░░░░░] 7%
 
 ## Performance Metrics
 
@@ -52,6 +52,7 @@ Progress: [░░░░░░░░░░] 0%
 - Trend: -
 
 *Updated after each plan completion*
+| Phase 01 P01 | 15min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -65,6 +66,7 @@ Recent decisions affecting current work:
 - [User, 2026-10-05]: Doc stores in v1 are Elasticsearch (default) and Infinity. All others are v2.
 - [Roadmap]: Thin real vertical slice first. Phases 2 to 5 reach the Core Value before any breadth; Phase 5 is a hard gate for Phases 6, 7 and 8.
 - [Roadmap]: `DocStoreConnection` port and the Elasticsearch adapter land in Phase 3 (not Phase 4) so dataset creation is verified against a real index.
+- [Phase 01]: Plan 01-01: only R-03/R-17/R-18/R-48 user-confirmed; register R-01..R-73 in DECISIONS.md
 
 ### Pending Todos
 
@@ -100,6 +102,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-10-05T04:29:15.081Z
+Last session: 2026-10-05T05:03:43.127Z
 Stopped at: Phase 1 UI-SPEC approved
-Resume file: .planning/phases/01-reconciliation-guardrails-and-dual-stack-foundation/01-UI-SPEC.md
+Resume file: None
