@@ -1,0 +1,47 @@
+# Single route-ownership list (D-05). Nginx config and the Vite proxy JSON are generated from it:
+#   uv run python scripts/gen_routes.py          # regenerate
+#   uv run python scripts/gen_routes.py --check  # CI drift gate
+# Fields: owner (go|python), match (exact|prefix), path, auth (none|jwt|beta|api),
+#         also (alias paths expanded into their own entries), public_until_phase, catch_all, note.
+ports:
+  python_api: 9380
+  go_api: 9384
+
+routes:
+  # --- Go-owned exact matches (R-53: exact so Python-documented siblings are never swallowed) ---
+  - {owner: go, match: exact, path: /health, auth: none}
+  - {owner: go, match: exact, path: /api/v1/system/ping, auth: none}
+  - {owner: go, match: exact, path: /api/v1/system/config, auth: none}
+  - {owner: go, match: exact, path: /api/v1/system/version, auth: jwt}
+  - owner: go
+    match: exact
+    path: /api/v1/language
+    auth: none
+    note: Go-owned through the ingress (D-08, SYS-05). A Python diagnostic duplicate exists only on port 9380 and is not routed by Nginx.
+  - {owner: go, match: exact, path: /api/v1/users, auth: none}
+  - {owner: go, match: exact, path: /api/v1/mcp, auth: beta}
+
+  # --- Go-owned prefixes ---
+  - {owner: go, match: prefix, path: /api/v1/auth/, auth: none}
+  - {owner: go, match: prefix, path: /v1/user/, auth: jwt}
+  - {owner: go, match: prefix, path: /v1/tenant/, auth: jwt}
+  - {owner: go, match: prefix, path: /api/v1/searchbots/, auth: beta}
+
+  # --- Python-owned exact matches ---
+  - owner: python
+    match: exact
+    path: /api/v1/system/healthz
+    also: [/system/healthz]
+    auth: none
+    note: R-54 literal /system/healthz alias; explicit exception to D-09 (Python-owned health probe).
+  - owner: python
+    match: exact
+    path: /api/v1/system/status
+    also: [/system/status]
+    auth: jwt
+    public_until_phase: 2
+    note: R-55 public until the auth phase lands.
+
+  # --- Python catch-alls (/api/v1/system/tokens, /stats, /api/v1/mcp/servers etc. land here, D-04/D-06/D-07) ---
+  - {owner: python, match: prefix, path: /api/, auth: jwt, catch_all: true}
+  - {owner: python, match: prefix, path: /v1/, auth: jwt, catch_all: true}

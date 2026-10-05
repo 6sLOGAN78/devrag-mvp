@@ -1,0 +1,144 @@
+{
+  "ports": {
+    "python_api": 9380,
+    "go_api": 9384
+  },
+  "routes": [
+    {
+      "owner": "go",
+      "match": "exact",
+      "path": "/api/v1/language",
+      "auth": "none",
+      "publicUntilPhase": null,
+      "port": 9384
+    },
+    {
+      "owner": "go",
+      "match": "exact",
+      "path": "/api/v1/mcp",
+      "auth": "beta",
+      "publicUntilPhase": null,
+      "port": 9384
+    },
+    {
+      "owner": "go",
+      "match": "exact",
+      "path": "/api/v1/system/config",
+      "auth": "none",
+      "publicUntilPhase": null,
+      "port": 9384
+    },
+    {
+      "owner": "python",
+      "match": "exact",
+      "path": "/api/v1/system/healthz",
+      "auth": "none",
+      "publicUntilPhase": null,
+      "port": 9380
+    },
+    {
+      "owner": "go",
+      "match": "exact",
+      "path": "/api/v1/system/ping",
+      "auth": "none",
+      "publicUntilPhase": null,
+      "port": 9384
+    },
+    {
+      "owner": "python",
+      "match": "exact",
+      "path": "/api/v1/system/status",
+      "auth": "jwt",
+      "publicUntilPhase": 2,
+      "port": 9380
+    },
+    {
+      "owner": "go",
+      "match": "exact",
+      "path": "/api/v1/system/version",
+      "auth": "jwt",
+      "publicUntilPhase": null,
+      "port": 9384
+    },
+    {
+      "owner": "go",
+      "match": "exact",
+      "path": "/api/v1/users",
+      "auth": "none",
+      "publicUntilPhase": null,
+      "port": 9384
+    },
+    {
+      "owner": "go",
+      "match": "exact",
+      "path": "/health",
+      "auth": "none",
+      "publicUntilPhase": null,
+      "port": 9384
+    },
+    {
+      "owner": "python",
+      "match": "exact",
+      "path": "/system/healthz",
+      "auth": "none",
+      "publicUntilPhase": null,
+      "port": 9380
+    },
+    {
+      "owner": "python",
+      "match": "exact",
+      "path": "/system/status",
+      "auth": "jwt",
+      "publicUntilPhase": 2,
+      "port": 9380
+    },
+    {
+      "owner": "go",
+      "match": "prefix",
+      "path": "/api/v1/searchbots/",
+      "auth": "beta",
+      "publicUntilPhase": null,
+      "port": 9384
+    },
+    {
+      "owner": "go",
+      "match": "prefix",
+      "path": "/api/v1/auth/",
+      "auth": "none",
+      "publicUntilPhase": null,
+      "port": 9384
+    },
+    {
+      "owner": "go",
+      "match": "prefix",
+      "path": "/v1/tenant/",
+      "auth": "jwt",
+      "publicUntilPhase": null,
+      "port": 9384
+    },
+    {
+      "owner": "go",
+      "match": "prefix",
+      "path": "/v1/user/",
+      "auth": "jwt",
+      "publicUntilPhase": null,
+      "port": 9384
+    },
+    {
+      "owner": "python",
+      "match": "prefix",
+      "path": "/api/",
+      "auth": "jwt",
+      "publicUntilPhase": null,
+      "port": 9380
+    },
+    {
+      "owner": "python",
+      "match": "prefix",
+      "path": "/v1/",
+      "auth": "jwt",
+      "publicUntilPhase": null,
+      "port": 9380
+    }
+  ]
+}
