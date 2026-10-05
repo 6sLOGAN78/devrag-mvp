@@ -3,14 +3,14 @@ from __future__ import annotations
 
 import peewee
 
-from api.db.models.base import BaseModel
+from api.db.models.base import BaseModel, LongTextField
 
 _STATUS_HELP = "is it validate(0: wasted, 1: validate)"
 
 
 class LLMFactories(BaseModel):
     name = peewee.CharField(max_length=128, null=False, help_text="LLM factory name", primary_key=True)
-    logo = peewee.TextField(null=True, help_text="llm logo base64")
+    logo = LongTextField(null=True, help_text="llm logo base64")
     tags = peewee.CharField(max_length=255, null=False, help_text="LLM, Text Embedding, Image2Text, ASR", index=True)
     rank = peewee.IntegerField(default=0, index=False)
     status = peewee.CharField(max_length=1, null=True, help_text=_STATUS_HELP, default="1", index=True)
@@ -38,7 +38,7 @@ class TenantLLM(BaseModel):
     llm_factory = peewee.CharField(max_length=128, null=False, help_text="LLM factory name", index=True)
     model_type = peewee.CharField(max_length=128, null=True, help_text="LLM, Text Embedding, Image2Text, ASR", index=True)
     llm_name = peewee.CharField(max_length=128, null=True, help_text="LLM name", default="", index=True)
-    api_key = peewee.TextField(null=True, help_text="API KEY")
+    api_key = LongTextField(null=True, help_text="API KEY")
     api_base = peewee.CharField(max_length=255, null=True, help_text="API Base")
     max_tokens = peewee.IntegerField(default=8192, help_text="Max context token num", index=True)
     used_tokens = peewee.IntegerField(default=0, help_text="Used token num", index=True)

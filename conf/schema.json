@@ -1,0 +1,7748 @@
+{
+  "generated_by": "scripts/export_schema.py",
+  "tables": [
+    {
+      "name": "api_4_conversation",
+      "columns": [
+        {
+          "name": "create_date",
+          "type": "datetime",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "create_time",
+          "type": "bigint",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "dialog_id",
+          "type": "varchar(32)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "dsl",
+          "type": "longtext",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "duration",
+          "type": "float",
+          "nullable": false,
+          "default": null,
+          "app_default": 0,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "errors",
+          "type": "longtext",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "exp_user_id",
+          "type": "varchar(255)",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "id",
+          "type": "varchar(32)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": true,
+          "auto_increment": false
+        },
+        {
+          "name": "message",
+          "type": "longtext",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "name",
+          "type": "varchar(255)",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "reference",
+          "type": "longtext",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "round",
+          "type": "int",
+          "nullable": false,
+          "default": null,
+          "app_default": 0,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "source",
+          "type": "varchar(16)",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "thumb_up",
+          "type": "int",
+          "nullable": false,
+          "default": null,
+          "app_default": 0,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "tokens",
+          "type": "int",
+          "nullable": false,
+          "default": null,
+          "app_default": 0,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "update_date",
+          "type": "datetime",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "update_time",
+          "type": "bigint",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "user_id",
+          "type": "varchar(255)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "version_title",
+          "type": "varchar(255)",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        }
+      ],
+      "indexes": [
+        {
+          "name": "api4conversation_create_date",
+          "columns": [
+            "create_date"
+          ],
+          "unique": false
+        },
+        {
+          "name": "api4conversation_create_time",
+          "columns": [
+            "create_time"
+          ],
+          "unique": false
+        },
+        {
+          "name": "api4conversation_dialog_id",
+          "columns": [
+            "dialog_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "api4conversation_duration",
+          "columns": [
+            "duration"
+          ],
+          "unique": false
+        },
+        {
+          "name": "api4conversation_exp_user_id",
+          "columns": [
+            "exp_user_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "api4conversation_round",
+          "columns": [
+            "round"
+          ],
+          "unique": false
+        },
+        {
+          "name": "api4conversation_source",
+          "columns": [
+            "source"
+          ],
+          "unique": false
+        },
+        {
+          "name": "api4conversation_thumb_up",
+          "columns": [
+            "thumb_up"
+          ],
+          "unique": false
+        },
+        {
+          "name": "api4conversation_update_date",
+          "columns": [
+            "update_date"
+          ],
+          "unique": false
+        },
+        {
+          "name": "api4conversation_update_time",
+          "columns": [
+            "update_time"
+          ],
+          "unique": false
+        },
+        {
+          "name": "api4conversation_user_id",
+          "columns": [
+            "user_id"
+          ],
+          "unique": false
+        }
+      ]
+    },
+    {
+      "name": "api_token",
+      "columns": [
+        {
+          "name": "beta",
+          "type": "varchar(255)",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "create_date",
+          "type": "datetime",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "create_time",
+          "type": "bigint",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "dialog_id",
+          "type": "varchar(32)",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "source",
+          "type": "varchar(16)",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "tenant_id",
+          "type": "varchar(32)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": true,
+          "auto_increment": false
+        },
+        {
+          "name": "token",
+          "type": "varchar(255)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": true,
+          "auto_increment": false
+        },
+        {
+          "name": "update_date",
+          "type": "datetime",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "update_time",
+          "type": "bigint",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        }
+      ],
+      "indexes": [
+        {
+          "name": "apitoken_beta",
+          "columns": [
+            "beta"
+          ],
+          "unique": false
+        },
+        {
+          "name": "apitoken_create_date",
+          "columns": [
+            "create_date"
+          ],
+          "unique": false
+        },
+        {
+          "name": "apitoken_create_time",
+          "columns": [
+            "create_time"
+          ],
+          "unique": false
+        },
+        {
+          "name": "apitoken_dialog_id",
+          "columns": [
+            "dialog_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "apitoken_source",
+          "columns": [
+            "source"
+          ],
+          "unique": false
+        },
+        {
+          "name": "apitoken_tenant_id",
+          "columns": [
+            "tenant_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "apitoken_token",
+          "columns": [
+            "token"
+          ],
+          "unique": false
+        },
+        {
+          "name": "apitoken_update_date",
+          "columns": [
+            "update_date"
+          ],
+          "unique": false
+        },
+        {
+          "name": "apitoken_update_time",
+          "columns": [
+            "update_time"
+          ],
+          "unique": false
+        }
+      ]
+    },
+    {
+      "name": "canvas_template",
+      "columns": [
+        {
+          "name": "avatar",
+          "type": "longtext",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "canvas_category",
+          "type": "varchar(32)",
+          "nullable": false,
+          "default": null,
+          "app_default": "agent_canvas",
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "canvas_type",
+          "type": "varchar(32)",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "canvas_types",
+          "type": "longtext",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "create_date",
+          "type": "datetime",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "create_time",
+          "type": "bigint",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "description",
+          "type": "longtext",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "dsl",
+          "type": "longtext",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "id",
+          "type": "varchar(32)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": true,
+          "auto_increment": false
+        },
+        {
+          "name": "title",
+          "type": "longtext",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "update_date",
+          "type": "datetime",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "update_time",
+          "type": "bigint",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        }
+      ],
+      "indexes": [
+        {
+          "name": "canvastemplate_canvas_category",
+          "columns": [
+            "canvas_category"
+          ],
+          "unique": false
+        },
+        {
+          "name": "canvastemplate_canvas_type",
+          "columns": [
+            "canvas_type"
+          ],
+          "unique": false
+        },
+        {
+          "name": "canvastemplate_create_date",
+          "columns": [
+            "create_date"
+          ],
+          "unique": false
+        },
+        {
+          "name": "canvastemplate_create_time",
+          "columns": [
+            "create_time"
+          ],
+          "unique": false
+        },
+        {
+          "name": "canvastemplate_update_date",
+          "columns": [
+            "update_date"
+          ],
+          "unique": false
+        },
+        {
+          "name": "canvastemplate_update_time",
+          "columns": [
+            "update_time"
+          ],
+          "unique": false
+        }
+      ]
+    },
+    {
+      "name": "chat_channel",
+      "columns": [
+        {
+          "name": "channel",
+          "type": "varchar(128)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "chat_id",
+          "type": "varchar(32)",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "config",
+          "type": "longtext",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "create_date",
+          "type": "datetime",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "create_time",
+          "type": "bigint",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "id",
+          "type": "varchar(32)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": true,
+          "auto_increment": false
+        },
+        {
+          "name": "name",
+          "type": "varchar(128)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "status",
+          "type": "int",
+          "nullable": false,
+          "default": null,
+          "app_default": 1,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "tenant_id",
+          "type": "varchar(32)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "update_date",
+          "type": "datetime",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "update_time",
+          "type": "bigint",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        }
+      ],
+      "indexes": [
+        {
+          "name": "chatchannel_channel",
+          "columns": [
+            "channel"
+          ],
+          "unique": false
+        },
+        {
+          "name": "chatchannel_chat_id",
+          "columns": [
+            "chat_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "chatchannel_create_date",
+          "columns": [
+            "create_date"
+          ],
+          "unique": false
+        },
+        {
+          "name": "chatchannel_create_time",
+          "columns": [
+            "create_time"
+          ],
+          "unique": false
+        },
+        {
+          "name": "chatchannel_status",
+          "columns": [
+            "status"
+          ],
+          "unique": false
+        },
+        {
+          "name": "chatchannel_tenant_id",
+          "columns": [
+            "tenant_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "chatchannel_update_date",
+          "columns": [
+            "update_date"
+          ],
+          "unique": false
+        },
+        {
+          "name": "chatchannel_update_time",
+          "columns": [
+            "update_time"
+          ],
+          "unique": false
+        }
+      ]
+    },
+    {
+      "name": "compilation_template",
+      "columns": [
+        {
+          "name": "config",
+          "type": "longtext",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "create_date",
+          "type": "datetime",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "create_time",
+          "type": "bigint",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "description",
+          "type": "longtext",
+          "nullable": true,
+          "default": null,
+          "app_default": "",
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "group_id",
+          "type": "varchar(32)",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "id",
+          "type": "varchar(32)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": true,
+          "auto_increment": false
+        },
+        {
+          "name": "is_builtin",
+          "type": "tinyint(1)",
+          "nullable": false,
+          "default": null,
+          "app_default": false,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "kind",
+          "type": "varchar(64)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "name",
+          "type": "varchar(128)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "status",
+          "type": "varchar(1)",
+          "nullable": true,
+          "default": null,
+          "app_default": "1",
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "tenant_id",
+          "type": "varchar(32)",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "update_date",
+          "type": "datetime",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "update_time",
+          "type": "bigint",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        }
+      ],
+      "indexes": [
+        {
+          "name": "compilationtemplate_create_date",
+          "columns": [
+            "create_date"
+          ],
+          "unique": false
+        },
+        {
+          "name": "compilationtemplate_create_time",
+          "columns": [
+            "create_time"
+          ],
+          "unique": false
+        },
+        {
+          "name": "compilationtemplate_group_id",
+          "columns": [
+            "group_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "compilationtemplate_is_builtin",
+          "columns": [
+            "is_builtin"
+          ],
+          "unique": false
+        },
+        {
+          "name": "compilationtemplate_kind",
+          "columns": [
+            "kind"
+          ],
+          "unique": false
+        },
+        {
+          "name": "compilationtemplate_name",
+          "columns": [
+            "name"
+          ],
+          "unique": false
+        },
+        {
+          "name": "compilationtemplate_status",
+          "columns": [
+            "status"
+          ],
+          "unique": false
+        },
+        {
+          "name": "compilationtemplate_tenant_id",
+          "columns": [
+            "tenant_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "compilationtemplate_tenant_id_group_id_name_is_builtin_status",
+          "columns": [
+            "tenant_id",
+            "group_id",
+            "name",
+            "is_builtin",
+            "status"
+          ],
+          "unique": true
+        },
+        {
+          "name": "compilationtemplate_update_date",
+          "columns": [
+            "update_date"
+          ],
+          "unique": false
+        },
+        {
+          "name": "compilationtemplate_update_time",
+          "columns": [
+            "update_time"
+          ],
+          "unique": false
+        }
+      ]
+    },
+    {
+      "name": "compilation_template_group",
+      "columns": [
+        {
+          "name": "create_date",
+          "type": "datetime",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "create_time",
+          "type": "bigint",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "description",
+          "type": "longtext",
+          "nullable": true,
+          "default": null,
+          "app_default": "",
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "id",
+          "type": "varchar(32)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": true,
+          "auto_increment": false
+        },
+        {
+          "name": "name",
+          "type": "varchar(128)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "scope",
+          "type": "varchar(16)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "status",
+          "type": "varchar(1)",
+          "nullable": true,
+          "default": null,
+          "app_default": "1",
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "tenant_id",
+          "type": "varchar(32)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "update_date",
+          "type": "datetime",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "update_time",
+          "type": "bigint",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        }
+      ],
+      "indexes": [
+        {
+          "name": "compilationtemplategroup_create_date",
+          "columns": [
+            "create_date"
+          ],
+          "unique": false
+        },
+        {
+          "name": "compilationtemplategroup_create_time",
+          "columns": [
+            "create_time"
+          ],
+          "unique": false
+        },
+        {
+          "name": "compilationtemplategroup_name",
+          "columns": [
+            "name"
+          ],
+          "unique": false
+        },
+        {
+          "name": "compilationtemplategroup_scope",
+          "columns": [
+            "scope"
+          ],
+          "unique": false
+        },
+        {
+          "name": "compilationtemplategroup_status",
+          "columns": [
+            "status"
+          ],
+          "unique": false
+        },
+        {
+          "name": "compilationtemplategroup_tenant_id",
+          "columns": [
+            "tenant_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "compilationtemplategroup_update_date",
+          "columns": [
+            "update_date"
+          ],
+          "unique": false
+        },
+        {
+          "name": "compilationtemplategroup_update_time",
+          "columns": [
+            "update_time"
+          ],
+          "unique": false
+        }
+      ]
+    },
+    {
+      "name": "connector",
+      "columns": [
+        {
+          "name": "config",
+          "type": "longtext",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "create_date",
+          "type": "datetime",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "create_time",
+          "type": "bigint",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "id",
+          "type": "varchar(32)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": true,
+          "auto_increment": false
+        },
+        {
+          "name": "indexing_start",
+          "type": "datetime",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "input_type",
+          "type": "varchar(128)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "name",
+          "type": "varchar(128)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "prune_freq",
+          "type": "int",
+          "nullable": false,
+          "default": null,
+          "app_default": 0,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "refresh_freq",
+          "type": "int",
+          "nullable": false,
+          "default": null,
+          "app_default": 0,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "source",
+          "type": "varchar(128)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "status",
+          "type": "varchar(16)",
+          "nullable": true,
+          "default": null,
+          "app_default": "schedule",
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "tenant_id",
+          "type": "varchar(32)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "timeout_secs",
+          "type": "int",
+          "nullable": false,
+          "default": null,
+          "app_default": 3600,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "update_date",
+          "type": "datetime",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "update_time",
+          "type": "bigint",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        }
+      ],
+      "indexes": [
+        {
+          "name": "connector_create_date",
+          "columns": [
+            "create_date"
+          ],
+          "unique": false
+        },
+        {
+          "name": "connector_create_time",
+          "columns": [
+            "create_time"
+          ],
+          "unique": false
+        },
+        {
+          "name": "connector_indexing_start",
+          "columns": [
+            "indexing_start"
+          ],
+          "unique": false
+        },
+        {
+          "name": "connector_input_type",
+          "columns": [
+            "input_type"
+          ],
+          "unique": false
+        },
+        {
+          "name": "connector_source",
+          "columns": [
+            "source"
+          ],
+          "unique": false
+        },
+        {
+          "name": "connector_status",
+          "columns": [
+            "status"
+          ],
+          "unique": false
+        },
+        {
+          "name": "connector_tenant_id",
+          "columns": [
+            "tenant_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "connector_update_date",
+          "columns": [
+            "update_date"
+          ],
+          "unique": false
+        },
+        {
+          "name": "connector_update_time",
+          "columns": [
+            "update_time"
+          ],
+          "unique": false
+        }
+      ]
+    },
+    {
+      "name": "connector2kb",
+      "columns": [
+        {
+          "name": "auto_parse",
+          "type": "varchar(1)",
+          "nullable": false,
+          "default": null,
+          "app_default": "1",
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "connector_id",
+          "type": "varchar(32)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "create_date",
+          "type": "datetime",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "create_time",
+          "type": "bigint",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "id",
+          "type": "varchar(32)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": true,
+          "auto_increment": false
+        },
+        {
+          "name": "kb_id",
+          "type": "varchar(32)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "update_date",
+          "type": "datetime",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "update_time",
+          "type": "bigint",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        }
+      ],
+      "indexes": [
+        {
+          "name": "connector2kb_connector_id",
+          "columns": [
+            "connector_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "connector2kb_create_date",
+          "columns": [
+            "create_date"
+          ],
+          "unique": false
+        },
+        {
+          "name": "connector2kb_create_time",
+          "columns": [
+            "create_time"
+          ],
+          "unique": false
+        },
+        {
+          "name": "connector2kb_kb_id",
+          "columns": [
+            "kb_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "connector2kb_update_date",
+          "columns": [
+            "update_date"
+          ],
+          "unique": false
+        },
+        {
+          "name": "connector2kb_update_time",
+          "columns": [
+            "update_time"
+          ],
+          "unique": false
+        }
+      ]
+    },
+    {
+      "name": "conversation",
+      "columns": [
+        {
+          "name": "create_date",
+          "type": "datetime",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "create_time",
+          "type": "bigint",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "dialog_id",
+          "type": "varchar(32)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "id",
+          "type": "varchar(32)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": true,
+          "auto_increment": false
+        },
+        {
+          "name": "message",
+          "type": "longtext",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "name",
+          "type": "varchar(255)",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "reference",
+          "type": "longtext",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "update_date",
+          "type": "datetime",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "update_time",
+          "type": "bigint",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "user_id",
+          "type": "varchar(255)",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        }
+      ],
+      "indexes": [
+        {
+          "name": "conversation_create_date",
+          "columns": [
+            "create_date"
+          ],
+          "unique": false
+        },
+        {
+          "name": "conversation_create_time",
+          "columns": [
+            "create_time"
+          ],
+          "unique": false
+        },
+        {
+          "name": "conversation_dialog_id",
+          "columns": [
+            "dialog_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "conversation_name",
+          "columns": [
+            "name"
+          ],
+          "unique": false
+        },
+        {
+          "name": "conversation_update_date",
+          "columns": [
+            "update_date"
+          ],
+          "unique": false
+        },
+        {
+          "name": "conversation_update_time",
+          "columns": [
+            "update_time"
+          ],
+          "unique": false
+        },
+        {
+          "name": "conversation_user_id",
+          "columns": [
+            "user_id"
+          ],
+          "unique": false
+        }
+      ]
+    },
+    {
+      "name": "dialog",
+      "columns": [
+        {
+          "name": "create_date",
+          "type": "datetime",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "create_time",
+          "type": "bigint",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "description",
+          "type": "longtext",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "do_refer",
+          "type": "varchar(1)",
+          "nullable": false,
+          "default": null,
+          "app_default": "1",
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "icon",
+          "type": "longtext",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "id",
+          "type": "varchar(32)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": true,
+          "auto_increment": false
+        },
+        {
+          "name": "kb_ids",
+          "type": "longtext",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "language",
+          "type": "varchar(32)",
+          "nullable": true,
+          "default": null,
+          "app_default": "English",
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "llm_id",
+          "type": "varchar(128)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "llm_setting",
+          "type": "longtext",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "meta_data_filter",
+          "type": "longtext",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "name",
+          "type": "varchar(255)",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "prompt_config",
+          "type": "longtext",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "prompt_type",
+          "type": "varchar(16)",
+          "nullable": false,
+          "default": null,
+          "app_default": "simple",
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "rerank_id",
+          "type": "varchar(128)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "similarity_threshold",
+          "type": "float",
+          "nullable": false,
+          "default": null,
+          "app_default": 0.2,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "status",
+          "type": "varchar(1)",
+          "nullable": true,
+          "default": null,
+          "app_default": "1",
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "tenant_id",
+          "type": "varchar(32)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "tenant_llm_id",
+          "type": "varchar(32)",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "tenant_rerank_id",
+          "type": "varchar(32)",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "top_k",
+          "type": "int",
+          "nullable": false,
+          "default": null,
+          "app_default": 1024,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "top_n",
+          "type": "int",
+          "nullable": false,
+          "default": null,
+          "app_default": 6,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "update_date",
+          "type": "datetime",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "update_time",
+          "type": "bigint",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "vector_similarity_weight",
+          "type": "float",
+          "nullable": false,
+          "default": null,
+          "app_default": 0.3,
+          "primary_key": false,
+          "auto_increment": false
+        }
+      ],
+      "indexes": [
+        {
+          "name": "dialog_create_date",
+          "columns": [
+            "create_date"
+          ],
+          "unique": false
+        },
+        {
+          "name": "dialog_create_time",
+          "columns": [
+            "create_time"
+          ],
+          "unique": false
+        },
+        {
+          "name": "dialog_language",
+          "columns": [
+            "language"
+          ],
+          "unique": false
+        },
+        {
+          "name": "dialog_name",
+          "columns": [
+            "name"
+          ],
+          "unique": false
+        },
+        {
+          "name": "dialog_prompt_type",
+          "columns": [
+            "prompt_type"
+          ],
+          "unique": false
+        },
+        {
+          "name": "dialog_status",
+          "columns": [
+            "status"
+          ],
+          "unique": false
+        },
+        {
+          "name": "dialog_tenant_id",
+          "columns": [
+            "tenant_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "dialog_tenant_llm_id",
+          "columns": [
+            "tenant_llm_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "dialog_tenant_rerank_id",
+          "columns": [
+            "tenant_rerank_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "dialog_update_date",
+          "columns": [
+            "update_date"
+          ],
+          "unique": false
+        },
+        {
+          "name": "dialog_update_time",
+          "columns": [
+            "update_time"
+          ],
+          "unique": false
+        }
+      ]
+    },
+    {
+      "name": "document",
+      "columns": [
+        {
+          "name": "chunk_num",
+          "type": "int",
+          "nullable": false,
+          "default": "0",
+          "app_default": 0,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "content_hash",
+          "type": "varchar(32)",
+          "nullable": true,
+          "default": "",
+          "app_default": "",
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "create_date",
+          "type": "datetime",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "create_time",
+          "type": "bigint",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "created_by",
+          "type": "varchar(32)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "id",
+          "type": "varchar(32)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": true,
+          "auto_increment": false
+        },
+        {
+          "name": "kb_id",
+          "type": "varchar(256)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "location",
+          "type": "varchar(255)",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "name",
+          "type": "varchar(255)",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "parser_config",
+          "type": "longtext",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "parser_id",
+          "type": "varchar(32)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "pipeline_id",
+          "type": "varchar(32)",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "process_begin_at",
+          "type": "datetime",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "process_duration",
+          "type": "float",
+          "nullable": false,
+          "default": "0",
+          "app_default": 0,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "progress",
+          "type": "float",
+          "nullable": false,
+          "default": "0",
+          "app_default": 0,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "progress_msg",
+          "type": "longtext",
+          "nullable": true,
+          "default": null,
+          "app_default": "",
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "run",
+          "type": "varchar(1)",
+          "nullable": true,
+          "default": "0",
+          "app_default": "0",
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "size",
+          "type": "bigint",
+          "nullable": false,
+          "default": "0",
+          "app_default": 0,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "source_type",
+          "type": "varchar(128)",
+          "nullable": false,
+          "default": "local",
+          "app_default": "local",
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "status",
+          "type": "varchar(1)",
+          "nullable": true,
+          "default": "1",
+          "app_default": "1",
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "suffix",
+          "type": "varchar(32)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "thumbnail",
+          "type": "longtext",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "token_num",
+          "type": "int",
+          "nullable": false,
+          "default": "0",
+          "app_default": 0,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "type",
+          "type": "varchar(32)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "update_date",
+          "type": "datetime",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "update_time",
+          "type": "bigint",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        }
+      ],
+      "indexes": [
+        {
+          "name": "document_chunk_num",
+          "columns": [
+            "chunk_num"
+          ],
+          "unique": false
+        },
+        {
+          "name": "document_content_hash",
+          "columns": [
+            "content_hash"
+          ],
+          "unique": false
+        },
+        {
+          "name": "document_create_date",
+          "columns": [
+            "create_date"
+          ],
+          "unique": false
+        },
+        {
+          "name": "document_create_time",
+          "columns": [
+            "create_time"
+          ],
+          "unique": false
+        },
+        {
+          "name": "document_created_by",
+          "columns": [
+            "created_by"
+          ],
+          "unique": false
+        },
+        {
+          "name": "document_location",
+          "columns": [
+            "location"
+          ],
+          "unique": false
+        },
+        {
+          "name": "document_name",
+          "columns": [
+            "name"
+          ],
+          "unique": false
+        },
+        {
+          "name": "document_pipeline_id",
+          "columns": [
+            "pipeline_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "document_process_begin_at",
+          "columns": [
+            "process_begin_at"
+          ],
+          "unique": false
+        },
+        {
+          "name": "document_progress",
+          "columns": [
+            "progress"
+          ],
+          "unique": false
+        },
+        {
+          "name": "document_run",
+          "columns": [
+            "run"
+          ],
+          "unique": false
+        },
+        {
+          "name": "document_size",
+          "columns": [
+            "size"
+          ],
+          "unique": false
+        },
+        {
+          "name": "document_source_type",
+          "columns": [
+            "source_type"
+          ],
+          "unique": false
+        },
+        {
+          "name": "document_suffix",
+          "columns": [
+            "suffix"
+          ],
+          "unique": false
+        },
+        {
+          "name": "document_token_num",
+          "columns": [
+            "token_num"
+          ],
+          "unique": false
+        },
+        {
+          "name": "document_type",
+          "columns": [
+            "type"
+          ],
+          "unique": false
+        },
+        {
+          "name": "document_update_date",
+          "columns": [
+            "update_date"
+          ],
+          "unique": false
+        },
+        {
+          "name": "document_update_time",
+          "columns": [
+            "update_time"
+          ],
+          "unique": false
+        },
+        {
+          "name": "idx_doc_kb_id",
+          "columns": [
+            "kb_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "idx_doc_parser_id",
+          "columns": [
+            "parser_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "idx_doc_status",
+          "columns": [
+            "status"
+          ],
+          "unique": false
+        }
+      ]
+    },
+    {
+      "name": "file",
+      "columns": [
+        {
+          "name": "create_date",
+          "type": "datetime",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "create_time",
+          "type": "bigint",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "created_by",
+          "type": "varchar(32)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "id",
+          "type": "varchar(32)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": true,
+          "auto_increment": false
+        },
+        {
+          "name": "location",
+          "type": "varchar(255)",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "name",
+          "type": "varchar(255)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "parent_id",
+          "type": "varchar(32)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "size",
+          "type": "bigint",
+          "nullable": false,
+          "default": null,
+          "app_default": 0,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "source_type",
+          "type": "varchar(128)",
+          "nullable": false,
+          "default": null,
+          "app_default": "",
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "tenant_id",
+          "type": "varchar(32)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "type",
+          "type": "varchar(32)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "update_date",
+          "type": "datetime",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "update_time",
+          "type": "bigint",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        }
+      ],
+      "indexes": [
+        {
+          "name": "file_create_date",
+          "columns": [
+            "create_date"
+          ],
+          "unique": false
+        },
+        {
+          "name": "file_create_time",
+          "columns": [
+            "create_time"
+          ],
+          "unique": false
+        },
+        {
+          "name": "file_created_by",
+          "columns": [
+            "created_by"
+          ],
+          "unique": false
+        },
+        {
+          "name": "file_location",
+          "columns": [
+            "location"
+          ],
+          "unique": false
+        },
+        {
+          "name": "file_name",
+          "columns": [
+            "name"
+          ],
+          "unique": false
+        },
+        {
+          "name": "file_parent_id",
+          "columns": [
+            "parent_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "file_size",
+          "columns": [
+            "size"
+          ],
+          "unique": false
+        },
+        {
+          "name": "file_source_type",
+          "columns": [
+            "source_type"
+          ],
+          "unique": false
+        },
+        {
+          "name": "file_tenant_id",
+          "columns": [
+            "tenant_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "file_type",
+          "columns": [
+            "type"
+          ],
+          "unique": false
+        },
+        {
+          "name": "file_update_date",
+          "columns": [
+            "update_date"
+          ],
+          "unique": false
+        },
+        {
+          "name": "file_update_time",
+          "columns": [
+            "update_time"
+          ],
+          "unique": false
+        }
+      ]
+    },
+    {
+      "name": "file2document",
+      "columns": [
+        {
+          "name": "create_date",
+          "type": "datetime",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "create_time",
+          "type": "bigint",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "document_id",
+          "type": "varchar(32)",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "file_id",
+          "type": "varchar(32)",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "id",
+          "type": "varchar(32)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": true,
+          "auto_increment": false
+        },
+        {
+          "name": "update_date",
+          "type": "datetime",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "update_time",
+          "type": "bigint",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        }
+      ],
+      "indexes": [
+        {
+          "name": "file2document_create_date",
+          "columns": [
+            "create_date"
+          ],
+          "unique": false
+        },
+        {
+          "name": "file2document_create_time",
+          "columns": [
+            "create_time"
+          ],
+          "unique": false
+        },
+        {
+          "name": "file2document_document_id",
+          "columns": [
+            "document_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "file2document_file_id",
+          "columns": [
+            "file_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "file2document_update_date",
+          "columns": [
+            "update_date"
+          ],
+          "unique": false
+        },
+        {
+          "name": "file2document_update_time",
+          "columns": [
+            "update_time"
+          ],
+          "unique": false
+        }
+      ]
+    },
+    {
+      "name": "file_commit",
+      "columns": [
+        {
+          "name": "author_id",
+          "type": "varchar(32)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "comments",
+          "type": "longtext",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "create_date",
+          "type": "datetime",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "create_time",
+          "type": "bigint",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "file_count",
+          "type": "int",
+          "nullable": false,
+          "default": null,
+          "app_default": 0,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "folder_id",
+          "type": "varchar(32)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "id",
+          "type": "varchar(32)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": true,
+          "auto_increment": false
+        },
+        {
+          "name": "message",
+          "type": "varchar(512)",
+          "nullable": false,
+          "default": null,
+          "app_default": "",
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "parent_id",
+          "type": "varchar(32)",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "title",
+          "type": "varchar(255)",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "tree_state",
+          "type": "longtext",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "update_date",
+          "type": "datetime",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "update_time",
+          "type": "bigint",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        }
+      ],
+      "indexes": [
+        {
+          "name": "filecommit_author_id",
+          "columns": [
+            "author_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "filecommit_create_date",
+          "columns": [
+            "create_date"
+          ],
+          "unique": false
+        },
+        {
+          "name": "filecommit_create_time",
+          "columns": [
+            "create_time"
+          ],
+          "unique": false
+        },
+        {
+          "name": "filecommit_folder_id",
+          "columns": [
+            "folder_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "filecommit_parent_id",
+          "columns": [
+            "parent_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "filecommit_update_date",
+          "columns": [
+            "update_date"
+          ],
+          "unique": false
+        },
+        {
+          "name": "filecommit_update_time",
+          "columns": [
+            "update_time"
+          ],
+          "unique": false
+        }
+      ]
+    },
+    {
+      "name": "file_commit_item",
+      "columns": [
+        {
+          "name": "commit_id",
+          "type": "varchar(32)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "content_after_location",
+          "type": "varchar(512)",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "content_after_storage",
+          "type": "varchar(16)",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "create_date",
+          "type": "datetime",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "create_time",
+          "type": "bigint",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "diff",
+          "type": "longtext",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "file_id",
+          "type": "varchar(32)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "id",
+          "type": "varchar(32)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": true,
+          "auto_increment": false
+        },
+        {
+          "name": "new_hash",
+          "type": "varchar(64)",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "new_location",
+          "type": "varchar(255)",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "new_name",
+          "type": "varchar(255)",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "old_hash",
+          "type": "varchar(64)",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "old_location",
+          "type": "varchar(255)",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "old_name",
+          "type": "varchar(255)",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "operation",
+          "type": "varchar(16)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "page_type_kwd",
+          "type": "varchar(32)",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "slug_kwd",
+          "type": "varchar(512)",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "update_date",
+          "type": "datetime",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "update_time",
+          "type": "bigint",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        }
+      ],
+      "indexes": [
+        {
+          "name": "filecommititem_commit_id",
+          "columns": [
+            "commit_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "filecommititem_commit_id_file_id",
+          "columns": [
+            "commit_id",
+            "file_id"
+          ],
+          "unique": true
+        },
+        {
+          "name": "filecommititem_content_after_storage",
+          "columns": [
+            "content_after_storage"
+          ],
+          "unique": false
+        },
+        {
+          "name": "filecommititem_create_date",
+          "columns": [
+            "create_date"
+          ],
+          "unique": false
+        },
+        {
+          "name": "filecommititem_create_time",
+          "columns": [
+            "create_time"
+          ],
+          "unique": false
+        },
+        {
+          "name": "filecommititem_file_id",
+          "columns": [
+            "file_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "filecommititem_new_hash",
+          "columns": [
+            "new_hash"
+          ],
+          "unique": false
+        },
+        {
+          "name": "filecommititem_old_hash",
+          "columns": [
+            "old_hash"
+          ],
+          "unique": false
+        },
+        {
+          "name": "filecommititem_operation",
+          "columns": [
+            "operation"
+          ],
+          "unique": false
+        },
+        {
+          "name": "filecommititem_page_type_kwd",
+          "columns": [
+            "page_type_kwd"
+          ],
+          "unique": false
+        },
+        {
+          "name": "filecommititem_slug_kwd",
+          "columns": [
+            "slug_kwd"
+          ],
+          "unique": false
+        },
+        {
+          "name": "filecommititem_update_date",
+          "columns": [
+            "update_date"
+          ],
+          "unique": false
+        },
+        {
+          "name": "filecommititem_update_time",
+          "columns": [
+            "update_time"
+          ],
+          "unique": false
+        }
+      ]
+    },
+    {
+      "name": "invitation_code",
+      "columns": [
+        {
+          "name": "code",
+          "type": "varchar(32)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "create_date",
+          "type": "datetime",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "create_time",
+          "type": "bigint",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "id",
+          "type": "varchar(32)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": true,
+          "auto_increment": false
+        },
+        {
+          "name": "status",
+          "type": "varchar(1)",
+          "nullable": true,
+          "default": null,
+          "app_default": "1",
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "tenant_id",
+          "type": "varchar(32)",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "update_date",
+          "type": "datetime",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "update_time",
+          "type": "bigint",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "user_id",
+          "type": "varchar(32)",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "visit_time",
+          "type": "datetime",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        }
+      ],
+      "indexes": [
+        {
+          "name": "invitationcode_code",
+          "columns": [
+            "code"
+          ],
+          "unique": false
+        },
+        {
+          "name": "invitationcode_create_date",
+          "columns": [
+            "create_date"
+          ],
+          "unique": false
+        },
+        {
+          "name": "invitationcode_create_time",
+          "columns": [
+            "create_time"
+          ],
+          "unique": false
+        },
+        {
+          "name": "invitationcode_status",
+          "columns": [
+            "status"
+          ],
+          "unique": false
+        },
+        {
+          "name": "invitationcode_tenant_id",
+          "columns": [
+            "tenant_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "invitationcode_update_date",
+          "columns": [
+            "update_date"
+          ],
+          "unique": false
+        },
+        {
+          "name": "invitationcode_update_time",
+          "columns": [
+            "update_time"
+          ],
+          "unique": false
+        },
+        {
+          "name": "invitationcode_user_id",
+          "columns": [
+            "user_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "invitationcode_visit_time",
+          "columns": [
+            "visit_time"
+          ],
+          "unique": false
+        }
+      ]
+    },
+    {
+      "name": "knowledgebase",
+      "columns": [
+        {
+          "name": "avatar",
+          "type": "longtext",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "chunk_num",
+          "type": "int",
+          "nullable": false,
+          "default": null,
+          "app_default": 0,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "create_date",
+          "type": "datetime",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "create_time",
+          "type": "bigint",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "created_by",
+          "type": "varchar(32)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "description",
+          "type": "longtext",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "doc_num",
+          "type": "int",
+          "nullable": false,
+          "default": null,
+          "app_default": 0,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "embd_id",
+          "type": "varchar(128)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "graphrag_task_finish_at",
+          "type": "datetime",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "graphrag_task_id",
+          "type": "varchar(32)",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "id",
+          "type": "varchar(32)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": true,
+          "auto_increment": false
+        },
+        {
+          "name": "language",
+          "type": "varchar(32)",
+          "nullable": true,
+          "default": "English",
+          "app_default": "English",
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "mindmap_task_finish_at",
+          "type": "datetime",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "mindmap_task_id",
+          "type": "varchar(32)",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "name",
+          "type": "varchar(128)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "pagerank",
+          "type": "int",
+          "nullable": false,
+          "default": null,
+          "app_default": 0,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "parser_config",
+          "type": "longtext",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "parser_id",
+          "type": "varchar(32)",
+          "nullable": false,
+          "default": "naive",
+          "app_default": "naive",
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "permission",
+          "type": "varchar(16)",
+          "nullable": false,
+          "default": null,
+          "app_default": "me",
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "pipeline_id",
+          "type": "varchar(32)",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "raptor_task_finish_at",
+          "type": "datetime",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "raptor_task_id",
+          "type": "varchar(32)",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "session_essence_task_finish_at",
+          "type": "datetime",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "session_essence_task_id",
+          "type": "varchar(32)",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "session_graph_task_finish_at",
+          "type": "datetime",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "session_graph_task_id",
+          "type": "varchar(32)",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "similarity_threshold",
+          "type": "float",
+          "nullable": false,
+          "default": null,
+          "app_default": 0.2,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "skill_task_finish_at",
+          "type": "datetime",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "skill_task_id",
+          "type": "varchar(32)",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "status",
+          "type": "varchar(1)",
+          "nullable": true,
+          "default": "1",
+          "app_default": "1",
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "structure_graph_task_finish_at",
+          "type": "datetime",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "structure_graph_task_id",
+          "type": "varchar(32)",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "structure_mindmap_task_finish_at",
+          "type": "datetime",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "structure_mindmap_task_id",
+          "type": "varchar(32)",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "structure_task_finish_at",
+          "type": "datetime",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "structure_task_id",
+          "type": "varchar(32)",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "tenant_embd_id",
+          "type": "varchar(32)",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "tenant_id",
+          "type": "varchar(32)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "timeline_task_finish_at",
+          "type": "datetime",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "timeline_task_id",
+          "type": "varchar(32)",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "token_num",
+          "type": "int",
+          "nullable": false,
+          "default": null,
+          "app_default": 0,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "update_date",
+          "type": "datetime",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "update_time",
+          "type": "bigint",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "vector_similarity_weight",
+          "type": "float",
+          "nullable": false,
+          "default": null,
+          "app_default": 0.3,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "wiki_task_finish_at",
+          "type": "datetime",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "wiki_task_id",
+          "type": "varchar(32)",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        }
+      ],
+      "indexes": [
+        {
+          "name": "idx_kb_name",
+          "columns": [
+            "name"
+          ],
+          "unique": false
+        },
+        {
+          "name": "idx_kb_tenant_id",
+          "columns": [
+            "tenant_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "knowledgebase_chunk_num",
+          "columns": [
+            "chunk_num"
+          ],
+          "unique": false
+        },
+        {
+          "name": "knowledgebase_create_date",
+          "columns": [
+            "create_date"
+          ],
+          "unique": false
+        },
+        {
+          "name": "knowledgebase_create_time",
+          "columns": [
+            "create_time"
+          ],
+          "unique": false
+        },
+        {
+          "name": "knowledgebase_created_by",
+          "columns": [
+            "created_by"
+          ],
+          "unique": false
+        },
+        {
+          "name": "knowledgebase_doc_num",
+          "columns": [
+            "doc_num"
+          ],
+          "unique": false
+        },
+        {
+          "name": "knowledgebase_embd_id",
+          "columns": [
+            "embd_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "knowledgebase_graphrag_task_id",
+          "columns": [
+            "graphrag_task_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "knowledgebase_language",
+          "columns": [
+            "language"
+          ],
+          "unique": false
+        },
+        {
+          "name": "knowledgebase_mindmap_task_id",
+          "columns": [
+            "mindmap_task_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "knowledgebase_parser_id",
+          "columns": [
+            "parser_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "knowledgebase_permission",
+          "columns": [
+            "permission"
+          ],
+          "unique": false
+        },
+        {
+          "name": "knowledgebase_pipeline_id",
+          "columns": [
+            "pipeline_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "knowledgebase_raptor_task_id",
+          "columns": [
+            "raptor_task_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "knowledgebase_session_essence_task_id",
+          "columns": [
+            "session_essence_task_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "knowledgebase_session_graph_task_id",
+          "columns": [
+            "session_graph_task_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "knowledgebase_similarity_threshold",
+          "columns": [
+            "similarity_threshold"
+          ],
+          "unique": false
+        },
+        {
+          "name": "knowledgebase_skill_task_id",
+          "columns": [
+            "skill_task_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "knowledgebase_status",
+          "columns": [
+            "status"
+          ],
+          "unique": false
+        },
+        {
+          "name": "knowledgebase_structure_graph_task_id",
+          "columns": [
+            "structure_graph_task_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "knowledgebase_structure_mindmap_task_id",
+          "columns": [
+            "structure_mindmap_task_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "knowledgebase_structure_task_id",
+          "columns": [
+            "structure_task_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "knowledgebase_tenant_embd_id",
+          "columns": [
+            "tenant_embd_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "knowledgebase_timeline_task_id",
+          "columns": [
+            "timeline_task_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "knowledgebase_token_num",
+          "columns": [
+            "token_num"
+          ],
+          "unique": false
+        },
+        {
+          "name": "knowledgebase_update_date",
+          "columns": [
+            "update_date"
+          ],
+          "unique": false
+        },
+        {
+          "name": "knowledgebase_update_time",
+          "columns": [
+            "update_time"
+          ],
+          "unique": false
+        },
+        {
+          "name": "knowledgebase_vector_similarity_weight",
+          "columns": [
+            "vector_similarity_weight"
+          ],
+          "unique": false
+        },
+        {
+          "name": "knowledgebase_wiki_task_id",
+          "columns": [
+            "wiki_task_id"
+          ],
+          "unique": false
+        }
+      ]
+    },
+    {
+      "name": "llm",
+      "columns": [
+        {
+          "name": "create_date",
+          "type": "datetime",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "create_time",
+          "type": "bigint",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "fid",
+          "type": "varchar(128)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": true,
+          "auto_increment": false
+        },
+        {
+          "name": "is_tools",
+          "type": "tinyint(1)",
+          "nullable": false,
+          "default": null,
+          "app_default": false,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "llm_name",
+          "type": "varchar(128)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": true,
+          "auto_increment": false
+        },
+        {
+          "name": "max_tokens",
+          "type": "int",
+          "nullable": false,
+          "default": null,
+          "app_default": 0,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "model_type",
+          "type": "varchar(128)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "status",
+          "type": "varchar(1)",
+          "nullable": true,
+          "default": null,
+          "app_default": "1",
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "tags",
+          "type": "varchar(255)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "update_date",
+          "type": "datetime",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "update_time",
+          "type": "bigint",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        }
+      ],
+      "indexes": [
+        {
+          "name": "llm_create_date",
+          "columns": [
+            "create_date"
+          ],
+          "unique": false
+        },
+        {
+          "name": "llm_create_time",
+          "columns": [
+            "create_time"
+          ],
+          "unique": false
+        },
+        {
+          "name": "llm_fid",
+          "columns": [
+            "fid"
+          ],
+          "unique": false
+        },
+        {
+          "name": "llm_llm_name",
+          "columns": [
+            "llm_name"
+          ],
+          "unique": false
+        },
+        {
+          "name": "llm_model_type",
+          "columns": [
+            "model_type"
+          ],
+          "unique": false
+        },
+        {
+          "name": "llm_status",
+          "columns": [
+            "status"
+          ],
+          "unique": false
+        },
+        {
+          "name": "llm_tags",
+          "columns": [
+            "tags"
+          ],
+          "unique": false
+        },
+        {
+          "name": "llm_update_date",
+          "columns": [
+            "update_date"
+          ],
+          "unique": false
+        },
+        {
+          "name": "llm_update_time",
+          "columns": [
+            "update_time"
+          ],
+          "unique": false
+        }
+      ]
+    },
+    {
+      "name": "llm_factories",
+      "columns": [
+        {
+          "name": "create_date",
+          "type": "datetime",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "create_time",
+          "type": "bigint",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "logo",
+          "type": "longtext",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "name",
+          "type": "varchar(128)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": true,
+          "auto_increment": false
+        },
+        {
+          "name": "rank",
+          "type": "int",
+          "nullable": false,
+          "default": null,
+          "app_default": 0,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "status",
+          "type": "varchar(1)",
+          "nullable": true,
+          "default": null,
+          "app_default": "1",
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "tags",
+          "type": "varchar(255)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "update_date",
+          "type": "datetime",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "update_time",
+          "type": "bigint",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        }
+      ],
+      "indexes": [
+        {
+          "name": "llmfactories_create_date",
+          "columns": [
+            "create_date"
+          ],
+          "unique": false
+        },
+        {
+          "name": "llmfactories_create_time",
+          "columns": [
+            "create_time"
+          ],
+          "unique": false
+        },
+        {
+          "name": "llmfactories_status",
+          "columns": [
+            "status"
+          ],
+          "unique": false
+        },
+        {
+          "name": "llmfactories_tags",
+          "columns": [
+            "tags"
+          ],
+          "unique": false
+        },
+        {
+          "name": "llmfactories_update_date",
+          "columns": [
+            "update_date"
+          ],
+          "unique": false
+        },
+        {
+          "name": "llmfactories_update_time",
+          "columns": [
+            "update_time"
+          ],
+          "unique": false
+        }
+      ]
+    },
+    {
+      "name": "mcp_server",
+      "columns": [
+        {
+          "name": "create_date",
+          "type": "datetime",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "create_time",
+          "type": "bigint",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "description",
+          "type": "longtext",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "headers",
+          "type": "longtext",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "id",
+          "type": "varchar(32)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": true,
+          "auto_increment": false
+        },
+        {
+          "name": "name",
+          "type": "varchar(255)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "server_type",
+          "type": "varchar(32)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "tenant_id",
+          "type": "varchar(32)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "update_date",
+          "type": "datetime",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "update_time",
+          "type": "bigint",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "url",
+          "type": "varchar(2048)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "variables",
+          "type": "longtext",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        }
+      ],
+      "indexes": [
+        {
+          "name": "mcpserver_create_date",
+          "columns": [
+            "create_date"
+          ],
+          "unique": false
+        },
+        {
+          "name": "mcpserver_create_time",
+          "columns": [
+            "create_time"
+          ],
+          "unique": false
+        },
+        {
+          "name": "mcpserver_tenant_id",
+          "columns": [
+            "tenant_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "mcpserver_update_date",
+          "columns": [
+            "update_date"
+          ],
+          "unique": false
+        },
+        {
+          "name": "mcpserver_update_time",
+          "columns": [
+            "update_time"
+          ],
+          "unique": false
+        }
+      ]
+    },
+    {
+      "name": "memory",
+      "columns": [
+        {
+          "name": "avatar",
+          "type": "longtext",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "create_date",
+          "type": "datetime",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "create_time",
+          "type": "bigint",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "description",
+          "type": "longtext",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "embd_id",
+          "type": "varchar(128)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "forgetting_policy",
+          "type": "varchar(32)",
+          "nullable": false,
+          "default": null,
+          "app_default": "FIFO",
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "id",
+          "type": "varchar(32)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": true,
+          "auto_increment": false
+        },
+        {
+          "name": "llm_id",
+          "type": "varchar(128)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "memory_size",
+          "type": "int",
+          "nullable": false,
+          "default": null,
+          "app_default": 5242880,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "memory_type",
+          "type": "int",
+          "nullable": false,
+          "default": null,
+          "app_default": 1,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "name",
+          "type": "varchar(128)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "permissions",
+          "type": "varchar(16)",
+          "nullable": false,
+          "default": null,
+          "app_default": "me",
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "storage_type",
+          "type": "varchar(32)",
+          "nullable": false,
+          "default": null,
+          "app_default": "table",
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "system_prompt",
+          "type": "longtext",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "temperature",
+          "type": "float",
+          "nullable": false,
+          "default": null,
+          "app_default": 0.5,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "tenant_embd_id",
+          "type": "varchar(32)",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "tenant_id",
+          "type": "varchar(32)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "tenant_llm_id",
+          "type": "varchar(32)",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "update_date",
+          "type": "datetime",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "update_time",
+          "type": "bigint",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "user_prompt",
+          "type": "longtext",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        }
+      ],
+      "indexes": [
+        {
+          "name": "memory_create_date",
+          "columns": [
+            "create_date"
+          ],
+          "unique": false
+        },
+        {
+          "name": "memory_create_time",
+          "columns": [
+            "create_time"
+          ],
+          "unique": false
+        },
+        {
+          "name": "memory_memory_type",
+          "columns": [
+            "memory_type"
+          ],
+          "unique": false
+        },
+        {
+          "name": "memory_permissions",
+          "columns": [
+            "permissions"
+          ],
+          "unique": false
+        },
+        {
+          "name": "memory_storage_type",
+          "columns": [
+            "storage_type"
+          ],
+          "unique": false
+        },
+        {
+          "name": "memory_tenant_embd_id",
+          "columns": [
+            "tenant_embd_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "memory_tenant_id",
+          "columns": [
+            "tenant_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "memory_tenant_llm_id",
+          "columns": [
+            "tenant_llm_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "memory_update_date",
+          "columns": [
+            "update_date"
+          ],
+          "unique": false
+        },
+        {
+          "name": "memory_update_time",
+          "columns": [
+            "update_time"
+          ],
+          "unique": false
+        }
+      ]
+    },
+    {
+      "name": "pipeline_operation_log",
+      "columns": [
+        {
+          "name": "avatar",
+          "type": "longtext",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "create_date",
+          "type": "datetime",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "create_time",
+          "type": "bigint",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "document_id",
+          "type": "varchar(32)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "document_name",
+          "type": "varchar(255)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "document_suffix",
+          "type": "varchar(255)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "document_type",
+          "type": "varchar(255)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "dsl",
+          "type": "longtext",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "id",
+          "type": "varchar(32)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": true,
+          "auto_increment": false
+        },
+        {
+          "name": "kb_id",
+          "type": "varchar(32)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "operation_status",
+          "type": "varchar(32)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "parser_id",
+          "type": "varchar(32)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "pipeline_id",
+          "type": "varchar(32)",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "pipeline_title",
+          "type": "varchar(32)",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "process_begin_at",
+          "type": "datetime",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "process_duration",
+          "type": "float",
+          "nullable": false,
+          "default": null,
+          "app_default": 0,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "progress",
+          "type": "float",
+          "nullable": false,
+          "default": null,
+          "app_default": 0,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "progress_msg",
+          "type": "longtext",
+          "nullable": true,
+          "default": null,
+          "app_default": "",
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "source_from",
+          "type": "varchar(255)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "status",
+          "type": "varchar(1)",
+          "nullable": true,
+          "default": null,
+          "app_default": "1",
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "task_type",
+          "type": "varchar(32)",
+          "nullable": false,
+          "default": null,
+          "app_default": "",
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "tenant_id",
+          "type": "varchar(32)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "update_date",
+          "type": "datetime",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "update_time",
+          "type": "bigint",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        }
+      ],
+      "indexes": [
+        {
+          "name": "pipelineoperationlog_create_date",
+          "columns": [
+            "create_date"
+          ],
+          "unique": false
+        },
+        {
+          "name": "pipelineoperationlog_create_time",
+          "columns": [
+            "create_time"
+          ],
+          "unique": false
+        },
+        {
+          "name": "pipelineoperationlog_document_id",
+          "columns": [
+            "document_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "pipelineoperationlog_kb_id",
+          "columns": [
+            "kb_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "pipelineoperationlog_parser_id",
+          "columns": [
+            "parser_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "pipelineoperationlog_pipeline_id",
+          "columns": [
+            "pipeline_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "pipelineoperationlog_pipeline_title",
+          "columns": [
+            "pipeline_title"
+          ],
+          "unique": false
+        },
+        {
+          "name": "pipelineoperationlog_process_begin_at",
+          "columns": [
+            "process_begin_at"
+          ],
+          "unique": false
+        },
+        {
+          "name": "pipelineoperationlog_progress",
+          "columns": [
+            "progress"
+          ],
+          "unique": false
+        },
+        {
+          "name": "pipelineoperationlog_status",
+          "columns": [
+            "status"
+          ],
+          "unique": false
+        },
+        {
+          "name": "pipelineoperationlog_tenant_id",
+          "columns": [
+            "tenant_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "pipelineoperationlog_update_date",
+          "columns": [
+            "update_date"
+          ],
+          "unique": false
+        },
+        {
+          "name": "pipelineoperationlog_update_time",
+          "columns": [
+            "update_time"
+          ],
+          "unique": false
+        }
+      ]
+    },
+    {
+      "name": "search",
+      "columns": [
+        {
+          "name": "avatar",
+          "type": "longtext",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "create_date",
+          "type": "datetime",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "create_time",
+          "type": "bigint",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "created_by",
+          "type": "varchar(32)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "description",
+          "type": "longtext",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "id",
+          "type": "varchar(32)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": true,
+          "auto_increment": false
+        },
+        {
+          "name": "name",
+          "type": "varchar(128)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "search_config",
+          "type": "longtext",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "status",
+          "type": "varchar(1)",
+          "nullable": true,
+          "default": null,
+          "app_default": "1",
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "tenant_id",
+          "type": "varchar(32)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "update_date",
+          "type": "datetime",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "update_time",
+          "type": "bigint",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        }
+      ],
+      "indexes": [
+        {
+          "name": "search_create_date",
+          "columns": [
+            "create_date"
+          ],
+          "unique": false
+        },
+        {
+          "name": "search_create_time",
+          "columns": [
+            "create_time"
+          ],
+          "unique": false
+        },
+        {
+          "name": "search_created_by",
+          "columns": [
+            "created_by"
+          ],
+          "unique": false
+        },
+        {
+          "name": "search_name",
+          "columns": [
+            "name"
+          ],
+          "unique": false
+        },
+        {
+          "name": "search_status",
+          "columns": [
+            "status"
+          ],
+          "unique": false
+        },
+        {
+          "name": "search_tenant_id",
+          "columns": [
+            "tenant_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "search_update_date",
+          "columns": [
+            "update_date"
+          ],
+          "unique": false
+        },
+        {
+          "name": "search_update_time",
+          "columns": [
+            "update_time"
+          ],
+          "unique": false
+        }
+      ]
+    },
+    {
+      "name": "sync_logs",
+      "columns": [
+        {
+          "name": "connector_id",
+          "type": "varchar(32)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "create_date",
+          "type": "datetime",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "create_time",
+          "type": "bigint",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "docs_removed_from_index",
+          "type": "int",
+          "nullable": false,
+          "default": null,
+          "app_default": 0,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "error_count",
+          "type": "int",
+          "nullable": false,
+          "default": null,
+          "app_default": 0,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "error_msg",
+          "type": "longtext",
+          "nullable": false,
+          "default": null,
+          "app_default": "",
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "from_beginning",
+          "type": "varchar(1)",
+          "nullable": true,
+          "default": null,
+          "app_default": "0",
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "full_exception_trace",
+          "type": "longtext",
+          "nullable": true,
+          "default": null,
+          "app_default": "",
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "id",
+          "type": "varchar(32)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": true,
+          "auto_increment": false
+        },
+        {
+          "name": "kb_id",
+          "type": "varchar(32)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "new_docs_indexed",
+          "type": "int",
+          "nullable": false,
+          "default": null,
+          "app_default": 0,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "poll_range_end",
+          "type": "varchar(255)",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "poll_range_start",
+          "type": "varchar(255)",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "status",
+          "type": "varchar(128)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "task_type",
+          "type": "varchar(32)",
+          "nullable": false,
+          "default": null,
+          "app_default": "sync",
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "time_started",
+          "type": "datetime",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "total_docs_indexed",
+          "type": "int",
+          "nullable": false,
+          "default": null,
+          "app_default": 0,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "update_date",
+          "type": "datetime",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "update_time",
+          "type": "bigint",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        }
+      ],
+      "indexes": [
+        {
+          "name": "synclogs_connector_id",
+          "columns": [
+            "connector_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "synclogs_create_date",
+          "columns": [
+            "create_date"
+          ],
+          "unique": false
+        },
+        {
+          "name": "synclogs_create_time",
+          "columns": [
+            "create_time"
+          ],
+          "unique": false
+        },
+        {
+          "name": "synclogs_kb_id",
+          "columns": [
+            "kb_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "synclogs_poll_range_end",
+          "columns": [
+            "poll_range_end"
+          ],
+          "unique": false
+        },
+        {
+          "name": "synclogs_poll_range_start",
+          "columns": [
+            "poll_range_start"
+          ],
+          "unique": false
+        },
+        {
+          "name": "synclogs_status",
+          "columns": [
+            "status"
+          ],
+          "unique": false
+        },
+        {
+          "name": "synclogs_task_type",
+          "columns": [
+            "task_type"
+          ],
+          "unique": false
+        },
+        {
+          "name": "synclogs_time_started",
+          "columns": [
+            "time_started"
+          ],
+          "unique": false
+        },
+        {
+          "name": "synclogs_update_date",
+          "columns": [
+            "update_date"
+          ],
+          "unique": false
+        },
+        {
+          "name": "synclogs_update_time",
+          "columns": [
+            "update_time"
+          ],
+          "unique": false
+        }
+      ]
+    },
+    {
+      "name": "system_settings",
+      "columns": [
+        {
+          "name": "create_date",
+          "type": "datetime",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "create_time",
+          "type": "bigint",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "data_type",
+          "type": "varchar(32)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "name",
+          "type": "varchar(128)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": true,
+          "auto_increment": false
+        },
+        {
+          "name": "source",
+          "type": "varchar(32)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "update_date",
+          "type": "datetime",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "update_time",
+          "type": "bigint",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "value",
+          "type": "varchar(1024)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        }
+      ],
+      "indexes": [
+        {
+          "name": "systemsettings_create_date",
+          "columns": [
+            "create_date"
+          ],
+          "unique": false
+        },
+        {
+          "name": "systemsettings_create_time",
+          "columns": [
+            "create_time"
+          ],
+          "unique": false
+        },
+        {
+          "name": "systemsettings_update_date",
+          "columns": [
+            "update_date"
+          ],
+          "unique": false
+        },
+        {
+          "name": "systemsettings_update_time",
+          "columns": [
+            "update_time"
+          ],
+          "unique": false
+        }
+      ]
+    },
+    {
+      "name": "task",
+      "columns": [
+        {
+          "name": "begin_at",
+          "type": "datetime",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "chunk_ids",
+          "type": "longtext",
+          "nullable": true,
+          "default": null,
+          "app_default": "",
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "create_date",
+          "type": "datetime",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "create_time",
+          "type": "bigint",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "digest",
+          "type": "longtext",
+          "nullable": true,
+          "default": null,
+          "app_default": "",
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "doc_id",
+          "type": "varchar(32)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "from_page",
+          "type": "int",
+          "nullable": false,
+          "default": "0",
+          "app_default": 0,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "id",
+          "type": "varchar(32)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": true,
+          "auto_increment": false
+        },
+        {
+          "name": "priority",
+          "type": "int",
+          "nullable": false,
+          "default": "0",
+          "app_default": 0,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "process_duration",
+          "type": "float",
+          "nullable": false,
+          "default": "0",
+          "app_default": 0,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "progress",
+          "type": "float",
+          "nullable": false,
+          "default": "0",
+          "app_default": 0,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "progress_msg",
+          "type": "longtext",
+          "nullable": true,
+          "default": null,
+          "app_default": "",
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "retry_count",
+          "type": "int",
+          "nullable": false,
+          "default": "0",
+          "app_default": 0,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "task_type",
+          "type": "varchar(32)",
+          "nullable": false,
+          "default": "",
+          "app_default": "",
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "to_page",
+          "type": "int",
+          "nullable": false,
+          "default": "1000000",
+          "app_default": 1000000,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "update_date",
+          "type": "datetime",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "update_time",
+          "type": "bigint",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        }
+      ],
+      "indexes": [
+        {
+          "name": "idx_task_doc_id",
+          "columns": [
+            "doc_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "idx_task_progress",
+          "columns": [
+            "progress"
+          ],
+          "unique": false
+        },
+        {
+          "name": "task_begin_at",
+          "columns": [
+            "begin_at"
+          ],
+          "unique": false
+        },
+        {
+          "name": "task_create_date",
+          "columns": [
+            "create_date"
+          ],
+          "unique": false
+        },
+        {
+          "name": "task_create_time",
+          "columns": [
+            "create_time"
+          ],
+          "unique": false
+        },
+        {
+          "name": "task_update_date",
+          "columns": [
+            "update_date"
+          ],
+          "unique": false
+        },
+        {
+          "name": "task_update_time",
+          "columns": [
+            "update_time"
+          ],
+          "unique": false
+        }
+      ]
+    },
+    {
+      "name": "tenant",
+      "columns": [
+        {
+          "name": "asr_id",
+          "type": "varchar(128)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "create_date",
+          "type": "datetime",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "create_time",
+          "type": "bigint",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "credit",
+          "type": "int",
+          "nullable": false,
+          "default": null,
+          "app_default": 512,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "embd_id",
+          "type": "varchar(128)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "id",
+          "type": "varchar(32)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": true,
+          "auto_increment": false
+        },
+        {
+          "name": "img2txt_id",
+          "type": "varchar(128)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "llm_id",
+          "type": "varchar(128)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "name",
+          "type": "varchar(100)",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "ocr_id",
+          "type": "varchar(256)",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "parser_ids",
+          "type": "varchar(256)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "public_key",
+          "type": "varchar(255)",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "rerank_id",
+          "type": "varchar(128)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "status",
+          "type": "varchar(1)",
+          "nullable": true,
+          "default": null,
+          "app_default": "1",
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "tenant_asr_id",
+          "type": "varchar(32)",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "tenant_embd_id",
+          "type": "varchar(32)",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "tenant_img2txt_id",
+          "type": "varchar(32)",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "tenant_llm_id",
+          "type": "varchar(32)",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "tenant_ocr_id",
+          "type": "varchar(32)",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "tenant_rerank_id",
+          "type": "varchar(32)",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "tenant_tts_id",
+          "type": "varchar(32)",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "tts_id",
+          "type": "varchar(256)",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "update_date",
+          "type": "datetime",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "update_time",
+          "type": "bigint",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        }
+      ],
+      "indexes": [
+        {
+          "name": "tenant_asr_id",
+          "columns": [
+            "asr_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "tenant_create_date",
+          "columns": [
+            "create_date"
+          ],
+          "unique": false
+        },
+        {
+          "name": "tenant_create_time",
+          "columns": [
+            "create_time"
+          ],
+          "unique": false
+        },
+        {
+          "name": "tenant_credit",
+          "columns": [
+            "credit"
+          ],
+          "unique": false
+        },
+        {
+          "name": "tenant_embd_id",
+          "columns": [
+            "embd_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "tenant_img2txt_id",
+          "columns": [
+            "img2txt_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "tenant_llm_id",
+          "columns": [
+            "llm_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "tenant_name",
+          "columns": [
+            "name"
+          ],
+          "unique": false
+        },
+        {
+          "name": "tenant_ocr_id",
+          "columns": [
+            "ocr_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "tenant_parser_ids",
+          "columns": [
+            "parser_ids"
+          ],
+          "unique": false
+        },
+        {
+          "name": "tenant_public_key",
+          "columns": [
+            "public_key"
+          ],
+          "unique": false
+        },
+        {
+          "name": "tenant_rerank_id",
+          "columns": [
+            "rerank_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "tenant_status",
+          "columns": [
+            "status"
+          ],
+          "unique": false
+        },
+        {
+          "name": "tenant_tenant_asr_id",
+          "columns": [
+            "tenant_asr_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "tenant_tenant_embd_id",
+          "columns": [
+            "tenant_embd_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "tenant_tenant_img2txt_id",
+          "columns": [
+            "tenant_img2txt_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "tenant_tenant_llm_id",
+          "columns": [
+            "tenant_llm_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "tenant_tenant_ocr_id",
+          "columns": [
+            "tenant_ocr_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "tenant_tenant_rerank_id",
+          "columns": [
+            "tenant_rerank_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "tenant_tenant_tts_id",
+          "columns": [
+            "tenant_tts_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "tenant_tts_id",
+          "columns": [
+            "tts_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "tenant_update_date",
+          "columns": [
+            "update_date"
+          ],
+          "unique": false
+        },
+        {
+          "name": "tenant_update_time",
+          "columns": [
+            "update_time"
+          ],
+          "unique": false
+        }
+      ]
+    },
+    {
+      "name": "tenant_langfuse",
+      "columns": [
+        {
+          "name": "create_date",
+          "type": "datetime",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "create_time",
+          "type": "bigint",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "host",
+          "type": "varchar(128)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "public_key",
+          "type": "varchar(2048)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "secret_key",
+          "type": "varchar(2048)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "tenant_id",
+          "type": "varchar(32)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": true,
+          "auto_increment": false
+        },
+        {
+          "name": "update_date",
+          "type": "datetime",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "update_time",
+          "type": "bigint",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        }
+      ],
+      "indexes": [
+        {
+          "name": "tenantlangfuse_create_date",
+          "columns": [
+            "create_date"
+          ],
+          "unique": false
+        },
+        {
+          "name": "tenantlangfuse_create_time",
+          "columns": [
+            "create_time"
+          ],
+          "unique": false
+        },
+        {
+          "name": "tenantlangfuse_update_date",
+          "columns": [
+            "update_date"
+          ],
+          "unique": false
+        },
+        {
+          "name": "tenantlangfuse_update_time",
+          "columns": [
+            "update_time"
+          ],
+          "unique": false
+        }
+      ]
+    },
+    {
+      "name": "tenant_llm",
+      "columns": [
+        {
+          "name": "api_base",
+          "type": "varchar(255)",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "api_key",
+          "type": "longtext",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "create_date",
+          "type": "datetime",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "create_time",
+          "type": "bigint",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "id",
+          "type": "int",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": true,
+          "auto_increment": true
+        },
+        {
+          "name": "llm_factory",
+          "type": "varchar(128)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "llm_name",
+          "type": "varchar(128)",
+          "nullable": true,
+          "default": null,
+          "app_default": "",
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "max_tokens",
+          "type": "int",
+          "nullable": false,
+          "default": null,
+          "app_default": 8192,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "model_type",
+          "type": "varchar(128)",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "status",
+          "type": "varchar(1)",
+          "nullable": false,
+          "default": null,
+          "app_default": "1",
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "tenant_id",
+          "type": "varchar(32)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "update_date",
+          "type": "datetime",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "update_time",
+          "type": "bigint",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "used_tokens",
+          "type": "int",
+          "nullable": false,
+          "default": null,
+          "app_default": 0,
+          "primary_key": false,
+          "auto_increment": false
+        }
+      ],
+      "indexes": [
+        {
+          "name": "tenantllm_create_date",
+          "columns": [
+            "create_date"
+          ],
+          "unique": false
+        },
+        {
+          "name": "tenantllm_create_time",
+          "columns": [
+            "create_time"
+          ],
+          "unique": false
+        },
+        {
+          "name": "tenantllm_llm_factory",
+          "columns": [
+            "llm_factory"
+          ],
+          "unique": false
+        },
+        {
+          "name": "tenantllm_llm_name",
+          "columns": [
+            "llm_name"
+          ],
+          "unique": false
+        },
+        {
+          "name": "tenantllm_max_tokens",
+          "columns": [
+            "max_tokens"
+          ],
+          "unique": false
+        },
+        {
+          "name": "tenantllm_model_type",
+          "columns": [
+            "model_type"
+          ],
+          "unique": false
+        },
+        {
+          "name": "tenantllm_status",
+          "columns": [
+            "status"
+          ],
+          "unique": false
+        },
+        {
+          "name": "tenantllm_tenant_id",
+          "columns": [
+            "tenant_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "tenantllm_tenant_id_llm_factory_llm_name",
+          "columns": [
+            "tenant_id",
+            "llm_factory",
+            "llm_name"
+          ],
+          "unique": true
+        },
+        {
+          "name": "tenantllm_update_date",
+          "columns": [
+            "update_date"
+          ],
+          "unique": false
+        },
+        {
+          "name": "tenantllm_update_time",
+          "columns": [
+            "update_time"
+          ],
+          "unique": false
+        },
+        {
+          "name": "tenantllm_used_tokens",
+          "columns": [
+            "used_tokens"
+          ],
+          "unique": false
+        }
+      ]
+    },
+    {
+      "name": "tenant_model",
+      "columns": [
+        {
+          "name": "create_date",
+          "type": "datetime",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "create_time",
+          "type": "bigint",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "extra",
+          "type": "varchar(1024)",
+          "nullable": false,
+          "default": null,
+          "app_default": "{}",
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "id",
+          "type": "varchar(32)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": true,
+          "auto_increment": false
+        },
+        {
+          "name": "instance_id",
+          "type": "varchar(32)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "model_name",
+          "type": "varchar(128)",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "model_type",
+          "type": "int",
+          "nullable": false,
+          "default": null,
+          "app_default": 1,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "provider_id",
+          "type": "varchar(32)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "status",
+          "type": "varchar(32)",
+          "nullable": false,
+          "default": null,
+          "app_default": "active",
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "update_date",
+          "type": "datetime",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "update_time",
+          "type": "bigint",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        }
+      ],
+      "indexes": [
+        {
+          "name": "tenantmodel_create_date",
+          "columns": [
+            "create_date"
+          ],
+          "unique": false
+        },
+        {
+          "name": "tenantmodel_create_time",
+          "columns": [
+            "create_time"
+          ],
+          "unique": false
+        },
+        {
+          "name": "tenantmodel_instance_id",
+          "columns": [
+            "instance_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "tenantmodel_model_type",
+          "columns": [
+            "model_type"
+          ],
+          "unique": false
+        },
+        {
+          "name": "tenantmodel_update_date",
+          "columns": [
+            "update_date"
+          ],
+          "unique": false
+        },
+        {
+          "name": "tenantmodel_update_time",
+          "columns": [
+            "update_time"
+          ],
+          "unique": false
+        }
+      ]
+    },
+    {
+      "name": "tenant_model_group",
+      "columns": [
+        {
+          "name": "create_date",
+          "type": "datetime",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "create_time",
+          "type": "bigint",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "group_type",
+          "type": "varchar(32)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "id",
+          "type": "varchar(32)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": true,
+          "auto_increment": false
+        },
+        {
+          "name": "model_name",
+          "type": "varchar(128)",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "strategy",
+          "type": "varchar(32)",
+          "nullable": false,
+          "default": null,
+          "app_default": "weighted",
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "update_date",
+          "type": "datetime",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "update_time",
+          "type": "bigint",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        }
+      ],
+      "indexes": [
+        {
+          "name": "tenantmodelgroup_create_date",
+          "columns": [
+            "create_date"
+          ],
+          "unique": false
+        },
+        {
+          "name": "tenantmodelgroup_create_time",
+          "columns": [
+            "create_time"
+          ],
+          "unique": false
+        },
+        {
+          "name": "tenantmodelgroup_update_date",
+          "columns": [
+            "update_date"
+          ],
+          "unique": false
+        },
+        {
+          "name": "tenantmodelgroup_update_time",
+          "columns": [
+            "update_time"
+          ],
+          "unique": false
+        }
+      ]
+    },
+    {
+      "name": "tenant_model_group_mapping",
+      "columns": [
+        {
+          "name": "create_date",
+          "type": "datetime",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "create_time",
+          "type": "bigint",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "group_id",
+          "type": "varchar(32)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": true,
+          "auto_increment": false
+        },
+        {
+          "name": "instance_id",
+          "type": "varchar(32)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": true,
+          "auto_increment": false
+        },
+        {
+          "name": "model_id",
+          "type": "varchar(32)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": true,
+          "auto_increment": false
+        },
+        {
+          "name": "provider_id",
+          "type": "varchar(32)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": true,
+          "auto_increment": false
+        },
+        {
+          "name": "status",
+          "type": "varchar(32)",
+          "nullable": false,
+          "default": null,
+          "app_default": "active",
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "update_date",
+          "type": "datetime",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "update_time",
+          "type": "bigint",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "weight",
+          "type": "int",
+          "nullable": false,
+          "default": null,
+          "app_default": 100,
+          "primary_key": false,
+          "auto_increment": false
+        }
+      ],
+      "indexes": [
+        {
+          "name": "tenantmodelgroupmapping_create_date",
+          "columns": [
+            "create_date"
+          ],
+          "unique": false
+        },
+        {
+          "name": "tenantmodelgroupmapping_create_time",
+          "columns": [
+            "create_time"
+          ],
+          "unique": false
+        },
+        {
+          "name": "tenantmodelgroupmapping_group_id",
+          "columns": [
+            "group_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "tenantmodelgroupmapping_model_id",
+          "columns": [
+            "model_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "tenantmodelgroupmapping_update_date",
+          "columns": [
+            "update_date"
+          ],
+          "unique": false
+        },
+        {
+          "name": "tenantmodelgroupmapping_update_time",
+          "columns": [
+            "update_time"
+          ],
+          "unique": false
+        }
+      ]
+    },
+    {
+      "name": "tenant_model_instance",
+      "columns": [
+        {
+          "name": "api_key",
+          "type": "varchar(512)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "create_date",
+          "type": "datetime",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "create_time",
+          "type": "bigint",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "extra",
+          "type": "varchar(512)",
+          "nullable": false,
+          "default": null,
+          "app_default": "{}",
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "id",
+          "type": "varchar(32)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": true,
+          "auto_increment": false
+        },
+        {
+          "name": "instance_name",
+          "type": "varchar(128)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "provider_id",
+          "type": "varchar(32)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "status",
+          "type": "varchar(32)",
+          "nullable": false,
+          "default": null,
+          "app_default": "active",
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "update_date",
+          "type": "datetime",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "update_time",
+          "type": "bigint",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        }
+      ],
+      "indexes": [
+        {
+          "name": "tenantmodelinstance_create_date",
+          "columns": [
+            "create_date"
+          ],
+          "unique": false
+        },
+        {
+          "name": "tenantmodelinstance_create_time",
+          "columns": [
+            "create_time"
+          ],
+          "unique": false
+        },
+        {
+          "name": "tenantmodelinstance_update_date",
+          "columns": [
+            "update_date"
+          ],
+          "unique": false
+        },
+        {
+          "name": "tenantmodelinstance_update_time",
+          "columns": [
+            "update_time"
+          ],
+          "unique": false
+        }
+      ]
+    },
+    {
+      "name": "tenant_model_provider",
+      "columns": [
+        {
+          "name": "create_date",
+          "type": "datetime",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "create_time",
+          "type": "bigint",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "id",
+          "type": "varchar(32)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": true,
+          "auto_increment": false
+        },
+        {
+          "name": "provider_name",
+          "type": "varchar(128)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "tenant_id",
+          "type": "varchar(32)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "update_date",
+          "type": "datetime",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "update_time",
+          "type": "bigint",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        }
+      ],
+      "indexes": [
+        {
+          "name": "tenantmodelprovider_create_date",
+          "columns": [
+            "create_date"
+          ],
+          "unique": false
+        },
+        {
+          "name": "tenantmodelprovider_create_time",
+          "columns": [
+            "create_time"
+          ],
+          "unique": false
+        },
+        {
+          "name": "tenantmodelprovider_tenant_id",
+          "columns": [
+            "tenant_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "tenantmodelprovider_tenant_id_provider_name",
+          "columns": [
+            "tenant_id",
+            "provider_name"
+          ],
+          "unique": true
+        },
+        {
+          "name": "tenantmodelprovider_update_date",
+          "columns": [
+            "update_date"
+          ],
+          "unique": false
+        },
+        {
+          "name": "tenantmodelprovider_update_time",
+          "columns": [
+            "update_time"
+          ],
+          "unique": false
+        }
+      ]
+    },
+    {
+      "name": "user",
+      "columns": [
+        {
+          "name": "access_token",
+          "type": "varchar(255)",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "avatar",
+          "type": "longtext",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "color_schema",
+          "type": "varchar(32)",
+          "nullable": true,
+          "default": null,
+          "app_default": "Bright",
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "create_date",
+          "type": "datetime",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "create_time",
+          "type": "bigint",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "email",
+          "type": "varchar(255)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "id",
+          "type": "varchar(32)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": true,
+          "auto_increment": false
+        },
+        {
+          "name": "is_active",
+          "type": "varchar(1)",
+          "nullable": false,
+          "default": null,
+          "app_default": "1",
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "is_anonymous",
+          "type": "varchar(1)",
+          "nullable": false,
+          "default": null,
+          "app_default": "0",
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "is_authenticated",
+          "type": "varchar(1)",
+          "nullable": false,
+          "default": null,
+          "app_default": "1",
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "is_superuser",
+          "type": "tinyint(1)",
+          "nullable": true,
+          "default": null,
+          "app_default": false,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "language",
+          "type": "varchar(32)",
+          "nullable": true,
+          "default": null,
+          "app_default": "English",
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "last_login_time",
+          "type": "datetime",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "login_channel",
+          "type": "varchar(255)",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "nickname",
+          "type": "varchar(100)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "password",
+          "type": "varchar(255)",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "status",
+          "type": "varchar(1)",
+          "nullable": true,
+          "default": null,
+          "app_default": "1",
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "timezone",
+          "type": "varchar(64)",
+          "nullable": true,
+          "default": null,
+          "app_default": "UTC+8\tAsia/Shanghai",
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "update_date",
+          "type": "datetime",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "update_time",
+          "type": "bigint",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        }
+      ],
+      "indexes": [
+        {
+          "name": "user_access_token",
+          "columns": [
+            "access_token"
+          ],
+          "unique": false
+        },
+        {
+          "name": "user_color_schema",
+          "columns": [
+            "color_schema"
+          ],
+          "unique": false
+        },
+        {
+          "name": "user_create_date",
+          "columns": [
+            "create_date"
+          ],
+          "unique": false
+        },
+        {
+          "name": "user_create_time",
+          "columns": [
+            "create_time"
+          ],
+          "unique": false
+        },
+        {
+          "name": "user_email",
+          "columns": [
+            "email"
+          ],
+          "unique": true
+        },
+        {
+          "name": "user_is_active",
+          "columns": [
+            "is_active"
+          ],
+          "unique": false
+        },
+        {
+          "name": "user_is_anonymous",
+          "columns": [
+            "is_anonymous"
+          ],
+          "unique": false
+        },
+        {
+          "name": "user_is_authenticated",
+          "columns": [
+            "is_authenticated"
+          ],
+          "unique": false
+        },
+        {
+          "name": "user_is_superuser",
+          "columns": [
+            "is_superuser"
+          ],
+          "unique": false
+        },
+        {
+          "name": "user_language",
+          "columns": [
+            "language"
+          ],
+          "unique": false
+        },
+        {
+          "name": "user_last_login_time",
+          "columns": [
+            "last_login_time"
+          ],
+          "unique": false
+        },
+        {
+          "name": "user_login_channel",
+          "columns": [
+            "login_channel"
+          ],
+          "unique": false
+        },
+        {
+          "name": "user_nickname",
+          "columns": [
+            "nickname"
+          ],
+          "unique": false
+        },
+        {
+          "name": "user_password",
+          "columns": [
+            "password"
+          ],
+          "unique": false
+        },
+        {
+          "name": "user_status",
+          "columns": [
+            "status"
+          ],
+          "unique": false
+        },
+        {
+          "name": "user_timezone",
+          "columns": [
+            "timezone"
+          ],
+          "unique": false
+        },
+        {
+          "name": "user_update_date",
+          "columns": [
+            "update_date"
+          ],
+          "unique": false
+        },
+        {
+          "name": "user_update_time",
+          "columns": [
+            "update_time"
+          ],
+          "unique": false
+        }
+      ]
+    },
+    {
+      "name": "user_canvas",
+      "columns": [
+        {
+          "name": "avatar",
+          "type": "longtext",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "canvas_category",
+          "type": "varchar(32)",
+          "nullable": false,
+          "default": null,
+          "app_default": "agent_canvas",
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "canvas_type",
+          "type": "varchar(32)",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "create_date",
+          "type": "datetime",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "create_time",
+          "type": "bigint",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "description",
+          "type": "longtext",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "dsl",
+          "type": "longtext",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "id",
+          "type": "varchar(32)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": true,
+          "auto_increment": false
+        },
+        {
+          "name": "permission",
+          "type": "varchar(16)",
+          "nullable": false,
+          "default": null,
+          "app_default": "me",
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "release",
+          "type": "tinyint(1)",
+          "nullable": false,
+          "default": null,
+          "app_default": false,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "tags",
+          "type": "varchar(512)",
+          "nullable": false,
+          "default": null,
+          "app_default": "",
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "title",
+          "type": "varchar(255)",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "update_date",
+          "type": "datetime",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "update_time",
+          "type": "bigint",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "user_id",
+          "type": "varchar(255)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        }
+      ],
+      "indexes": [
+        {
+          "name": "usercanvas_canvas_category",
+          "columns": [
+            "canvas_category"
+          ],
+          "unique": false
+        },
+        {
+          "name": "usercanvas_canvas_type",
+          "columns": [
+            "canvas_type"
+          ],
+          "unique": false
+        },
+        {
+          "name": "usercanvas_create_date",
+          "columns": [
+            "create_date"
+          ],
+          "unique": false
+        },
+        {
+          "name": "usercanvas_create_time",
+          "columns": [
+            "create_time"
+          ],
+          "unique": false
+        },
+        {
+          "name": "usercanvas_permission",
+          "columns": [
+            "permission"
+          ],
+          "unique": false
+        },
+        {
+          "name": "usercanvas_release",
+          "columns": [
+            "release"
+          ],
+          "unique": false
+        },
+        {
+          "name": "usercanvas_tags",
+          "columns": [
+            "tags"
+          ],
+          "unique": false
+        },
+        {
+          "name": "usercanvas_update_date",
+          "columns": [
+            "update_date"
+          ],
+          "unique": false
+        },
+        {
+          "name": "usercanvas_update_time",
+          "columns": [
+            "update_time"
+          ],
+          "unique": false
+        },
+        {
+          "name": "usercanvas_user_id",
+          "columns": [
+            "user_id"
+          ],
+          "unique": false
+        }
+      ]
+    },
+    {
+      "name": "user_canvas_version",
+      "columns": [
+        {
+          "name": "create_date",
+          "type": "datetime",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "create_time",
+          "type": "bigint",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "description",
+          "type": "longtext",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "dsl",
+          "type": "longtext",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "id",
+          "type": "varchar(32)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": true,
+          "auto_increment": false
+        },
+        {
+          "name": "release",
+          "type": "tinyint(1)",
+          "nullable": false,
+          "default": null,
+          "app_default": false,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "title",
+          "type": "varchar(255)",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "update_date",
+          "type": "datetime",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "update_time",
+          "type": "bigint",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "user_canvas_id",
+          "type": "varchar(255)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        }
+      ],
+      "indexes": [
+        {
+          "name": "usercanvasversion_create_date",
+          "columns": [
+            "create_date"
+          ],
+          "unique": false
+        },
+        {
+          "name": "usercanvasversion_create_time",
+          "columns": [
+            "create_time"
+          ],
+          "unique": false
+        },
+        {
+          "name": "usercanvasversion_release",
+          "columns": [
+            "release"
+          ],
+          "unique": false
+        },
+        {
+          "name": "usercanvasversion_update_date",
+          "columns": [
+            "update_date"
+          ],
+          "unique": false
+        },
+        {
+          "name": "usercanvasversion_update_time",
+          "columns": [
+            "update_time"
+          ],
+          "unique": false
+        },
+        {
+          "name": "usercanvasversion_user_canvas_id",
+          "columns": [
+            "user_canvas_id"
+          ],
+          "unique": false
+        }
+      ]
+    },
+    {
+      "name": "user_tenant",
+      "columns": [
+        {
+          "name": "create_date",
+          "type": "datetime",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "create_time",
+          "type": "bigint",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "id",
+          "type": "varchar(32)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": true,
+          "auto_increment": false
+        },
+        {
+          "name": "invited_by",
+          "type": "varchar(32)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "role",
+          "type": "varchar(32)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "status",
+          "type": "varchar(1)",
+          "nullable": true,
+          "default": null,
+          "app_default": "1",
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "tenant_id",
+          "type": "varchar(32)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "update_date",
+          "type": "datetime",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "update_time",
+          "type": "bigint",
+          "nullable": true,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        },
+        {
+          "name": "user_id",
+          "type": "varchar(32)",
+          "nullable": false,
+          "default": null,
+          "app_default": null,
+          "primary_key": false,
+          "auto_increment": false
+        }
+      ],
+      "indexes": [
+        {
+          "name": "usertenant_create_date",
+          "columns": [
+            "create_date"
+          ],
+          "unique": false
+        },
+        {
+          "name": "usertenant_create_time",
+          "columns": [
+            "create_time"
+          ],
+          "unique": false
+        },
+        {
+          "name": "usertenant_invited_by",
+          "columns": [
+            "invited_by"
+          ],
+          "unique": false
+        },
+        {
+          "name": "usertenant_role",
+          "columns": [
+            "role"
+          ],
+          "unique": false
+        },
+        {
+          "name": "usertenant_status",
+          "columns": [
+            "status"
+          ],
+          "unique": false
+        },
+        {
+          "name": "usertenant_tenant_id",
+          "columns": [
+            "tenant_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "usertenant_update_date",
+          "columns": [
+            "update_date"
+          ],
+          "unique": false
+        },
+        {
+          "name": "usertenant_update_time",
+          "columns": [
+            "update_time"
+          ],
+          "unique": false
+        },
+        {
+          "name": "usertenant_user_id",
+          "columns": [
+            "user_id"
+          ],
+          "unique": false
+        }
+      ]
+    }
+  ]
+}

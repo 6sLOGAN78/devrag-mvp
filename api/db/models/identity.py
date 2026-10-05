@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import peewee
 
-from api.db.models.base import BaseModel
+from api.db.models.base import BaseModel, LongTextField
 
 _STATUS_HELP = "is it validate(0: wasted, 1: validate)"
 
@@ -18,7 +18,7 @@ class User(BaseModel):
     nickname = peewee.CharField(max_length=100, null=False, help_text="nicky name", index=True)
     password = peewee.CharField(max_length=255, null=True, help_text="password", index=True)
     email = peewee.CharField(max_length=255, null=False, help_text="email", unique=True)
-    avatar = peewee.TextField(null=True, help_text="avatar base64 string")
+    avatar = LongTextField(null=True, help_text="avatar base64 string")
     language = peewee.CharField(max_length=32, null=True, help_text="English|Chinese", default="English", index=True)
     color_schema = peewee.CharField(max_length=32, null=True, help_text="Bright|Dark", default="Bright", index=True)
     timezone = peewee.CharField(max_length=64, null=True, help_text="Timezone", default="UTC+8\tAsia/Shanghai", index=True)

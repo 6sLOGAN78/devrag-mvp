@@ -12,7 +12,7 @@ from typing import Any
 
 import peewee
 
-from api.db.models.base import BaseModel, JSONField, db_default
+from api.db.models.base import BaseModel, JSONField, LongTextField, db_default
 
 _STATUS_HELP = "is it validate(0: wasted, 1: validate)"
 MAXIMUM_TASK_PAGE_NUMBER = 1_000_000
@@ -25,11 +25,11 @@ def default_parser_config() -> dict[str, Any]:
 class Knowledgebase(BaseModel):
     # documented columns
     id = peewee.CharField(max_length=32, primary_key=True)
-    avatar = peewee.TextField(null=True, help_text="avatar base64 string")
+    avatar = LongTextField(null=True, help_text="avatar base64 string")
     tenant_id = peewee.CharField(max_length=32, null=False)
     name = peewee.CharField(max_length=128, null=False, help_text="KB name")
     language = peewee.CharField(max_length=32, null=True, default="English", constraints=db_default("English"), help_text="English|Chinese", index=True)
-    description = peewee.TextField(null=True, help_text="KB description")
+    description = LongTextField(null=True, help_text="KB description")
     embd_id = peewee.CharField(max_length=128, null=False, help_text="default embedding model ID", index=True)
     parser_id = peewee.CharField(max_length=32, null=False, default="naive", constraints=db_default("naive"), help_text="default parser ID", index=True)
     parser_config = JSONField(null=False, default=default_parser_config)
@@ -78,7 +78,7 @@ Knowledgebase.add_index(Knowledgebase.name, name="idx_kb_name")
 
 class Document(BaseModel):
     id = peewee.CharField(max_length=32, primary_key=True)
-    thumbnail = peewee.TextField(null=True, help_text="thumbnail base64 string")
+    thumbnail = LongTextField(null=True, help_text="thumbnail base64 string")
     kb_id = peewee.CharField(max_length=256, null=False)
     parser_id = peewee.CharField(max_length=32, null=False, help_text="default parser ID")
     pipeline_id = peewee.CharField(max_length=32, null=True, help_text="pipeline ID", index=True)
@@ -92,7 +92,7 @@ class Document(BaseModel):
     token_num = peewee.IntegerField(default=0, constraints=db_default(0), index=True)
     chunk_num = peewee.IntegerField(default=0, constraints=db_default(0), index=True)
     progress = peewee.FloatField(default=0, constraints=db_default(0), index=True)
-    progress_msg = peewee.TextField(null=True, help_text="process message", default="")
+    progress_msg = LongTextField(null=True, help_text="process message", default="")
     process_begin_at = peewee.DateTimeField(null=True, index=True)
     process_duration = peewee.FloatField(default=0, constraints=db_default(0))
     suffix = peewee.CharField(max_length=32, null=False, help_text="The real file extension suffix", index=True)
@@ -119,10 +119,10 @@ class Task(BaseModel):
     begin_at = peewee.DateTimeField(null=True, index=True)
     process_duration = peewee.FloatField(default=0, constraints=db_default(0))
     progress = peewee.FloatField(default=0, constraints=db_default(0))
-    progress_msg = peewee.TextField(null=True, help_text="process message", default="")
+    progress_msg = LongTextField(null=True, help_text="process message", default="")
     retry_count = peewee.IntegerField(default=0, constraints=db_default(0))
-    digest = peewee.TextField(null=True, help_text="task digest", default="")
-    chunk_ids = peewee.TextField(null=True, help_text="chunk ids", default="")
+    digest = LongTextField(null=True, help_text="task digest", default="")
+    chunk_ids = LongTextField(null=True, help_text="chunk ids", default="")
 
     class Meta:
         table_name = "task"
@@ -145,13 +145,13 @@ class PipelineOperationLog(BaseModel):
     document_type = peewee.CharField(max_length=255, null=False, help_text="Document type")
     source_from = peewee.CharField(max_length=255, null=False, help_text="Source")
     progress = peewee.FloatField(default=0, index=True)
-    progress_msg = peewee.TextField(null=True, help_text="process message", default="")
+    progress_msg = LongTextField(null=True, help_text="process message", default="")
     process_begin_at = peewee.DateTimeField(null=True, index=True)
     process_duration = peewee.FloatField(default=0)
     dsl = JSONField(null=True, default=dict)
     task_type = peewee.CharField(max_length=32, null=False, default="")
     operation_status = peewee.CharField(max_length=32, null=False, help_text="Operation status")
-    avatar = peewee.TextField(null=True, help_text="avatar base64 string")
+    avatar = LongTextField(null=True, help_text="avatar base64 string")
     status = peewee.CharField(max_length=1, null=True, help_text=_STATUS_HELP, default="1", index=True)
 
     class Meta:

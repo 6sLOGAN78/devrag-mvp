@@ -5,7 +5,7 @@ from typing import Any
 
 import peewee
 
-from api.db.models.base import BaseModel, JSONField
+from api.db.models.base import BaseModel, JSONField, LongTextField
 
 _STATUS_HELP = "is it validate(0: wasted, 1: validate)"
 
@@ -57,8 +57,8 @@ class Dialog(BaseModel):
     id = peewee.CharField(max_length=32, primary_key=True)
     tenant_id = peewee.CharField(max_length=32, null=False, index=True)
     name = peewee.CharField(max_length=255, null=True, help_text="dialog application name", index=True)
-    description = peewee.TextField(null=True, help_text="Dialog description")
-    icon = peewee.TextField(null=True, help_text="icon base64 string")
+    description = LongTextField(null=True, help_text="Dialog description")
+    icon = LongTextField(null=True, help_text="icon base64 string")
     language = peewee.CharField(max_length=32, null=True, default="English", help_text="English|Chinese", index=True)
     llm_id = peewee.CharField(max_length=128, null=False, help_text="default llm ID")
     tenant_llm_id = peewee.CharField(max_length=32, null=True, help_text="id in tenant_model", index=True)
@@ -118,7 +118,7 @@ class API4Conversation(BaseModel):
     duration = peewee.FloatField(default=0, index=True)
     round = peewee.IntegerField(default=0, index=True)
     thumb_up = peewee.IntegerField(default=0, index=True)
-    errors = peewee.TextField(null=True, help_text="errors")
+    errors = LongTextField(null=True, help_text="errors")
     version_title = peewee.CharField(max_length=255, null=True, help_text="canvas version title when session created", index=False)
 
     class Meta:
@@ -127,10 +127,10 @@ class API4Conversation(BaseModel):
 
 class Search(BaseModel):
     id = peewee.CharField(max_length=32, primary_key=True)
-    avatar = peewee.TextField(null=True, help_text="avatar base64 string")
+    avatar = LongTextField(null=True, help_text="avatar base64 string")
     tenant_id = peewee.CharField(max_length=32, null=False, index=True)
     name = peewee.CharField(max_length=128, null=False, help_text="Search name", index=True)
-    description = peewee.TextField(null=True, help_text="KB description")
+    description = LongTextField(null=True, help_text="KB description")
     created_by = peewee.CharField(max_length=32, null=False, index=True)
     search_config = JSONField(null=False, default=_search_config)
     status = peewee.CharField(max_length=1, null=True, help_text=_STATUS_HELP, default="1", index=True)

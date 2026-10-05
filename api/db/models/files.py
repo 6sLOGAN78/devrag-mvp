@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import peewee
 
-from api.db.models.base import BaseModel
+from api.db.models.base import BaseModel, LongTextField
 
 
 class File(BaseModel):
@@ -37,9 +37,9 @@ class FileCommit(BaseModel):
     message = peewee.CharField(max_length=512, default="", help_text="commit message")
     author_id = peewee.CharField(max_length=32, null=False, help_text="user who created the commit", index=True)
     file_count = peewee.IntegerField(default=0, help_text="number of files in this commit")
-    tree_state = peewee.TextField(null=True, help_text="JSON snapshot of the full folder tree at this commit")
+    tree_state = LongTextField(null=True, help_text="JSON snapshot of the full folder tree at this commit")
     title = peewee.CharField(max_length=255, null=True, help_text="commit title (artifact-page edits)")
-    comments = peewee.TextField(null=True, help_text="commit body/description (artifact-page edits)")
+    comments = LongTextField(null=True, help_text="commit body/description (artifact-page edits)")
 
     class Meta:
         table_name = "file_commit"
@@ -56,7 +56,7 @@ class FileCommitItem(BaseModel):
     new_location = peewee.CharField(max_length=255, null=True, help_text="new storage location")
     old_name = peewee.CharField(max_length=255, null=True, help_text="old file name (for rename)")
     new_name = peewee.CharField(max_length=255, null=True, help_text="new file name (for rename)")
-    diff = peewee.TextField(null=True, help_text="pre-computed unified diff (artifact-page edits)")
+    diff = LongTextField(null=True, help_text="pre-computed unified diff (artifact-page edits)")
     content_after_storage = peewee.CharField(max_length=16, null=True, help_text="'minio' | 'es' - where the post-save blob lives", index=True)
     content_after_location = peewee.CharField(max_length=512, null=True, help_text="storage key/id for the post-save blob")
     slug_kwd = peewee.CharField(max_length=512, null=True, help_text="artifact page slug (<page_type>/<name>)", index=True)
