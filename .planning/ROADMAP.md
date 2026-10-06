@@ -122,34 +122,73 @@ Scope notes: merges research stages 0 and 1. The decision register has no REQ-ID
 
 **Plans**: 28 plans (execution is wave order then plan number; 02-27 runs in wave 5 and 02-28 in wave 7, and the exit gate 02-26 is last in wave 13)
 Plans:
+**Wave 1**
+
 - [ ] 02-01-PLAN.md - CR-02 linear log redactor, WR-04/WR-24 vectors, truncated log fields
 - [ ] 02-02-PLAN.md - Hardening: WR-16, WR-19, WR-23, WR-26, WR-06
 - [ ] 02-03-PLAN.md - DECISIONS rows R-88..R-114, CONFIRMED set, B-15 landing points
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 02-04-PLAN.md - SECRET_KEY, auth, mail, models and configurable rate-limit plumbing (R-94 defaults, dev overlay for per-IP values)
-- [ ] 02-05-PLAN.md - D-20 npm set, itsdangerous declaration, Mailpit in the dev compose overlay only, mail helpers
 - [ ] 02-06-PLAN.md - Token and password contract in Go and Python with shared vectors
-- [ ] 02-07-PLAN.md - WR-10 full schema verification, account test fixtures
 - [ ] 02-08-PLAN.md - Endpoint registry and generated policy for both stacks
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 02-05-PLAN.md - D-20 npm set, itsdangerous declaration, Mailpit in the dev compose overlay only, mail helpers
+- [ ] 02-07-PLAN.md - WR-10 full schema verification, account test fixtures
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
 - [ ] 02-09-PLAN.md - Go register and login with rate limits, proven through Nginx
-- [ ] 02-10-PLAN.md - Go default-deny gate, cookie fallback, logout, user info
 - [ ] 02-11-PLAN.md - i18n runtime (en, zh), key-parity test, shared shell copy migration
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
+- [ ] 02-10-PLAN.md - Go default-deny gate, cookie fallback, logout, user info
+- [ ] 02-27-PLAN.md - Existing pages and HTTP client copy migration, copy.ts removal, Vite proxy query fix (WR-20)
+
+**Wave 6** *(blocked on Wave 5 completion)*
+
 - [ ] 02-12-PLAN.md - SPA auth guard, session recovery, 401 redirect, purgeSession toast option, browser test behind the guard
-- [ ] 02-13-PLAN.md - Sign in and sign up page, home dashboard, live browser flow
 - [ ] 02-14-PLAN.md - Python default-deny gate (503 on infrastructure errors), status and openapi.json authenticated, enumeration, Phase 1 test adaptation
+
+**Wave 7** *(blocked on Wave 6 completion)*
+
 - [ ] 02-15-PLAN.md - Go profile settings, password change, tenant info and list
-- [ ] 02-16-PLAN.md - Profile page, language and theme persistence
-- [ ] 02-17-PLAN.md - Go OTP, SMTP mail and password reset against Mailpit
-- [ ] 02-18-PLAN.md - Forgot password page with live reset
 - [ ] 02-19-PLAN.md - Superuser startup hook, B-08 update
+- [ ] 02-28-PLAN.md - Account menu and sign out, System status at /system-status, root redirect
+
+**Wave 8** *(blocked on Wave 7 completion)*
+
+- [ ] 02-13-PLAN.md - Sign in and sign up page, home dashboard, live browser flow
+- [ ] 02-17-PLAN.md - Go OTP, SMTP mail and password reset against Mailpit
+
+**Wave 9** *(blocked on Wave 8 completion)*
+
+- [ ] 02-16-PLAN.md - Profile page, language and theme persistence
 - [ ] 02-20-PLAN.md - API token CRUD, API and beta credential resolution
-- [ ] 02-21-PLAN.md - API tokens page
+
+**Wave 10** *(blocked on Wave 9 completion)*
+
+- [ ] 02-18-PLAN.md - Forgot password page with live reset
 - [ ] 02-22-PLAN.md - Permission table, member list, invite, accept and decline
+
+**Wave 11** *(blocked on Wave 10 completion)*
+
+- [ ] 02-21-PLAN.md - API tokens page
 - [ ] 02-23-PLAN.md - Role change, remove, withdraw, leave
+
+**Wave 12** *(blocked on Wave 11 completion)*
+
 - [ ] 02-24-PLAN.md - Team page and dashboard cards
 - [ ] 02-25-PLAN.md - Cross-tenant matrix, leak sweep, token log masking
-- [ ] 02-27-PLAN.md - Existing pages and HTTP client copy migration, copy.ts removal, Vite proxy query fix (WR-20)
-- [ ] 02-28-PLAN.md - Account menu and sign out, System status at /system-status, root redirect
+
+**Wave 13** *(blocked on Wave 12 completion)*
+
 - [ ] 02-26-PLAN.md - Exit gate (clean_room --runs 3) and truthful records
+
 **UI hint**: yes
 
 Scope notes: the cross-language token and password-hash contract (R-33, R-34) needs phase research and shared test vectors. The cross-tenant matrix from criterion 5 is extended as an exit criterion by every later phase that adds a resource. Docs to read first: `16-auth`, `20-security`, `04-api` user/tenant files, `21-end-to-end-flows/user-registration.md`, `login.md`.
