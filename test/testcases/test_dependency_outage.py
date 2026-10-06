@@ -58,6 +58,9 @@ def stopped(service: str, client: httpx.Client, recovery_timeout: float = 180) -
         wait_until(_status_is(client, "/api/v1/system/status", 200), timeout=recovery_timeout, interval=1)
         assert started.returncode == 0, started.stderr
         assert service_health(service) == "healthy"
+        # healthz reports dependency health (D-08), so the app container goes unhealthy during the outage and
+        # Docker only flips it back on its next probe (interval 10s). Wait for that instead of racing it.
+        wait_until(lambda: service_health("app") == "healthy", timeout=60, interval=2)
         assert service_health("app") == "healthy"
 
 
