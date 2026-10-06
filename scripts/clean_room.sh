@@ -44,6 +44,9 @@ step() { # step NAME CMD...
 for run in $(seq 1 "$RUNS"); do
   echo "##### clean-room run $run of $RUNS ($(date -u +%Y-%m-%dT%H:%M:%SZ))"
   start="$(date +%s)"
+  # Stop this project's own containers first: preflight checks free ports and available RAM, and a
+  # running devrag-stack would fail both against itself. Non-destructive (no volumes removed here).
+  step stop "${COMPOSE[@]}" stop
   step preflight scripts/preflight.sh
   "${COMPOSE[@]}" down -v
   step up "${COMPOSE[@]}" up -d --build
