@@ -92,7 +92,7 @@ Plans:
 - [x] 01-20-PLAN.md — Guard scripts: clean_room --runs validation, foreign-project refusal, run_tests exit 5, go-race -count=1 (WR-15, WR-16, WR-17)
 - [x] 01-21-PLAN.md — Container: TLS fail-closed, log dir ownership, direct healthchecks, pinned Go port (WR-11..WR-14)
 - [x] 01-22-PLAN.md — Python: 4xx envelope codes, migration runner db binding, startup hooks on serving loop (WR-07, WR-08, WR-09)
-- [ ] 01-23-PLAN.md — render_conf escaping and CI workflow setup (WR-18, WR-19)
+- [x] 01-23-PLAN.md — render_conf escaping and CI workflow setup (WR-18, WR-19)
 
 **Gap closure Wave 2** *(blocked on 01-16: shares DECISIONS.md)*
 
