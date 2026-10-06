@@ -35,6 +35,13 @@ if ! [[ "$RUNS" =~ ^[1-9][0-9]*$ ]]; then
 fi
 
 cd "$ROOT"
+# The Go e2e/manual tiers and the vitest live project take their base URL from the environment and default
+# to port 8080. Derive it from docker/.env so the gate follows SVR_WEB_HTTP_PORT; caller-set values win.
+WEB_PORT="$(grep -E '^SVR_WEB_HTTP_PORT=' docker/.env 2>/dev/null | tail -n1 | cut -d= -f2- || true)"
+WEB_PORT="${WEB_PORT:-8080}"
+export E2E_BASE_URL="${E2E_BASE_URL:-http://127.0.0.1:${WEB_PORT}}"
+export MANUAL_BASE_URL="${MANUAL_BASE_URL:-http://127.0.0.1:${WEB_PORT}}"
+export LIVE_BASE_URL="${LIVE_BASE_URL:-http://127.0.0.1:${WEB_PORT}}"
 COMPOSE=(docker compose -p "$PROJECT" --env-file docker/.env -f docker/docker-compose.yml -f docker/docker-compose.dev.yml --profile cpu --profile elasticsearch)
 
 step() { # step NAME CMD...
