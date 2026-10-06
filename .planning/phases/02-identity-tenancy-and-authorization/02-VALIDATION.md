@@ -58,6 +58,27 @@ Task IDs are assigned by the planner; this map is keyed by success criterion and
 | — | UI-04, UI-08, UI-34..36 | T-2-xss | no raw HTML rendering of user-supplied profile fields | unit + live | vitest | ❌ W0 | ⬜ pending |
 | — | UI-42, UI-43 | — | N/A | unit | locale key-parity test (en, zh); theme persistence test | ❌ W0 | ⬜ pending |
 
+### Task mapping (filled by the planner, plans 02-01 to 02-26)
+
+| Ref | Plan and task that delivers and verifies it |
+|-----|---------------------------------------------|
+| CR-02 | 02-01 task 1 (failing vectors and timing) and task 2 (linear redactor); Go mirror 02-01 task 3 |
+| SC-1 registration, login, atomic tenant link | 02-09 task 1 (tests), task 2 (services), task 3 (live through Nginx, `-t registration`) |
+| SC-1 guard, recovery, login UI, home | 02-12 tasks 1-3, 02-13 tasks 1-3 (live `npm run test:live`) |
+| SC-2 token contract vectors | 02-06 tasks 1-3 |
+| SC-2 logout 401 on both, every non-public route 401 | 02-10 tasks 1-3 (Go enumeration), 02-14 tasks 1-3 (Python enumeration, `-t auth_flow`) |
+| SC-2 cookie CSRF | 02-10 task 1-2 (Go), 02-14 task 1-2 (Python) |
+| SC-3 profile, password change, no leaks | 02-15 tasks 1-3, 02-16 task 3, 02-25 task 2 (leak sweep) |
+| SC-3 password reset with the mail catcher | 02-05 task 3 (helpers), 02-17 tasks 1-3 (`-t password_reset`), 02-18 task 3 (live) |
+| SC-3 API tokens and API-token-only resolution | 02-20 tasks 1-3 (`-t api_token_flow`), 02-21 task 3 (live) |
+| AUTH-23 beta | 02-14 task 1-2 (Python test blueprint), 02-20 task 3 (Go test-registered route) |
+| SC-4 invites and roles | 02-22 tasks 1-3, 02-23 tasks 1-3 (`-t tenant_membership`), 02-24 task 3 (live) |
+| SC-5 cross-tenant matrix | 02-25 task 1 and task 3 (`-t cross_tenant`) |
+| UI-04, UI-08, UI-34..36 XSS and rendering | 02-12, 02-13, 02-16, 02-18, 02-21, 02-24 unit tests (no raw HTML) |
+| UI-42, UI-43 | 02-11 task 1 (key parity en and zh), 02-16 task 2 (theme and language persistence) |
+| Wave 0 fixtures | vectors 02-06; route registry 02-08; account fixtures 02-07; mail catcher 02-05; vitest harnesses 02-11, 02-12 |
+| Exit | 02-26 task 2 (`scripts/clean_room.sh --runs 3`) |
+
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
 ---
