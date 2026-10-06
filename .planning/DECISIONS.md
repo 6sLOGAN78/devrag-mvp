@@ -83,7 +83,7 @@ Decision register for devRag. `docs/` wins over `spec.md`, existing code, RAGFlo
 | R-69 | Frontend versions not named in docs | CLAUDE.md majors followed (zustand 4.5.7, sonner 1.7.4, React 18, Tailwind 3, zod 3 with @hookform/resolvers 3 if forms added). Within-major bumps: react-router 7.18.4 (baseline 7.11.0), axios 1.20.0 (baseline 1.13.6), @tanstack/react-query 5.104.1 (baseline 5.90.14). Vitest resolved at install by plan 01-10: 5.0.3 (also jsdom 30.1.2, lucide-react 1.52.0, @testing-library/jest-dom 7.0.1). Also openapi-typescript and tailwind-merge 2.6.1. | accepted (auto, not user-reviewed) | Orchestrator |
 | R-70 | Python web dependency versions | Quart 0.23.1 + quart-schema 0.25.0 + PyMySQL 1.2.3, falling back to reference pins (quart 0.20.0, quart-schema 0.23.0, PyMySQL 1.1.2). | accepted (auto, not user-reviewed) | Orchestrator |
 | R-71 | UI design contract choices | From 01-UI-SPEC.md Auto-Selected Choices: teal accent, system fonts, 4 type sizes, nav shows only built routes. | accepted (auto, not user-reviewed) | 01-UI-SPEC |
-| R-72 | Dev memory budget | Limits es01 2g, mysql 640m, minio 256m, valkey 160m, app 768m. Measured 2026-10-06 on this host (run 3 of the exit gate): total 1915.8 MiB against a 3891 MiB budget; see `Dev memory budget (measured)`. | accepted (auto, not user-reviewed) | Plan 01-15 |
+| R-72 | Dev memory budget | Limits es01 2g, mysql 640m, minio 256m, valkey 160m, app 768m. Measured on this host by run 3 of the exit gate (latest: 2026-10-07, total 1905.6 MiB; previous gate 2026-10-06, 1915.8 MiB) against a 3891 MiB budget; see `Dev memory budget (measured)`. | accepted (auto, not user-reviewed) | Plan 01-15 |
 | R-73 | Envelope code sharing | Go and Python never share envelope code; defined once per language with a RetCode parity test. | accepted (auto, not user-reviewed) | Orchestrator |
 | R-74 | DB lock connection and in-transaction retry | DatabaseLock holds MySQL GET_LOCK on its own dedicated PyMySQL connection outside the pool (pool recycling or DB.close() cannot release it early). The retrying pool does not retry a statement inside an open transaction (a reconnect would silently drop earlier statements and break atomicity); begin() and standalone statements are retried. | accepted (auto, not user-reviewed) | Plan 01-06, DATA-04/DATA-08 |
 | R-75 | Migration atomicity under MySQL DDL | Each migration runs with its schema.version write inside db.atomic(); MySQL commits DDL implicitly, so migrations must keep DDL idempotent (add_column_if_missing and add_index_if_missing helpers). | accepted (auto, not user-reviewed) | Plan 01-06, DATA-05 |
@@ -96,6 +96,9 @@ Decision register for devRag. `docs/` wins over `spec.md`, existing code, RAGFlo
 | R-82 | Go layering wiring | `router.NewEngine(cfg, logger, *handler.System, ...Option)` takes a handler, not a service, so router imports neither service nor dao; `cmd` wires dao -> service -> handler -> router. Service depends on small `Pinger`/`SettingsReader` interfaces satisfied by dao types; test doubles live only in `_test.go`. `--api` fails fast if MySQL is unreachable at start, mirroring the Python boot order. | accepted (auto, not user-reviewed) | Plan 01-09, API-06, API-12 |
 | R-83 | DB pool structure and retry safety (amends R-74) | Retrying pool keeps PooledDatabase checkout (driver override sits below it in the MRO); reconnect failures consume the retry budget; standalone statements are retried only if read-only (SELECT/SHOW/DESCRIBE/EXPLAIN) or when the failure is a pre-send ping failure, because error 2013 can arrive after a write committed. Idempotent callers own write retries. | accepted (auto, not user-reviewed) | Plan 01-16, DATA-03 |
 | R-84 | /system/version exposure | Served publicly in Phase 1 like /system/status (R-55) because no auth middleware exists until Phase 2; declared with `public_until_phase: 2`; tests fail if any other auth != none route answers 200 unauthenticated. Becomes authenticated in Phase 2. | accepted (auto, not user-reviewed) | Plan 01-19, WR-05 |
+| R-85 | Gap-closure behaviour changes | Frontend sends the Authorization header to same-origin requests only and purges on 401 only when the failing request carried the current token (WR-21/22). `clean_room.sh` requires a positive integer `--runs`, refuses when any `devrag-stack` container belongs to another checkout, and exports its base URLs from `SVR_WEB_HTTP_PORT`; `run_tests.py` treats pytest exit 5 as failure except in the serial second pass or with `--allow-empty` (WR-15/16/17). `NGINX_TLS=1` without certificates fails the container; the healthcheck probes both backends directly (WR-12/13). `GO_API_PORT` is pinned at 9384 (WR-14). | accepted (auto, not user-reviewed) | Plan 01-24, gap closure |
+| R-86 | Go schema verification scope (interim) | Go `--migrate` verifies tables, columns and column type families against the live schema. It does not compare length, nullability or keys until the verifier is reworked against `conf/schema.json` (WR-10, deferred, B-15). | accepted (auto, not user-reviewed) | Plan 01-24, gap closure |
+| R-87 | Dev web port on this host | The git-ignored `docker/.env` on this machine sets `SVR_WEB_HTTP_PORT=8088` because another of the user's compose projects holds 8080. The documented default in `docker/.env.example` stays 8080. | user-confirmed | User, 2026-10-07 |
 
 ## Deviations from docs
 
@@ -123,15 +126,15 @@ D-21: add each dependency only in the phase that builds the feature needing it; 
 
 ## Dev memory budget (measured)
 
-Measured with `docker stats --no-stream` on 2026-10-06, on this development host only (run 3, after the full suites). Not a portable figure.
+Measured with `docker stats --no-stream` on 2026-10-07, on this development host only (run 3, after the full suites). Not a portable figure.
 
 | Container | Limit MiB | Measured MiB |
 |---|---|---|
-| app | 768 | 91.5 |
-| es01 | 2048 | 1494.0 |
+| app | 768 | 93.1 |
+| es01 | 2048 | 1482.8 |
 | init | 256 | not running (one-shot, exited) |
-| minio | 256 | 70.7 |
-| mysql | 640 | 255.6 |
-| redis | 160 | 4.0 |
+| minio | 256 | 61.0 |
+| mysql | 640 | 264.8 |
+| redis | 160 | 3.9 |
 
-Total measured: 1915.8 MiB (budget 3891 MiB). Host available RAM at measurement: 5937 MiB. Host free disk after the run: 9G.
+Total measured: 1905.6 MiB (budget 3891 MiB). Host available RAM at measurement: 5982 MiB. Host free disk after the run: 24G.

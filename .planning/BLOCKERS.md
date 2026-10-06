@@ -48,6 +48,7 @@ Each entry has: ID `B-NN`, Title, Status (`open` | `mitigated` | `closed`), Affe
 - Evidence: no git remote, so `.github/workflows/ci.yml` cannot execute.
 - Needed from user: push to a remote with Actions enabled.
 - Workaround in repo: workflow authored; it calls the same `make ci` target that runs locally.
+- Update 2026-10-07 (plan 01-23): `ci.yml` now sets up Go from `go.mod`, Node 22 and runs `npm ci`, with `contents: read` permissions. It has still never run on GitHub; status stays open.
 
 ## B-07 Go run modes
 - Status: open
@@ -104,3 +105,27 @@ Each entry has: ID `B-NN`, Title, Status (`open` | `mitigated` | `closed`), Affe
 - Evidence: 2026-10-06, with the stack stopped only 2763 MB was available (other programs held about 10.7 GB of 15.7 GB) against `PREFLIGHT_MIN_RAM_MB=4096`. The user freed memory; the gate then ran with 5.2 to 6.9 GB available. The threshold was not lowered.
 - Needed from user: close other workloads before running the gate on this machine.
 - Workaround in repo: none applied; `PREFLIGHT_MIN_RAM_MB` exists but was left at its default.
+- Update 2026-10-07 (plan 01-24): gap-closure gate ran with 6513 to 7246 MB available before start (stack stopped); threshold unchanged at 4096 MB; no user action was needed this time.
+
+## B-15 Deferred Phase 1 review findings
+- Status: open
+- Affects: Phase 2 planning (health probes, Go schema verification, dev proxy, secret scanning)
+- Evidence: `01-REVIEW.md` findings not fixed by gap plans 01-16..01-24. Every other warning (WR-01..05, WR-07..09, WR-11..19, WR-21, WR-22) and CR-01 was fixed and covered by tests.
+
+| Finding | Reason deferred | Lands |
+|---|---|---|
+| WR-06 health routes open four fresh backend connections per request | Needs a single-flight cached probe layer on the application pool; no Phase 1 must-have fails | Start of Phase 2 |
+| WR-10 Go schema verify compares type families only | Needs a full comparison against `conf/schema.json`; the claim is narrowed by R-86 meanwhile | First Go DAO consumer, Phase 2 |
+| WR-20 Vite dev proxy misses Go exact paths that carry a query string | Dev server only; no Phase 1 Go exact route is called with a query string; production Nginx is correct | Phase 2, when `GET /api/v1/users?...` is first used |
+| WR-23 `check_secrets` blind spots | Tightening needs false-positive triage across env examples and fixtures; no real secret is committed | Start of Phase 2, before credential handling |
+| IN-01..IN-18 | Informational; out of scope for gap closure | Rolling backlog |
+
+- Needed from user: nothing now; review when Phase 2 is planned.
+- Workaround in repo: none.
+
+## B-16 Host port 8080 taken by another project
+- Status: mitigated
+- Affects: dev stack and exit gate on this host
+- Evidence: 2026-10-07, container `compose-gateway-1` (compose project `compose`, not ours, untouched) published 8080; preflight failed on the port before any teardown.
+- Needed from user: none; the user chose to move devRag to another port.
+- Workaround in repo: `SVR_WEB_HTTP_PORT=8088` in the git-ignored `docker/.env` (R-87); `clean_room.sh` now derives `E2E_BASE_URL`, `MANUAL_BASE_URL` and `LIVE_BASE_URL` from that value.

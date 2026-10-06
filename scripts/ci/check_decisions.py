@@ -9,7 +9,8 @@ from collections import Counter
 from pathlib import Path
 
 ALLOWED = {"user-confirmed", "accepted (auto, not user-reviewed)", "open"}
-CONFIRMED = {3, 17, 18, 48}
+# Rows the user decided in person. 3, 17, 18, 48: scope answers on 2026-10-05. 87: dev web port, 2026-10-07.
+CONFIRMED = {3, 17, 18, 48, 87}
 ROW = re.compile(r"^\| R-(\d+) \|")
 
 
