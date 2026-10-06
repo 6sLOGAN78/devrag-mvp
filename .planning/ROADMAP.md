@@ -86,7 +86,7 @@ Plans:
 
 **Gap closure (from 01-VERIFICATION.md and 01-REVIEW.md)** *(Wave 1 plans are independent)*
 
-- [ ] 01-16-PLAN.md — DATA-03: restore real pooling, bounded reconnect, write-safe retry (CR-01, WR-01, WR-02)
+- [x] 01-16-PLAN.md — DATA-03: restore real pooling, bounded reconnect, write-safe retry (CR-01, WR-01, WR-02)
 - [ ] 01-17-PLAN.md — Log redaction parity in Go and Python with shared vectors (WR-03, WR-04)
 - [ ] 01-18-PLAN.md — HTTP client: same-origin token, token-aware 401 purge (WR-21, WR-22)
 - [ ] 01-20-PLAN.md — Guard scripts: clean_room --runs validation, foreign-project refusal, run_tests exit 5, go-race -count=1 (WR-15, WR-16, WR-17)
