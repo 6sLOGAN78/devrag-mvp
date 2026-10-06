@@ -1,6 +1,8 @@
 """Python API server entry: ``python -m api.ragflow_server`` (API-13, D-10, D-15).
 
-Boot order: logger, database verify (no DDL), startup hooks, serve. Schema creation and
+Boot order: logger, database verify (no DDL), then on the serving event loop (``before_serving``)
+startup hooks and serve; hooks therefore share the loop that handles requests, so tasks they
+create stay alive. Schema creation and
 migrations belong to ``python -m api.db.init_db``. Superuser init (Phase 2), plugin loading
 (Phase 7) and the update_progress daemon (Phase 4) are not part of Phase 1; see B-08.
 """
@@ -70,6 +72,16 @@ async def _run_hooks() -> None:
     logger.info("startup hooks complete", extra={"count": len(_HOOKS)})
 
 
+def install_startup_hooks(app: Quart) -> None:
+    """Run the registered hooks inside ``before_serving`` so they share the serving event loop."""
+
+    @app.before_serving
+    async def _startup() -> None:
+        await _run_hooks()
+        _step("hooks")
+        _step("serve")
+
+
 def boot(settings: Settings | None = None, init_logging: bool = True) -> Quart:
     """Run the boot steps in order and return the application (not yet serving)."""
     try:
@@ -81,10 +93,8 @@ def boot(settings: Settings | None = None, init_logging: bool = True) -> Quart:
     _step("logger")
     verify_database(settings)
     _step("database")
-    asyncio.run(_run_hooks())
-    _step("hooks")
     app = create_app(settings)
-    _step("serve")
+    install_startup_hooks(app)
     return app
 
 

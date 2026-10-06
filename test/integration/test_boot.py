@@ -53,7 +53,10 @@ def test_empty_database_fails_boot_without_ddl(steps):
             root.close()
 
 
-def test_migrated_database_boots_in_order(steps):
+async def test_migrated_database_boots_in_order(steps):
     app = boot(load_settings(), init_logging=False)
+    assert steps.steps == ["logger", "database"]
+    async with app.test_app():
+        pass
     assert steps.steps == ["logger", "database", "hooks", "serve"]
     assert app.name == "ragflow_server"
