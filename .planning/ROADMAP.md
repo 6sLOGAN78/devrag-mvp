@@ -96,7 +96,7 @@ Plans:
 
 **Gap closure Wave 2** *(blocked on 01-16: shares DECISIONS.md)*
 
-- [ ] 01-19-PLAN.md — Mark /system/version public_until_phase and enforce the marker rule (WR-05)
+- [x] 01-19-PLAN.md — Mark /system/version public_until_phase and enforce the marker rule (WR-05)
 
 **Gap closure Wave 3**
 
