@@ -16,6 +16,8 @@ declare module "axios" {
   interface AxiosRequestConfig {
     /** Suppress the error toast for this request. */
     silent?: boolean;
+    /** Internal: the token actually attached to this request, or null when none was sent. */
+    sentToken?: string | null;
   }
 }
 
@@ -67,6 +69,22 @@ export function registerQueryClient(client: QueryClient): void {
   queryClient = client;
 }
 
+/** True only when the effective request URL resolves to the page origin. */
+export function isSameOrigin(url: string | undefined, baseURL: string | undefined): boolean {
+  try {
+    const origin = window.location.origin;
+    return new URL(url ?? "", new URL(baseURL || "", origin)).origin === origin;
+  } catch {
+    return false;
+  }
+}
+
+/** Purge only when the failing request carried a token that is still the current one. */
+function shouldPurge(config: AxiosRequestConfig | undefined): boolean {
+  const sent = config?.sentToken;
+  return typeof sent === "string" && sent.length > 0 && sent === getAuthorization();
+}
+
 function purgeSession(): void {
   removeAuthorization();
   useUserStore.getState().reset();
@@ -102,7 +120,12 @@ export const http = axios.create({ baseURL: "", timeout: TIMEOUT_MS });
 
 http.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   const token = getAuthorization();
-  if (token) config.headers.set("Authorization", `Bearer ${token}`);
+  if (token && isSameOrigin(config.url, config.baseURL)) {
+    config.headers.set("Authorization", `Bearer ${token}`);
+    config.sentToken = token;
+  } else {
+    config.sentToken = null;
+  }
   return config;
 });
 
@@ -118,7 +141,7 @@ http.interceptors.response.use(
       requestId: headerValue(response.headers, "x-request-id"),
       data: body.data,
     });
-    if (body.code === RetCode.UNAUTHORIZED) purgeSession();
+    if (body.code === RetCode.UNAUTHORIZED && shouldPurge(response.config)) purgeSession();
     else toastFor(error, response.config.silent === true);
     return Promise.reject(error);
   },
@@ -145,7 +168,7 @@ http.interceptors.response.use(
         data: envelope?.data,
       });
     }
-    if (error.status === 401 || error.code === RetCode.UNAUTHORIZED) purgeSession();
+    if ((error.status === 401 || error.code === RetCode.UNAUTHORIZED) && shouldPurge(failure.config)) purgeSession();
     else toastFor(error, silent);
     return Promise.reject(error);
   },
