@@ -26,7 +26,9 @@ import peewee
 from playhouse.migrate import MySQLMigrator, migrate
 
 from api.db.database import DB, DatabaseLock
-from api.db.models.system import SCHEMA_VERSION_KEY, SystemSettings, get_setting, upsert_setting
+from api.db.models.system import SCHEMA_VERSION_KEY, SystemSettings
+from api.db.models.system import get_setting as _get_setting
+from api.db.models.system import upsert_setting as _upsert_setting
 
 logger = logging.getLogger(__name__)
 
@@ -54,7 +56,14 @@ def add_column_if_missing(db: Any, table: str, column: str, field: peewee.Field)
 
 def add_index_if_missing(db: Any, table: str, columns: tuple[str, ...], unique: bool = False) -> bool:
     wanted = tuple(columns)
-    if any(tuple(i.columns) == wanted for i in db.get_indexes(table)):
+    for existing in db.get_indexes(table):
+        if tuple(existing.columns) != wanted:
+            continue
+        if bool(existing.unique) != bool(unique):
+            raise MigrationError(
+                "index on (%s) exists with different uniqueness (existing unique=%s, requested unique=%s)"
+                % (", ".join(wanted), bool(existing.unique), bool(unique))
+            )
         return False
     migrate(MySQLMigrator(db).add_index(table, columns, unique))
     return True
@@ -88,9 +97,17 @@ def discover(migrations_dir: Path) -> list[tuple[int, str, ModuleType]]:
     return found
 
 
-def current_version() -> int:
-    raw = get_setting(SCHEMA_VERSION_KEY)
+def current_version(db: Any = DB) -> int:
+    """Stored ``schema.version`` read from ``db`` (not necessarily the global ``DB``)."""
+    with db.bind_ctx([SystemSettings]):
+        raw = _get_setting(SCHEMA_VERSION_KEY)
     return int(raw) if raw and raw.isdigit() else 0
+
+
+def upsert_setting(key: str, value: str, db: Any = DB) -> None:
+    """Write one setting on ``db`` (not necessarily the global ``DB``)."""
+    with db.bind_ctx([SystemSettings]):
+        _upsert_setting(key, value)
 
 
 def run_migrations(db: Any = DB, migrations_dir: Path | str | None = None, lock_timeout: int = 60) -> list[str]:
@@ -100,7 +117,7 @@ def run_migrations(db: Any = DB, migrations_dir: Path | str | None = None, lock_
     applied: list[str] = []
     with DatabaseLock(MIGRATION_LOCK_NAME, lock_timeout), db.connection_context():
         ensure_system_settings(db)
-        stored = current_version()
+        stored = current_version(db)
         for number, name, module in migrations:
             if number <= stored:
                 continue
@@ -108,7 +125,7 @@ def run_migrations(db: Any = DB, migrations_dir: Path | str | None = None, lock_
             try:
                 with db.atomic():
                     module.upgrade(db)
-                    upsert_setting(SCHEMA_VERSION_KEY, "%04d" % number)
+                    upsert_setting(SCHEMA_VERSION_KEY, "%04d" % number, db)
             except Exception as exc:
                 raise MigrationError("migration %s failed: %s" % (name, exc)) from exc
             applied.append("%04d" % number)

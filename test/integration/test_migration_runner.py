@@ -194,3 +194,43 @@ def test_init_db_entry_point_exit_codes(scratch, tmp_path):
     missing = run({"SERVICE_CONF": str(tmp_path / "absent.yaml")})
     assert missing.returncode == 1
     assert "configuration error" in missing.stdout
+
+
+@pytest.mark.serial
+def test_run_migrations_binds_version_io_to_the_given_db(tmp_path):
+    migrations = write_migrations(tmp_path, **{"0001_base": M0001})
+    with scratch_database() as name_a, scratch_database() as name_b:
+        pool_a = init_database(app_connection_settings(name_a))
+        init_database(app_connection_settings(name_b))  # the global DB now points at B
+        try:
+            assert run_migrations(pool_a, migrations) == ["0001"]
+            for pool, expected in ((pool_a, 1), (DB, 0)):
+                with pool.connection_context():
+                    count = pool.execute_sql(
+                        "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE()"
+                    ).fetchone()[0]
+                    assert (count > 0) == bool(expected)
+            with pool_a.connection_context(), pool_a.bind_ctx([SystemSettings]):
+                assert get_setting(SCHEMA_VERSION_KEY) == "0001"
+            with DB.connection_context():
+                assert list(DB.execute_sql("SHOW TABLES").fetchall()) == []
+        finally:
+            pool_a.close_all()
+            DB.close_all()
+            DB.initialize(None)
+
+
+@pytest.mark.serial
+def test_unique_index_request_with_nonunique_existing_index_fails_loudly(scratch):
+    with DB.connection_context():
+        DB.execute_sql("CREATE TABLE idx_t (id INT AUTO_INCREMENT PRIMARY KEY, c INT NOT NULL, d INT NOT NULL, e INT NOT NULL) ENGINE=InnoDB")
+        DB.execute_sql("CREATE INDEX ix_c ON idx_t (c)")
+        DB.execute_sql("CREATE UNIQUE INDEX ux_d ON idx_t (d)")
+        assert not add_index_if_missing(DB, "idx_t", ("c",), unique=False)
+        with pytest.raises(MigrationError, match="different uniqueness"):
+            add_index_if_missing(DB, "idx_t", ("c",), unique=True)
+        assert add_index_if_missing(DB, "idx_t", ("e",), unique=True)
+        assert not add_index_if_missing(DB, "idx_t", ("e",), unique=True)
+        assert not add_index_if_missing(DB, "idx_t", ("d",), unique=True)
+        with pytest.raises(MigrationError, match="different uniqueness"):
+            add_index_if_missing(DB, "idx_t", ("d",), unique=False)
