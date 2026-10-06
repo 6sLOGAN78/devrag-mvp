@@ -14,7 +14,12 @@ A user can upload a document into a knowledge base and get an accurate, cited an
 
 ### Validated
 
-(None yet — ship to validate)
+- ✓ Infrastructure layer runs via Docker Compose (MySQL, Valkey, MinIO, Elasticsearch, Nginx) from empty volumes — Phase 1
+- ✓ Dual-stack skeleton: Go Gin and Python Quart answer through one Nginx ingress with one response envelope on one shared schema (38 tables, Peewee-owned, Go verify-only) — Phase 1
+- ✓ Decision register (87 rows) and blocker log committed; CI gates against placeholders, pickle, fixed sleeps, secrets and generated-file drift — Phase 1
+- ✓ SPA shell with lazy routes and HTTP client; live System status page — Phase 1
+
+Phase 1 covers foundations only: no user-facing RAG capability exists yet, and the Core Value is not yet demonstrated.
 
 ### Active
 
@@ -55,7 +60,9 @@ A user can upload a document into a knowledge base and get an accurate, cited an
 - **Documented stack**: React 18 + TypeScript + Vite + TailwindCSS + shadcn/ui + Zustand + React Router 7 + `@xyflow/react`; Python 3.10+ Quart (ASGI) + Peewee + LiteLLM; Go 1.22+ Gin + GORM + Zap + go-redis; MySQL 8, Redis 7, MinIO/S3, and a pluggable vector engine (Infinity / Elasticsearch / OpenSearch / Qdrant / Milvus / PGVector).
 - **Reference repository**: `~/desktop x/ragflow` — a local RAGFlow checkout (contains `api/`, `agent/`, `rag/`, `deepdoc/`, `internal/`, `cmd/`, `web/`, `docker/`, ...). Use it for implementation patterns where `docs/` leaves details open. Doc links point at `file:///home/logan78/Desktop/ragflow/...`; the actual path is `~/desktop x/ragflow`.
 - **Prior work**: an earlier Python-only attempt (`api/`, `blueprint/`, Parts 01–05: infrastructure, core backend, auth/tenancy, KB management, document ingestion, chunking & embedding, TenantLLM keys, ES mapping) was deliberately removed. It remains in git history at `github.com/6sLOGAN78/devrag-mvp` (`master`, commit `3fe760d`). This is a fresh start, not a continuation.
-- **Unread doc**: `docs/apikey llm.md` could not be read during initialization (blocked as possible credential material). Its contents are not reflected here; it must be reviewed by the user before it is committed or relied on.
+- **`docs/apikey llm.md`**: withheld from agents during initialization and Phase 1; released by the user on 2026-10-07 (no credentials). It specifies token formats and LLM usage tracking that Phase 1 research never saw (DECISIONS R-49); Phase 2 and Phase 3 must read it.
+- **Repository**: pushed to `github.com/6sLOGAN78/devrag-mvp` (public), `master`; the earlier attempt is at branch `archive/mvp-master`. Dev web port on this host is 8088 (R-87).
+- **Open from Phase 1**: an unauthenticated CPU denial-of-service in the Python log redactor (CR-02) and smaller hardening items; see `01-VERIFICATION.md` and BLOCKERS B-15. Fix at the start of Phase 2.
 - **Environment**: Linux, Node 22 available. No API keys configured in the session.
 
 ## Constraints
@@ -98,4 +105,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-10-05 after initialization*
+*Last updated: 2026-10-07 after Phase 1 completion*
