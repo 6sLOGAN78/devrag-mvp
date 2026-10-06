@@ -15,7 +15,7 @@ Every phase ships its API and its UI together and is verified against the real r
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Reconciliation, Guardrails and Dual-Stack Foundation** - Decision register and CI guardrails committed; infrastructure, shared schema and both API servers healthy behind Nginx
+- [x] **Phase 1: Reconciliation, Guardrails and Dual-Stack Foundation** - Decision register and CI guardrails committed; infrastructure, shared schema and both API servers healthy behind Nginx (completed 2026-10-06)
 - [ ] **Phase 2: Identity, Tenancy and Authorization** - Users register and log in through Go, the same token works on Python, tenants are isolated and roles enforced
 - [ ] **Phase 3: Models, Knowledge Bases and Upload** - Tenants configure a real model provider, create datasets backed by a real index, and upload documents to object storage
 - [ ] **Phase 4: Ingestion Pipeline** - Uploaded documents are parsed, chunked, embedded and indexed by a reliable background worker with live progress
@@ -82,7 +82,7 @@ Plans:
 
 **Wave 9** *(blocked on Wave 8 completion)*
 
-- [ ] 01-15-PLAN.md — Clean-room exit gate x3, memory budget, browser check, final records
+- [x] 01-15-PLAN.md — Clean-room exit gate x3, memory budget, browser check, final records
 
 **UI hint**: yes
 
