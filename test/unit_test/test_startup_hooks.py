@@ -24,14 +24,15 @@ async def test_hooks_run_on_serving_loop_and_tasks_survive(hooks):
 
     async def async_hook():
         seen["loop"] = asyncio.get_running_loop()
-        seen["task"] = asyncio.create_task(asyncio.sleep(30))
+        seen["task"] = asyncio.create_task(asyncio.Event().wait())
 
     server.register_startup_hook("async", async_hook)
     app = Quart(__name__)
     server.install_startup_hooks(app)
     async with app.test_app():
         assert seen["loop"] is asyncio.get_running_loop()
-        await asyncio.sleep(0)
+        done, _pending = await asyncio.wait([seen["task"]], timeout=0.05)
+        assert not done
         assert not seen["task"].done() and not seen["task"].cancelled()
     seen["task"].cancel()
 
