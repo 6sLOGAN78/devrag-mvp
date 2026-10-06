@@ -10,8 +10,11 @@ import argparse
 import os
 import re
 import sys
+import uuid
 from collections.abc import Mapping
 from pathlib import Path
+
+import yaml
 
 DEFAULT_TEMPLATE = "conf/service_conf.yaml.template"
 DEFAULT_OUT = "conf/service_conf.yaml"
@@ -19,11 +22,42 @@ DEFAULT_OUT = "conf/service_conf.yaml"
 _TOKEN = re.compile(r"\$\$|\$\{(?P<name>[A-Za-z_][A-Za-z0-9_]*)(?::(?P<op>[-?])(?P<arg>[^}]*))?\}")
 
 
-class MissingVariable(Exception):
+class RenderError(Exception):
+    """Base error. Messages name the variable only, never its value."""
+
+
+class MissingVariable(RenderError):
     def __init__(self, name: str, message: str) -> None:
         super().__init__(f"{name}: {message}")
         self.name = name
         self.detail = message
+
+
+class InvalidValue(RenderError):
+    def __init__(self, name: str, reason: str) -> None:
+        super().__init__(f"{name}: {reason}")
+        self.name = name
+        self.detail = reason
+
+
+def _has_control_char(value: str) -> bool:
+    return any(ord(ch) < 32 and ch != "\t" or ord(ch) == 127 for ch in value)
+
+
+def _in_single_quotes(template: str, pos: int) -> bool:
+    """True when ``pos`` sits inside a single-quoted YAML scalar (odd quote count earlier on its line)."""
+    line_start = template.rfind("\n", 0, pos) + 1
+    return template.count("'", line_start, pos) % 2 == 1
+
+
+def _escape(name: str, value: str, quoted: bool) -> str:
+    if _has_control_char(value):
+        raise InvalidValue(name, "value contains a control character (newline, carriage return, ...)")
+    if quoted:
+        return value.replace("'", "''")
+    if "'" in value or '"' in value:
+        raise InvalidValue(name, "value contains a quote character but is substituted in an unquoted YAML position")
+    return value
 
 
 def render(template: str, env: Mapping[str, str]) -> str:
@@ -34,10 +68,11 @@ def render(template: str, env: Mapping[str, str]) -> str:
         op = match.group("op")
         arg = match.group("arg") or ""
         value = env.get(name, "")
+        quoted = _in_single_quotes(template, match.start())
         if value != "":
-            return value
+            return _escape(name, value, quoted)
         if op == "-":
-            return arg
+            return _escape(name, arg, quoted)
         if op == "?":
             raise MissingVariable(name, arg or "required variable is not set")
         return ""
@@ -56,10 +91,26 @@ def main(argv: list[str] | None = None) -> int:
     except MissingVariable as exc:
         print(f"render_conf: missing required variable {exc.name}: {exc.detail}", file=sys.stderr)
         return 1
+    except RenderError as exc:
+        print(f"render_conf: unsafe value for variable {exc}", file=sys.stderr)
+        return 1
+    try:
+        yaml.safe_load(rendered)
+    except yaml.YAMLError:
+        print("render_conf: rendered output is not valid YAML (stage: post-render validation); nothing written", file=sys.stderr)
+        return 1
     out = Path(args.out)
     out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(rendered, encoding="utf-8")
-    out.chmod(0o600)
+    # Write to a 0600 temp file in the target directory, then atomically replace: no partial file, never world-readable.
+    tmp_name = str(out.parent / f".render_conf.{uuid.uuid4().hex}")
+    fd = os.open(tmp_name, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as handle:
+            handle.write(rendered)
+        os.replace(tmp_name, out)
+    except BaseException:
+        Path(tmp_name).unlink(missing_ok=True)
+        raise
     return 0
 
 
