@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import logging
+from pathlib import Path
 
 import pytest
 
@@ -60,3 +61,30 @@ def test_init_root_logger_writes_one_json_line_per_record(tmp_path, capsys):
     for h in list(logging.getLogger().handlers):
         h.close()
         logging.getLogger().removeHandler(h)
+
+
+_VECTORS = json.loads((Path(__file__).resolve().parents[1] / "fixtures" / "log_redaction_vectors.json").read_text())
+
+
+@pytest.mark.parametrize("vec", _VECTORS, ids=[v["id"] for v in _VECTORS])
+def test_shared_redaction_vectors(vec):
+    from common.log_utils import redact_text
+
+    out = redact_text(vec["input"])
+    for secret in vec["secrets"]:
+        assert secret not in out
+    for kept in vec["keep"]:
+        assert kept in out
+    assert emit(vec["input"])["msg"] == out
+
+
+def test_nested_list_and_tuple_secrets_masked():
+    out = emit("x", items=[{"password": "hunter2-fake"}, ("token", "t-fake"), "password=in-list-fake"])
+    dumped = json.dumps(out)
+    for secret in ("hunter2-fake", "in-list-fake"):
+        assert secret not in dumped
+
+
+def test_x_api_key_header_extra_masked():
+    out = emit("x", headers={"x-api-key": "k-fake", "ok": "fine"})
+    assert out["headers"]["x-api-key"] == "***" and out["headers"]["ok"] == "fine"

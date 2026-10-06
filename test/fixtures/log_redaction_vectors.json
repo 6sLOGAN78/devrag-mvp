@@ -1,0 +1,14 @@
+[
+  {"id": "bearer_header", "input": "Authorization: Bearer abc123-not-a-real-token.part.two", "secrets": ["abc123-not-a-real-token"], "keep": ["Authorization"]},
+  {"id": "basic_header", "input": "Authorization: Basic dXNlcjpub3QtYS1yZWFsLXBhc3M=", "secrets": ["dXNlcjpub3QtYS1yZWFsLXBhc3M="], "keep": ["Authorization"]},
+  {"id": "json_quoted_password", "input": "{\"password\":\"hunter2-fake\"}", "secrets": ["hunter2-fake"], "keep": ["password"]},
+  {"id": "json_spaced_access_token", "input": "{\"access_token\": \"abc123-not-a-real-token\"}", "secrets": ["abc123-not-a-real-token"], "keep": ["access_token"]},
+  {"id": "x_api_key_header", "input": "x-api-key: fake-key-111", "secrets": ["fake-key-111"], "keep": ["x-api-key"]},
+  {"id": "api_key_equals", "input": "api-key=fake-key-222 done", "secrets": ["fake-key-222"], "keep": ["api-key", "done"]},
+  {"id": "pwd_equals", "input": "pwd=fakepw1 next", "secrets": ["fakepw1"], "keep": ["pwd"]},
+  {"id": "passwd_colon", "input": "passwd: fakepw2", "secrets": ["fakepw2"], "keep": ["passwd"]},
+  {"id": "cookie_header", "input": "Cookie: sid=fake-session-abc", "secrets": ["fake-session-abc"], "keep": ["Cookie"]},
+  {"id": "url_userinfo", "input": "mysql://app:hunter2-fake@mysql:3306/db", "secrets": ["hunter2-fake"], "keep": ["mysql:3306/db", "app", "mysql://"]},
+  {"id": "benign_user", "input": "user=bob logged in", "secrets": [], "keep": ["user=bob"]},
+  {"id": "plain_key_value", "input": "password=abc-fake user=bob", "secrets": ["abc-fake"], "keep": ["user=bob"]}
+]

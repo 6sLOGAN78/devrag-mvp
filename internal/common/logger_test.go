@@ -2,6 +2,7 @@ package common
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
@@ -71,4 +72,55 @@ func TestNewLoggerWritesRedactedFile(t *testing.T) {
 func TestNewLoggerRejectsBadLevel(t *testing.T) {
 	_, _, err := NewLogger(LogConfig{Level: "loud"})
 	assert.Error(t, err)
+}
+
+type vector struct {
+	ID      string   `json:"id"`
+	Input   string   `json:"input"`
+	Secrets []string `json:"secrets"`
+	Keep    []string `json:"keep"`
+}
+
+func loadVectors(t *testing.T) []vector {
+	t.Helper()
+	raw, err := os.ReadFile("../../test/fixtures/log_redaction_vectors.json") // log_redaction_vectors.json
+	require.NoError(t, err)
+	var vs []vector
+	require.NoError(t, json.Unmarshal(raw, &vs))
+	require.GreaterOrEqual(t, len(vs), 11)
+	return vs
+}
+
+func TestSharedRedactionVectors(t *testing.T) {
+	for _, v := range loadVectors(t) {
+		t.Run(v.ID, func(t *testing.T) {
+			l, logs := observed()
+			out := RedactString(v.Input)
+			l.Warn(v.Input)
+			msg := logs.All()[0].Message
+			for _, o := range []string{out, msg} {
+				for _, s := range v.Secrets {
+					assert.NotContains(t, o, s)
+				}
+				for _, k := range v.Keep {
+					assert.Contains(t, o, k)
+				}
+			}
+		})
+	}
+}
+
+func TestStructuredFieldsRedacted(t *testing.T) {
+	l, logs := observed()
+	l.Info("x",
+		zap.Any("cfg", map[string]any{"password": "hunter2-fake", "ok": "fine"}),
+		zap.Strings("args", []string{"password=hunter2-fake"}),
+		zap.Reflect("req", struct{ Token string }{"abc-fake"}),
+		zap.ByteString("raw", []byte("secret=zzz-fake")))
+	m := logs.All()[0].ContextMap()
+	dumped := fmt.Sprintf("%v", m)
+	for _, s := range []string{"hunter2-fake", "abc-fake", "zzz-fake"} {
+		assert.NotContains(t, dumped, s)
+	}
+	assert.Contains(t, dumped, "fine")
 }
