@@ -19,6 +19,9 @@ _CODE_FOR_STATUS = {
     404: RetCode.NOT_FOUND,
     405: RetCode.METHOD_NOT_ALLOWED,
     409: RetCode.CONFLICT,
+    # No dedicated members (Go parity table); client errors stay in the 4xx class (R-63).
+    413: RetCode.BAD_REQUEST,
+    429: RetCode.BAD_REQUEST,
 }
 _MESSAGE_FOR_STATUS = {
     400: "bad request",
@@ -27,6 +30,8 @@ _MESSAGE_FOR_STATUS = {
     404: "not found",
     405: "method not allowed",
     409: "conflict",
+    413: "payload too large",
+    429: "too many requests",
 }
 INVALID_REQUEST = "invalid request"
 INTERNAL_ERROR = "internal error"
@@ -46,7 +51,7 @@ def register_error_handlers(app: Quart) -> None:
     @app.errorhandler(HTTPException)
     async def _http(exc: HTTPException) -> Response:
         status = exc.code or 500
-        code = _CODE_FOR_STATUS.get(status, RetCode.SERVER_ERROR)
+        code = _CODE_FOR_STATUS.get(status, RetCode.SERVER_ERROR if status >= 500 else RetCode.BAD_REQUEST)
         message = _MESSAGE_FOR_STATUS.get(status, INTERNAL_ERROR if status >= 500 else "request failed")
         return error_result(code, message, status)
 
