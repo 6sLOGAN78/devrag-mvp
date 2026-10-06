@@ -19,7 +19,7 @@ Not in this phase: datasets, documents, models, chat (Phases 3+); the admin serv
 <decisions>
 ## Implementation Decisions
 
-Every decision below marked **(user)** was chosen by the user in the discuss session on 2026-10-07. The planner must update the matching rows in `.planning/DECISIONS.md` to `user-confirmed` and add their numbers to the pinned set in `scripts/ci/check_decisions.py` with a dated comment (as was done for R-49 and R-87).
+Every decision below marked **(user)** was chosen by the user on 2026-10-07 (D-01..D-16 in the discuss session, D-20..D-23 after research). The planner must update the matching rows in `.planning/DECISIONS.md` to `user-confirmed` and add their numbers to the pinned set in `scripts/ci/check_decisions.py` with a dated comment (as was done for R-49 and R-87).
 
 ### Sign-up and login
 - **D-01 (user):** Self-registration is open by default and controlled by a config switch (RAGFlow's `REGISTER_ENABLED`); when off, `POST /api/v1/users` refuses with a clear envelope error and the SPA hides the sign-up form.
@@ -50,10 +50,25 @@ Every decision below marked **(user)** was chosen by the user in the discuss ses
 - **D-18:** Envelope `{code, message, data}`; Peewee owns the schema; Go verifies only; routes come from `conf/routes.yaml`; no mocks or fixed sleeps; the web port on this host is 8088 (R-87).
 - **D-19:** `/api/v1/system/status` and `/api/v1/system/version` carry `public_until_phase: 2` and must become authenticated in this phase; the marker tests then need the routes removed from the public set (R-55, R-84).
 
+### Decided after research (2026-10-07)
+- **D-20 (user):** New dependencies approved: npm `react-hook-form`, `zod` (v3 line), `@hookform/resolvers`, `i18next`, `react-i18next`, `@radix-ui/react-label`, `@radix-ui/react-alert-dialog`, at the versions pinned in `02-RESEARCH.md`; and the dev-only image `axllent/mailpit` (about 17 MB) for catching reset emails. No other new package or image is approved; anything else stops at a checkpoint. Production compose carries SMTP settings only, no mail service.
+- **D-21 (user):** The no-Authorization-header fallback is one HttpOnly `ragflow_auth` cookie carrying the same signed access token, set at login and cleared at logout. No Redis `_user_id` session and no `quart-session` package. Because it is the same token, logout and password change invalidate it automatically. This is a recorded deviation from `docs/16-auth/sessions.md` (AUTH-10, AUTH-11): the documented invariant (re-check token validity and user status on every request) is kept. Cookie-authenticated state-changing requests need CSRF protection.
+- **D-22 (user):** Registration writes the tenant's default chat, embedding and rerank model ids from optional config settings; with nothing configured they are empty, and `tenant_llm` rows are inserted only when a provider is configured. E2E-02 asserts the fields are present; real values arrive in Phase 3 (BLOCKERS B-09).
+- **D-23 (user):** Interface languages shipped in Phase 2 are English and Chinese, with a test that every key exists in both. es, fr and ja are deferred until someone can review them; UI-42 is recorded as partly delivered.
+
+### Resolved by research (auto-accepted, not user-reviewed)
+- **D-24:** Password hashes are `pbkdf2:sha256:600000` in werkzeug format. Python names the method explicitly (werkzeug's default is scrypt, which Go cannot verify with the standard library); Go verifies with its standard library. Shared test vectors. No client-side RSA transport. Resolves R-34.
+- **D-25:** Go owns `/api/v1/system/tokens*` and `/api/v1/tenants*` (following `docs/apikey llm.md` and the endpoint catalogue over `docs/04-api/system-api.md`). Role change uses a new endpoint `PATCH /api/v1/tenants/{tenant_id}/users/{user_id}` because TEN-11 has no documented one.
+- **D-26:** A pending invitation is stored as `user_tenant.role='invite'`; no schema migration.
+- **D-27:** Two reference behaviours are deliberately not copied: the accept endpoint must never demote an owner or admin who calls it, and the owner row can never be removed.
+- **D-28:** `itsdangerous` is declared as a direct dependency in `pyproject.toml` (it is already locked transitively through Quart; no new package is installed).
+- **D-29:** New limits: maximum password length 128, avatar at most 256 KB. Rate limiting fails closed when Redis is unavailable. The rate-limit numbers in `02-RESEARCH.md` apply.
+- **D-30:** `conf/routes.yaml` gains per-endpoint entries, and both servers get a default-deny auth gate, so the route-enumeration 401 test and the cross-tenant matrix are generated from the route table. The Go gate lives in `internal/handler`; the Python gate goes through `api/db/services`.
+- **D-31:** The log redactor is replaced with the linear-time approach from `02-RESEARCH.md` (both the key pattern and the URL pattern are quadratic today), tested with a timing bound and the shared vectors, before any feature work.
+
 ### Claude's Discretion
-- Password hashing scheme and parameters, provided hashes are salted, verifiable in both Go and Python with shared test vectors, and never unsalted SHA-256 (R-34). Research must settle the exact scheme from `docs/16-auth/authentication.md` and the reference.
-- Client token storage (R-35): the recorded default is a Bearer header from `localStorage`, with the documented cookie and Redis session only as the fallback path and CSRF protection if a cookie is ever used for auth.
-- Rate-limit numbers for login and OTP requests, avatar handling in the profile, the mail-catcher image, i18n library wiring and which locales ship first (UI-42 lists zh, en, es, fr, ja), theme persistence, and the home dashboard content for a tenant with no data yet.
+- Client token storage (R-35): Bearer header from `localStorage` is the primary path; the cookie in D-21 is the fallback.
+- i18n library wiring, theme persistence, and the home dashboard content for a tenant with no data yet.
 
 </decisions>
 
