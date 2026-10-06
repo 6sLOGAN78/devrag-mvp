@@ -1,6 +1,3 @@
-# Pending user review - possible credential material
-docs/apikey llm.md
-
 # Secrets and environment files (templates stay trackable)
 .env*
 !.env.example

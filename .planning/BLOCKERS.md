@@ -5,11 +5,12 @@ Convention (D-27): anything that cannot be implemented or verified in this envir
 Each entry has: ID `B-NN`, Title, Status (`open` | `mitigated` | `closed`), Affects (requirement IDs or phase), Evidence, Needed from user, Workaround in repo.
 
 ## B-01 `docs/apikey llm.md` unreviewed and uncommitted
-- Status: open
+- Status: closed
 - Affects: R-49, Phase 3+ (LLM layer)
 - Evidence: file is off-limits to agents and may contain credential material; it is neither read nor relied on.
 - Needed from user: review the file and say which parts, if any, are requirements.
 - Workaround in repo: listed in `.gitignore`; `docs/` is never staged wholesale.
+- Closed 2026-10-07: the user reviewed the file, confirmed it holds no credentials and released it for reading and publishing. A scan of all 228 files under `docs/` found no key-shaped strings other than truncated illustrative examples in `docs/apis.md`. `docs/` is now tracked and pushed. Follow-up for planning (not a blocker): the file's token-format and usage-tracking content was not available to Phase 1 research; see R-49.
 
 ## B-02 `vm.max_map_count` is 65530
 - Status: open

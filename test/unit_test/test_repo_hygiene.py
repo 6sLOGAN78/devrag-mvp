@@ -5,7 +5,8 @@ import pytest
 
 pytestmark = pytest.mark.unit
 
-IGNORED = ["docs/apikey llm.md", ".env", ".env.local", "docker/.env"]
+# docs/apikey llm.md was ignored until the user reviewed it on 2026-10-07 (B-01, R-49); it is now tracked.
+IGNORED = [".env", ".env.local", "docker/.env"]
 TRACKABLE = ["docker/.env.example"]
 
 

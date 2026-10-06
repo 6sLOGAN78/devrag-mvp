@@ -27,7 +27,7 @@ It is for teams who need an enterprise RAG engine: knowledge-base management, do
 ## How to read this file
 - **Source column** names the `docs/` file that prescribes the choice. `OPEN` means docs are silent or self-contradictory; see "Open decisions".
 - **Version pins** come from `ragflow/uv.lock`, `ragflow/go.mod`, `ragflow/web/package-lock.json`, `ragflow/docker/docker-compose-base.yml`. They are the baseline that is known to work together. Newer releases may exist; I did not verify each against PyPI/npm/pkg.go.dev (Context7 unavailable). Treat pins as "start here", not "latest".
-- `docs/apikey llm.md` was not opened.
+- `docs/apikey llm.md` was not opened when this stack research was written. The user released it on 2026-10-07 (see `.planning/DECISIONS.md` R-49); it holds token-format notes, no credentials.
 ## Recommended Stack
 ### Core Technologies — Frontend (`web/`)
 | Technology | Version | Purpose | Why / Source | Conf. |
