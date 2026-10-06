@@ -83,7 +83,7 @@ Decision register for devRag. `docs/` wins over `spec.md`, existing code, RAGFlo
 | R-69 | Frontend versions not named in docs | CLAUDE.md majors followed (zustand 4.5.7, sonner 1.7.4, React 18, Tailwind 3, zod 3 with @hookform/resolvers 3 if forms added). Within-major bumps: react-router 7.18.4 (baseline 7.11.0), axios 1.20.0 (baseline 1.13.6), @tanstack/react-query 5.104.1 (baseline 5.90.14). Vitest resolved at install by plan 01-10: 5.0.3 (also jsdom 30.1.2, lucide-react 1.52.0, @testing-library/jest-dom 7.0.1). Also openapi-typescript and tailwind-merge 2.6.1. | accepted (auto, not user-reviewed) | Orchestrator |
 | R-70 | Python web dependency versions | Quart 0.23.1 + quart-schema 0.25.0 + PyMySQL 1.2.3, falling back to reference pins (quart 0.20.0, quart-schema 0.23.0, PyMySQL 1.1.2). | accepted (auto, not user-reviewed) | Orchestrator |
 | R-71 | UI design contract choices | From 01-UI-SPEC.md Auto-Selected Choices: teal accent, system fonts, 4 type sizes, nav shows only built routes. | accepted (auto, not user-reviewed) | 01-UI-SPEC |
-| R-72 | Dev memory budget | Limits es01 2g, mysql 640m, minio 256m, valkey 160m, app 768m; measured figures appended by plan 01-15. | open | Plan 01-15 |
+| R-72 | Dev memory budget | Limits es01 2g, mysql 640m, minio 256m, valkey 160m, app 768m. Measured 2026-10-06 on this host (run 3 of the exit gate): total 1915.8 MiB against a 3891 MiB budget; see `Dev memory budget (measured)`. | accepted (auto, not user-reviewed) | Plan 01-15 |
 | R-73 | Envelope code sharing | Go and Python never share envelope code; defined once per language with a RetCode parity test. | accepted (auto, not user-reviewed) | Orchestrator |
 | R-74 | DB lock connection and in-transaction retry | DatabaseLock holds MySQL GET_LOCK on its own dedicated PyMySQL connection outside the pool (pool recycling or DB.close() cannot release it early). The retrying pool does not retry a statement inside an open transaction (a reconnect would silently drop earlier statements and break atomicity); begin() and standalone statements are retried. | accepted (auto, not user-reviewed) | Plan 01-06, DATA-04/DATA-08 |
 | R-75 | Migration atomicity under MySQL DDL | Each migration runs with its schema.version write inside db.atomic(); MySQL commits DDL implicitly, so migrations must keep DDL idempotent (add_column_if_missing and add_index_if_missing helpers). | accepted (auto, not user-reviewed) | Plan 01-06, DATA-05 |
@@ -120,4 +120,15 @@ D-21: add each dependency only in the phase that builds the feature needing it; 
 
 ## Dev memory budget (measured)
 
-Measured figures are appended here by plan 01-15.
+Measured with `docker stats --no-stream` on 2026-10-06, on this development host only (run 3, after the full suites). Not a portable figure.
+
+| Container | Limit MiB | Measured MiB |
+|---|---|---|
+| app | 768 | 91.5 |
+| es01 | 2048 | 1494.0 |
+| init | 256 | not running (one-shot, exited) |
+| minio | 256 | 70.7 |
+| mysql | 640 | 255.6 |
+| redis | 160 | 4.0 |
+
+Total measured: 1915.8 MiB (budget 3891 MiB). Host available RAM at measurement: 5937 MiB. Host free disk after the run: 9G.

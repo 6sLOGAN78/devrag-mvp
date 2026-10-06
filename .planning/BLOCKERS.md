@@ -17,6 +17,7 @@ Each entry has: ID `B-NN`, Title, Status (`open` | `mitigated` | `closed`), Affe
 - Evidence: Elasticsearch wants 262144; changing it needs sudo, which agents do not use. Single-node ES started at 65530 with a WARN.
 - Needed from user: `sudo sysctl -w vm.max_map_count=262144` if desired.
 - Workaround in repo: preflight fails by default; `PREFLIGHT_ALLOW_LOW_MAP_COUNT=1` records an override.
+- Update 2026-10-06 (plan 01-15): still 65530. The phase-exit gate ran with `PREFLIGHT_ALLOW_LOW_MAP_COUNT=1` on all three runs (recorded in `ragflow-logs/preflight-overrides.log`); Elasticsearch reached healthy each time.
 
 ## B-03 Disk space
 - Status: open
@@ -24,6 +25,7 @@ Each entry has: ID `B-NN`, Title, Status (`open` | `mitigated` | `closed`), Affe
 - Evidence: 4.2 GB free on / as measured at revision time (an earlier estimate of 5.5 GB was wrong). After .venv, node_modules, Go module cache and the image build only about 1.5 to 2 GB is expected to remain. The three clean-room runs in plan 01-15 MAY REQUIRE THE USER TO FREE DISK, and Phase 3+ model and ONNX downloads will not fit.
 - Needed from user: freeing disk is the user's action; no plan frees it.
 - Workaround in repo: `PREFLIGHT_ALLOW_LOW_DISK=1` is a recorded override. Nothing is pruned or deleted automatically.
+- Update 2026-10-06 (plan 01-15): free space on / changed several times during the phase for reasons outside this project (4.2 GB, then about 23 GB, then 4.6 GB, then about 9 GB). Measured 9 GB free before the gate and 9G after each of the three clean-room runs; the disk override was NOT used. This project accounts for roughly 1.5 GB of working files plus about 1.7 GB of Docker images. Still open: free space on this host is not stable, and Phase 3+ model downloads need headroom that is not guaranteed.
 
 ## B-04 No GPU
 - Status: open
@@ -38,6 +40,7 @@ Each entry has: ID `B-NN`, Title, Status (`open` | `mitigated` | `closed`), Affe
 - Evidence: stopped compose project `devrag` and project `docker` volumes from earlier attempts exist.
 - Needed from user: decide whether to remove them; they are not ours to delete.
 - Workaround in repo: do not remove; the new project name is `devrag-stack`.
+- Update 2026-10-06 (plan 01-15): after three `down -v` cycles of `devrag-stack`, the 16 non-`devrag-stack` containers and 13 non-`devrag-stack` volumes matched a snapshot taken before the gate (diff empty); project `devrag` still has 6 containers.
 
 ## B-06 CI workflow not runnable here
 - Status: open
@@ -94,3 +97,10 @@ Each entry has: ID `B-NN`, Title, Status (`open` | `mitigated` | `closed`), Affe
 - Evidence: `test/unit_test/test_unpickle.py::test_numpy_allow_list_unpickler_is_bypassable` skips because numpy is not in the user-approved Phase 1 package set, so the gadget demonstration has never run here. The gate and production-tree tests do run.
 - Needed from user: none; the test activates once numpy is installed by a later plan (DeepDoc).
 - Workaround in repo: `check_pickle.py` rejects all unpickling in production trees regardless.
+
+## B-14 Phase-exit gate needs 4 GB of available RAM
+- Status: open
+- Affects: `scripts/clean_room.sh` / `scripts/preflight.sh` on this host
+- Evidence: 2026-10-06, with the stack stopped only 2763 MB was available (other programs held about 10.7 GB of 15.7 GB) against `PREFLIGHT_MIN_RAM_MB=4096`. The user freed memory; the gate then ran with 5.2 to 6.9 GB available. The threshold was not lowered.
+- Needed from user: close other workloads before running the gate on this machine.
+- Workaround in repo: none applied; `PREFLIGHT_MIN_RAM_MB` exists but was left at its default.
