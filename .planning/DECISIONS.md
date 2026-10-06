@@ -95,6 +95,7 @@ Decision register for devRag. `docs/` wins over `spec.md`, existing code, RAGFlo
 | R-81 | Go module and config shape | Module path `devrag`, `go 1.25.0` (host toolchain 1.25.5, `GOTOOLCHAIN=local`). Go reads the same rendered `service_conf.yaml` as Python plus a new `go_api` section (`host`, `http_port` from `GO_API_HOST`/`GO_API_PORT`, default 9384). Go health reports database and redis only (storage and doc store are Python probes). Go envelope uses compact JSON with key order code, message, data and no HTML escaping. `gopkg.in/yaml.v3` (already in the module graph via testify) is a direct test dependency for the routes.yaml ownership test. | accepted (auto, not user-reviewed) | Plan 01-09, SYS-01..05, API-01, API-05 |
 | R-82 | Go layering wiring | `router.NewEngine(cfg, logger, *handler.System, ...Option)` takes a handler, not a service, so router imports neither service nor dao; `cmd` wires dao -> service -> handler -> router. Service depends on small `Pinger`/`SettingsReader` interfaces satisfied by dao types; test doubles live only in `_test.go`. `--api` fails fast if MySQL is unreachable at start, mirroring the Python boot order. | accepted (auto, not user-reviewed) | Plan 01-09, API-06, API-12 |
 | R-83 | DB pool structure and retry safety (amends R-74) | Retrying pool keeps PooledDatabase checkout (driver override sits below it in the MRO); reconnect failures consume the retry budget; standalone statements are retried only if read-only (SELECT/SHOW/DESCRIBE/EXPLAIN) or when the failure is a pre-send ping failure, because error 2013 can arrive after a write committed. Idempotent callers own write retries. | accepted (auto, not user-reviewed) | Plan 01-16, DATA-03 |
+| R-84 | /system/version exposure | Served publicly in Phase 1 like /system/status (R-55) because no auth middleware exists until Phase 2; declared with `public_until_phase: 2`; tests fail if any other auth != none route answers 200 unauthenticated. Becomes authenticated in Phase 2. | accepted (auto, not user-reviewed) | Plan 01-19, WR-05 |
 
 ## Deviations from docs
 
@@ -118,6 +119,7 @@ D-21: add each dependency only in the phase that builds the feature needing it; 
 - B-09: choose a real model source (key or Ollama models).
 - B-12: approve or reject MySQL 8.4 LTS.
 - R-54: review the health-path exception to D-09.
+- R-84: review the public /system/version exposure until Phase 2.
 
 ## Dev memory budget (measured)
 

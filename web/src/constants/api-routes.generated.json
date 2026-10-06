@@ -57,7 +57,7 @@
       "match": "exact",
       "path": "/api/v1/system/version",
       "auth": "jwt",
-      "publicUntilPhase": null,
+      "publicUntilPhase": 2,
       "port": 9384
     },
     {

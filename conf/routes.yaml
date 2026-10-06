@@ -12,7 +12,12 @@ routes:
   - {owner: go, match: exact, path: /health, auth: none}
   - {owner: go, match: exact, path: /api/v1/system/ping, auth: none}
   - {owner: go, match: exact, path: /api/v1/system/config, auth: none}
-  - {owner: go, match: exact, path: /api/v1/system/version, auth: jwt}
+  - owner: go
+    match: exact
+    path: /api/v1/system/version
+    auth: jwt
+    public_until_phase: 2
+    note: R-84 public until the auth phase lands; discloses app and schema version only.
   - owner: go
     match: exact
     path: /api/v1/language
