@@ -87,7 +87,7 @@ func loadVectors(t *testing.T) []vector {
 	require.NoError(t, err)
 	var vs []vector
 	require.NoError(t, json.Unmarshal(raw, &vs))
-	require.GreaterOrEqual(t, len(vs), 11)
+	require.GreaterOrEqual(t, len(vs), 22)
 	return vs
 }
 

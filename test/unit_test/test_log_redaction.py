@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import logging
+import time
 from pathlib import Path
 
 import pytest
@@ -88,3 +89,32 @@ def test_nested_list_and_tuple_secrets_masked():
 def test_x_api_key_header_extra_masked():
     out = emit("x", headers={"x-api-key": "k-fake", "ok": "fine"})
     assert out["headers"]["x-api-key"] == "***" and out["headers"]["ok"] == "fine"
+
+
+_HOSTILE = {
+    "a_run": "a" * 100000,
+    "token_repeat": "token" * 20000,
+    "password_equals_repeat": "password=" * 12000,
+    "password_open_quote": 'password="' * 10000,
+    "dash_run": "a-" * 50000,
+    "cookie_colon_repeat": "cookie:" * 14000,
+    "scheme_repeat": "a://" * 25000,
+}
+TIMING_BOUND_S = 0.25
+
+
+@pytest.mark.parametrize("name", list(_HOSTILE), ids=list(_HOSTILE))
+def test_hostile_100kb_line_redacts_in_bounded_time(name):
+    from common.log_utils import redact_text
+
+    started = time.perf_counter()
+    redact_text(_HOSTILE[name])
+    elapsed = time.perf_counter() - started
+    assert elapsed < TIMING_BOUND_S, f"{name}: {elapsed:.3f}s"
+
+
+def test_oversized_input_is_capped_with_marker():
+    from common.log_utils import redact_text
+
+    out = redact_text("x" * 200000)
+    assert len(out) < 70000 and out.endswith("[truncated]")

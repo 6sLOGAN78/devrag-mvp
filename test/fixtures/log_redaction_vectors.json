@@ -10,5 +10,15 @@
   {"id": "cookie_header", "input": "Cookie: sid=fake-session-abc", "secrets": ["fake-session-abc"], "keep": ["Cookie"]},
   {"id": "url_userinfo", "input": "mysql://app:hunter2-fake@mysql:3306/db", "secrets": ["hunter2-fake"], "keep": ["mysql:3306/db", "app", "mysql://"]},
   {"id": "benign_user", "input": "user=bob logged in", "secrets": [], "keep": ["user=bob"]},
-  {"id": "plain_key_value", "input": "password=abc-fake user=bob", "secrets": ["abc-fake"], "keep": ["user=bob"]}
+  {"id": "plain_key_value", "input": "password=abc-fake user=bob", "secrets": ["abc-fake"], "keep": ["user=bob"]},
+  {"id": "redis_empty_user", "input": "redis://:fakepw-redis@cache:6379/0", "secrets": ["fakepw-redis"], "keep": ["redis://", "cache:6379/0"]},
+  {"id": "amqp_at_in_password", "input": "amqp://guest:fake@pw-tail@broker:5672/vhost", "secrets": ["fake@pw-tail", "pw-tail"], "keep": ["amqp://", "broker:5672/vhost"]},
+  {"id": "auth_apikey_scheme", "input": "Authorization: ApiKey fake-apikey-cred-1", "secrets": ["fake-apikey-cred-1"], "keep": ["Authorization"]},
+  {"id": "auth_api_dash_key_scheme", "input": "Authorization: Api-Key fake-apikey-cred-2", "secrets": ["fake-apikey-cred-2"], "keep": ["Authorization"]},
+  {"id": "auth_negotiate_scheme", "input": "Authorization: Negotiate fake-negotiate-cred-3", "secrets": ["fake-negotiate-cred-3"], "keep": ["Authorization"]},
+  {"id": "auth_aws4_scheme", "input": "Authorization: AWS4-HMAC-SHA256 Credential=FAKEKEYID/20260101/us-east-1/s3/aws4_request, SignedHeaders=host, Signature=fakesig0123", "secrets": ["FAKEKEYID", "fakesig0123"], "keep": ["Authorization"]},
+  {"id": "cookie_to_end_of_line", "input": "Cookie: a=1; session=SECRETCOOKIE-fake; x=2", "secrets": ["SECRETCOOKIE-fake", "x=2", "a=1"], "keep": ["Cookie"]},
+  {"id": "set_cookie_to_end_of_line", "input": "Set-Cookie: sid=fake-set-cookie; Path=/; HttpOnly", "secrets": ["fake-set-cookie", "HttpOnly"], "keep": ["Set-Cookie"]},
+  {"id": "json_escaped_quote", "input": "{\"password\": \"fake\\\"tail-secret\"}", "secrets": ["fake", "tail-secret"], "keep": ["password"]},
+  {"id": "path_token_query", "input": "GET /api/v1/x?token=fake-query-token&page=2", "secrets": ["fake-query-token"], "keep": ["page=2", "/api/v1/x"]}
 ]
