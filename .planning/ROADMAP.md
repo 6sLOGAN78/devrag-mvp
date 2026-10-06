@@ -120,22 +120,22 @@ Scope notes: merges research stages 0 and 1. The decision register has no REQ-ID
   4. An owner can invite a member, the member can accept, and the owner can change the member's role; actions outside the documented permission matrix return HTTP 403
   5. Requesting another tenant's resource by id is indistinguishable from not-found on every tenant-owned route that exists so far, verified by a cross-tenant test matrix generated from the route table
 
-**Plans**: 26 plans
+**Plans**: 28 plans (execution is wave order then plan number; 02-27 runs in wave 5 and 02-28 in wave 7, and the exit gate 02-26 is last in wave 13)
 Plans:
 - [ ] 02-01-PLAN.md - CR-02 linear log redactor, WR-04/WR-24 vectors, truncated log fields
 - [ ] 02-02-PLAN.md - Hardening: WR-16, WR-19, WR-23, WR-26, WR-06
-- [ ] 02-03-PLAN.md - DECISIONS rows R-88..R-111, CONFIRMED set, B-15 landing points
-- [ ] 02-04-PLAN.md - SECRET_KEY, auth, mail and models configuration plumbing
-- [ ] 02-05-PLAN.md - D-20 npm set, itsdangerous declaration, Mailpit dev profile and mail helpers
+- [ ] 02-03-PLAN.md - DECISIONS rows R-88..R-114, CONFIRMED set, B-15 landing points
+- [ ] 02-04-PLAN.md - SECRET_KEY, auth, mail, models and configurable rate-limit plumbing (R-94 defaults, dev overlay for per-IP values)
+- [ ] 02-05-PLAN.md - D-20 npm set, itsdangerous declaration, Mailpit in the dev compose overlay only, mail helpers
 - [ ] 02-06-PLAN.md - Token and password contract in Go and Python with shared vectors
 - [ ] 02-07-PLAN.md - WR-10 full schema verification, account test fixtures
 - [ ] 02-08-PLAN.md - Endpoint registry and generated policy for both stacks
 - [ ] 02-09-PLAN.md - Go register and login with rate limits, proven through Nginx
 - [ ] 02-10-PLAN.md - Go default-deny gate, cookie fallback, logout, user info
-- [ ] 02-11-PLAN.md - i18n (en, zh), copy migration, Vite proxy fix
-- [ ] 02-12-PLAN.md - SPA auth guard, session recovery, 401 redirect, sign out
+- [ ] 02-11-PLAN.md - i18n runtime (en, zh), key-parity test, shared shell copy migration
+- [ ] 02-12-PLAN.md - SPA auth guard, session recovery, 401 redirect, purgeSession toast option, browser test behind the guard
 - [ ] 02-13-PLAN.md - Sign in and sign up page, home dashboard, live browser flow
-- [ ] 02-14-PLAN.md - Python default-deny gate, status route authenticated, enumeration
+- [ ] 02-14-PLAN.md - Python default-deny gate (503 on infrastructure errors), status and openapi.json authenticated, enumeration, Phase 1 test adaptation
 - [ ] 02-15-PLAN.md - Go profile settings, password change, tenant info and list
 - [ ] 02-16-PLAN.md - Profile page, language and theme persistence
 - [ ] 02-17-PLAN.md - Go OTP, SMTP mail and password reset against Mailpit
@@ -147,6 +147,8 @@ Plans:
 - [ ] 02-23-PLAN.md - Role change, remove, withdraw, leave
 - [ ] 02-24-PLAN.md - Team page and dashboard cards
 - [ ] 02-25-PLAN.md - Cross-tenant matrix, leak sweep, token log masking
+- [ ] 02-27-PLAN.md - Existing pages and HTTP client copy migration, copy.ts removal, Vite proxy query fix (WR-20)
+- [ ] 02-28-PLAN.md - Account menu and sign out, System status at /system-status, root redirect
 - [ ] 02-26-PLAN.md - Exit gate (clean_room --runs 3) and truthful records
 **UI hint**: yes
 
