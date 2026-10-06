@@ -1,7 +1,7 @@
 ---
 phase: 01-reconciliation-guardrails-and-dual-stack-foundation
 verified: 2026-10-07T00:35:00+05:30
-status: human_needed
+status: passed
 score: 5/5 roadmap success criteria verified
 re_verification: true
 previous_status: gaps_found
@@ -66,3 +66,10 @@ API-12 (B-07), API-13 (B-08), SEC-05 via R-38 with the numpy test skipped (B-13)
 - The CI workflow on a hosted runner (B-06).
 - Port 8080 after the gap fixes; this gate ran on 8088 (R-87, B-16).
 - Nginx request-line limits for CR-02.
+
+## Human verification resolved (2026-10-07)
+
+1. **GitHub Actions:** the workflow passed on `6sLOGAN78/devrag-mvp` (run 37517324018, commit `184e262`). A later run failed on commit `8a72a38` (the one that added `docs/`) because `test_repo_hygiene.py` still asserted that nothing under `docs/` was tracked; that stale guard was replaced and the run on `fd94011` passed.
+2. **docs/ review:** the user reported `docs/` clean and released `docs/apikey llm.md`; an independent scan of all 228 files found no credentials. `docs/` is committed and pushed (B-01 closed, R-49).
+
+Status changed from `human_needed` to `passed` on that basis. The non-blocking findings above remain open.
