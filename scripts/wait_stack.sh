@@ -10,13 +10,15 @@ ENV_FILE="$ROOT/docker/.env"
 TIMEOUT="${WAIT_STACK_TIMEOUT:-300}"
 INTERVAL=2
 INFRA_ONLY=0
+PRINT_PROBES=0
 
 while [ $# -gt 0 ]; do
   case "$1" in
     --infra-only) INFRA_ONLY=1 ;;
     --timeout) TIMEOUT="$2"; shift ;;
     --interval) INTERVAL="$2"; shift ;;
-    *) echo "usage: $0 [--infra-only] [--timeout S] [--interval S]" >&2; exit 2 ;;
+    --print-probe-urls) PRINT_PROBES=1 ;;
+    *) echo "usage: $0 [--infra-only] [--timeout S] [--interval S] [--print-probe-urls]" >&2; exit 2 ;;
   esac
   shift
 done
@@ -29,6 +31,21 @@ env_value() {
 
 PROJECT="${COMPOSE_PROJECT_NAME:-$(env_value COMPOSE_PROJECT_NAME devrag-stack)}"
 WEB_PORT="$(env_value SVR_WEB_HTTP_PORT 8080)"
+TLS="${NGINX_TLS:-$(env_value NGINX_TLS 0)}"
+if [ "$TLS" = "1" ]; then
+  # TLS mode: probe the HTTPS port; -k because the dev certificate is self-signed (loopback readiness only).
+  BASE_URL="https://127.0.0.1:$(env_value SVR_WEB_HTTPS_PORT 8443)"
+  CURL_FLAGS=(-k)
+else
+  BASE_URL="http://127.0.0.1:${WEB_PORT}"
+  CURL_FLAGS=()
+fi
+
+if [ "$PRINT_PROBES" -eq 1 ]; then
+  echo "$BASE_URL/health ${CURL_FLAGS[*]:-}"
+  echo "$BASE_URL/api/v1/system/healthz ${CURL_FLAGS[*]:-}"
+  exit 0
+fi
 
 # Prints "name state health exitcode" per container of the project, one per line.
 snapshot() {
@@ -66,13 +83,13 @@ evaluate() {
   [ "$seen" -eq 1 ] && [ "$ok" -eq 1 ]
 }
 
-http_ok() { [ "$(curl -s -o /dev/null -w '%{http_code}' --max-time 3 "$1" 2>/dev/null)" = "200" ]; }
+http_ok() { [ "$(curl -s ${CURL_FLAGS[@]+"${CURL_FLAGS[@]}"} -o /dev/null -w '%{http_code}' --max-time 3 "$1" 2>/dev/null)" = "200" ]; }
 
 deadline=$(( $(date +%s) + TIMEOUT ))
 while true; do
   rows="$(snapshot)"
   if evaluate "$rows"; then
-    if [ "$INFRA_ONLY" -eq 1 ] || { http_ok "http://127.0.0.1:${WEB_PORT}/health" && http_ok "http://127.0.0.1:${WEB_PORT}/api/v1/system/healthz"; }; then
+    if [ "$INFRA_ONLY" -eq 1 ] || { http_ok "$BASE_URL/health" && http_ok "$BASE_URL/api/v1/system/healthz"; }; then
       echo "stack ready:"
       echo "$rows" | awk '{print "  " $1 ": " $2 " (" $3 ")"}'
       exit 0
