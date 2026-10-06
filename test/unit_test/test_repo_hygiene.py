@@ -35,9 +35,13 @@ def test_env_example_not_ignored(repo_root):
     assert check_ignore(repo_root, "docker/.env.example") == 1
 
 
-def test_nothing_under_docs_is_tracked_or_staged(repo_root):
-    assert not [p for p in git_lines(repo_root, "ls-files") if p.startswith("docs/")]
-    assert not [p for p in git_lines(repo_root, "diff", "--cached", "--name-only") if p.startswith("docs/")]
+def test_authoritative_docs_are_tracked(repo_root):
+    # Until 2026-10-07 this test asserted the opposite: docs/ stayed out of git while the user reviewed it
+    # for credentials (B-01). The user released it, so the specification the decision register cites must now
+    # be in the repository.
+    tracked = set(git_lines(repo_root, "ls-files", "docs"))
+    assert "docs/spec.md" in tracked
+    assert "docs/04-api/endpoint-catalog.md" in tracked
 
 
 def test_hygiene_passes_in_temp_repo_with_real_gitignore(repo_root, tmp_path):
