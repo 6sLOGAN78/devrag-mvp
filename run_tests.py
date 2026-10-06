@@ -41,6 +41,7 @@ def parser() -> argparse.ArgumentParser:
     ap.add_argument("-m", "--markers", help="select tests by marker expression (pytest -m)")
     ap.add_argument("-i", "--ignore", action="append", default=[], help="path to ignore (repeatable)")
     ap.add_argument("--coverage", action="store_true", help="collect coverage (pytest-cov)")
+    ap.add_argument("--allow-empty", action="store_true", help="treat 'no tests collected' (pytest exit 5) as success")
     ap.add_argument("--dry-run", action="store_true", help="print the pytest argv and exit")
     ap.add_argument("passthrough", nargs="*", help="extra arguments passed to pytest")
     return ap
@@ -54,10 +55,15 @@ def main(argv: list[str] | None = None) -> int:
             print(" ".join(cmd[1:]))
         return 0
     worst = 0
-    for cmd in commands:
+    for index, cmd in enumerate(commands):
         code = subprocess.run(cmd, check=False).returncode  # noqa: S603
-        # pytest exit code 5 means "no tests collected" (e.g. no serial tests selected): not a failure here.
-        if code not in (0, 5):
+        # pytest exit code 5 means "no tests collected". It is a failure (a gate must not pass by selecting
+        # nothing) unless --allow-empty is given, or this is the serial second pass of a parallel run, where
+        # an empty selection is normal.
+        serial_pass = len(commands) == 2 and index == 1
+        if code == 5 and (args.allow_empty or serial_pass):
+            continue
+        if code != 0:
             worst = worst or code
     return worst
 
