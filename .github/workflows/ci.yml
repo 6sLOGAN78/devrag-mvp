@@ -1,10 +1,14 @@
-# Mirrors `make ci` and `make test-unit`. Authored but NOT verified here: GitHub Actions cannot
-# be run in this environment (see .planning/BLOCKERS.md, B-06). No secrets are used.
+# Mirrors `make ci` and `make test-unit`. Structurally complete (Go, Node 22, web deps, read-only token)
+# but authored and NEVER run: GitHub Actions cannot be executed in this environment (see
+# .planning/BLOCKERS.md, B-06). The first real run is a human verification item. No secrets are used.
 name: ci
 
 on:
   push:
   pull_request:
+
+permissions:
+  contents: read
 
 jobs:
   guardrails:
@@ -12,6 +16,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v5
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci --no-audit --no-fund
+        working-directory: web
       - run: uv sync --frozen
       - run: make ci
       - run: make test-unit
