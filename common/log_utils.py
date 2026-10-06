@@ -11,8 +11,10 @@ from pathlib import Path
 from typing import Any
 
 REDACTED = "***"
-SENSITIVE_KEYS = ("password", "secret", "api_key", "apikey", "token", "authorization", "cookie")
-_KEY_ALT = "|".join(SENSITIVE_KEYS)
+SENSITIVE_KEYS = ("password", "passwd", "pwd", "secret", "api_key", "apikey", "token", "authorization", "cookie")
+_KEY_ALT = "password|passwd|pwd|secret|api[_-]?key|token|authorization|cookie"
+# scheme://user:password@host -> keep scheme, user and host
+_URL_USERINFO = re.compile(r"(?P<head>\b[a-z][a-z0-9+.-]*://[^\s:/@]+:)[^\s@/]+(?=@)", re.IGNORECASE)
 # key=value, key: value and "key": "value" forms inside free text
 _SCHEME = r"(?:(?:Bearer|Basic|Digest|Token)\s+)?"
 _PATTERN = re.compile(
@@ -24,7 +26,7 @@ _STANDARD = set(vars(logging.LogRecord("x", 0, "x", 0, "", None, None))) | {"mes
 
 
 def _is_sensitive(key: str) -> bool:
-    lowered = key.lower()
+    lowered = key.lower().replace("-", "_")
     return any(s in lowered for s in SENSITIVE_KEYS)
 
 
@@ -34,7 +36,7 @@ def redact_text(text: str) -> str:
         quote = val[-1] if val and val[-1] in "\"'" else ""
         return f"{m.group('key')}{m.group('sep')}{quote}{REDACTED}{quote}"
 
-    return _PATTERN.sub(sub, text)
+    return _PATTERN.sub(sub, _URL_USERINFO.sub(lambda m: f"{m.group('head')}{REDACTED}", text))
 
 
 def redact_value(key: str, value: Any) -> Any:
@@ -42,6 +44,10 @@ def redact_value(key: str, value: Any) -> Any:
         return REDACTED
     if isinstance(value, dict):
         return {k: redact_value(str(k), v) for k, v in value.items()}
+    if isinstance(value, list):
+        return [redact_value("", v) for v in value]
+    if isinstance(value, tuple):
+        return tuple(redact_value("", v) for v in value)
     if isinstance(value, str):
         return redact_text(value)
     return value

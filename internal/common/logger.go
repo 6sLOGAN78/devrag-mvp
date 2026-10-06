@@ -1,11 +1,13 @@
 package common
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
+	"time"
 
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -14,13 +16,21 @@ import (
 // RedactedValue replaces any sensitive value in log output.
 const RedactedValue = "***"
 
-var sensitiveKeys = []string{"password", "secret", "api_key", "apikey", "token", "authorization", "cookie"}
+var sensitiveKeys = []string{"password", "passwd", "pwd", "secret", "api_key", "apikey", "token", "authorization", "cookie"}
 
-var fragmentPattern = regexp.MustCompile(`(?i)\b([a-z_]*(?:password|secret|api_key|apikey|token|authorization|cookie)[a-z_]*)\s*[=:]\s*("[^"]*"|'[^']*'|[^\s,;&]+)`)
+// redactedMarker replaces values that cannot be safely inspected.
+const redactedMarker = "***unserialisable***"
+
+// fragmentPattern matches key=value, key: value and "key": "value" forms for sensitive keys.
+// Groups: 1 key (with optional quotes), 2 separator, 3 value (optional auth scheme + quoted or bare run).
+var fragmentPattern = regexp.MustCompile(`(?i)(["']?[\w-]*(?:password|passwd|pwd|secret|api[_-]?key|token|authorization|cookie)[\w-]*["']?)(\s*[=:]\s*)((?:(?:Bearer|Basic|Digest|Token)\s+)?(?:"[^"]*"|'[^']*'|[^\s,;&}]+))`)
+
+// urlUserinfoPattern matches scheme://user:password@ and keeps everything but the password.
+var urlUserinfoPattern = regexp.MustCompile(`(?i)(\b[a-z][a-z0-9+.-]*://[^\s:/@]+:)[^\s@/]+(@)`)
 
 // IsSensitiveKey reports whether a log field key must have its value masked.
 func IsSensitiveKey(key string) bool {
-	lower := strings.ToLower(key)
+	lower := strings.ReplaceAll(strings.ToLower(key), "-", "_")
 	for _, s := range sensitiveKeys {
 		if strings.Contains(lower, s) {
 			return true
@@ -29,9 +39,84 @@ func IsSensitiveKey(key string) bool {
 	return false
 }
 
-// RedactString masks key=value fragments for sensitive keys inside free text.
+// RedactString masks credentials (key=value fragments, bearer tokens, URL userinfo) inside free text.
 func RedactString(s string) string {
-	return fragmentPattern.ReplaceAllString(s, "${1}="+RedactedValue)
+	s = urlUserinfoPattern.ReplaceAllString(s, "${1}"+RedactedValue+"${2}")
+	return fragmentPattern.ReplaceAllStringFunc(s, func(m string) string {
+		sub := fragmentPattern.FindStringSubmatch(m)
+		val := sub[3]
+		quote := ""
+		if val != "" && (val[len(val)-1] == '"' || val[len(val)-1] == '\'') {
+			quote = string(val[len(val)-1])
+		}
+		return sub[1] + sub[2] + quote + RedactedValue + quote
+	})
+}
+
+// redactAny walks a decoded value, masking sensitive keys and scrubbing strings.
+func redactAny(v any) any {
+	switch t := v.(type) {
+	case nil, bool, int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64, uintptr, float32, float64, time.Duration, time.Time:
+		return v
+	case string:
+		return RedactString(t)
+	case []byte:
+		return RedactString(string(t))
+	case error:
+		return RedactString(t.Error())
+	case map[string]any:
+		out := make(map[string]any, len(t))
+		for k, val := range t {
+			if IsSensitiveKey(k) {
+				out[k] = RedactedValue
+			} else {
+				out[k] = redactAny(val)
+			}
+		}
+		return out
+	case []any:
+		out := make([]any, len(t))
+		for i, val := range t {
+			out[i] = redactAny(val)
+		}
+		return out
+	default:
+		raw, err := json.Marshal(v)
+		if err != nil {
+			return redactedMarker
+		}
+		var decoded any
+		if err := json.Unmarshal(raw, &decoded); err != nil {
+			return redactedMarker
+		}
+		switch decoded.(type) {
+		case map[string]any, []any, string, nil, bool, float64:
+			return redactAny(decoded)
+		}
+		return redactedMarker
+	}
+}
+
+// redactComplex renders a non-primitive field and returns redacted replacement fields.
+func redactComplex(f zapcore.Field) []zapcore.Field {
+	if f.Type == zapcore.ByteStringType || f.Type == zapcore.BinaryType {
+		b, _ := f.Interface.([]byte)
+		return []zapcore.Field{zap.String(f.Key, RedactString(string(b)))}
+	}
+	enc := zapcore.NewMapObjectEncoder()
+	f.AddTo(enc)
+	if f.Type == zapcore.InlineMarshalerType {
+		out := make([]zapcore.Field, 0, len(enc.Fields))
+		for k, v := range enc.Fields {
+			if IsSensitiveKey(k) {
+				out = append(out, zap.String(k, RedactedValue))
+			} else {
+				out = append(out, zap.Any(k, redactAny(v)))
+			}
+		}
+		return out
+	}
+	return []zapcore.Field{zap.Any(f.Key, redactAny(enc.Fields[f.Key]))}
 }
 
 type redactingCore struct {
@@ -55,24 +140,37 @@ func (r redactingCore) Write(ent zapcore.Entry, fields []zapcore.Field) error {
 }
 
 func redactFields(fields []zapcore.Field) []zapcore.Field {
-	out := make([]zapcore.Field, len(fields))
-	for i, f := range fields {
+	out := make([]zapcore.Field, 0, len(fields))
+	for _, f := range fields {
 		switch {
 		case IsSensitiveKey(f.Key):
-			out[i] = zap.String(f.Key, RedactedValue)
+			out = append(out, zap.String(f.Key, RedactedValue))
 		case f.Type == zapcore.StringType:
-			out[i] = zap.String(f.Key, RedactString(f.String))
+			out = append(out, zap.String(f.Key, RedactString(f.String)))
 		case f.Type == zapcore.ErrorType:
 			if err, ok := f.Interface.(error); ok {
-				out[i] = zap.String(f.Key, RedactString(err.Error()))
+				out = append(out, zap.String(f.Key, RedactString(err.Error())))
 			} else {
-				out[i] = f
+				out = append(out, f)
 			}
+		case isPrimitive(f.Type):
+			out = append(out, f)
 		default:
-			out[i] = f
+			out = append(out, redactComplex(f)...)
 		}
 	}
 	return out
+}
+
+func isPrimitive(t zapcore.FieldType) bool {
+	switch t {
+	case zapcore.BoolType, zapcore.Int64Type, zapcore.Int32Type, zapcore.Int16Type, zapcore.Int8Type,
+		zapcore.Uint64Type, zapcore.Uint32Type, zapcore.Uint16Type, zapcore.Uint8Type, zapcore.UintptrType,
+		zapcore.Float64Type, zapcore.Float32Type, zapcore.DurationType, zapcore.TimeType, zapcore.TimeFullType,
+		zapcore.Complex64Type, zapcore.Complex128Type, zapcore.SkipType, zapcore.NamespaceType:
+		return true
+	}
+	return false
 }
 
 // WrapRedacting wraps a core so every entry is redacted before it is written.

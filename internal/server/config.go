@@ -20,7 +20,7 @@ const DefaultHTTPPort = 9384
 type MySQLConfig struct {
 	Name     string
 	User     string
-	Password string
+	Password string `json:"-"`
 	Host     string
 	Port     int
 }
@@ -29,7 +29,7 @@ type MySQLConfig struct {
 type RedisConfig struct {
 	Host     string
 	Port     int
-	Password string
+	Password string `json:"-"`
 	DB       int
 }
 

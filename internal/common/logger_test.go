@@ -124,3 +124,14 @@ func TestStructuredFieldsRedacted(t *testing.T) {
 	}
 	assert.Contains(t, dumped, "fine")
 }
+
+type secretHolder struct {
+	User     string
+	Password string `json:"-"`
+}
+
+func TestJSONTaggedPasswordNotSerialised(t *testing.T) {
+	l, logs := observed()
+	l.Info("cfg", zap.Reflect("cfg", secretHolder{User: "app", Password: "hunter2-fake"}))
+	assert.NotContains(t, fmt.Sprintf("%v", logs.All()[0].ContextMap()), "hunter2-fake")
+}
