@@ -7,15 +7,11 @@ cd /ragflow
 APP_UID="${APP_UID:-1000}"
 APP_GID="${APP_GID:-1000}"
 LOG_DIR="${LOG_DIR:-/ragflow/logs}"
-export LOG_DIR SERVICE_CONF="${SERVICE_CONF:-/ragflow/conf/service_conf.yaml}"
+export APP_UID APP_GID LOG_DIR SERVICE_CONF="${SERVICE_CONF:-/ragflow/conf/service_conf.yaml}"
 
 python scripts/render_conf.py --out "$SERVICE_CONF"
 chown "$APP_UID:$APP_GID" "$SERVICE_CONF"
-mkdir -p "$LOG_DIR"
-
-if [ "${NGINX_TLS:-0}" = "1" ] && [ -f /etc/nginx/certs/server.crt ] && [ -f /etc/nginx/certs/server.key ]; then
-  cp /etc/nginx/ragflow.https.conf /etc/nginx/conf.d/ragflow.conf
-fi
+/ragflow/docker/prepare_runtime.sh
 
 drop() { setpriv --reuid="$APP_UID" --regid="$APP_GID" --clear-groups "$@"; }
 
