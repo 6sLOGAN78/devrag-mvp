@@ -1,0 +1,27 @@
+graph TD
+    subgraph Client Infrastructure
+        WEB[Browser / Mobile App]
+    end
+
+    subgraph Container Deployment (Docker Compose / Kubernetes)
+        NGINX_CONTAINER[Nginx Reverse Proxy Container: Port 80/443]
+        RAGFLOW_CONTAINER[RAGFlow App Server Container: Port 9380]
+        WORKER_CONTAINER[RAGFlow Task Executor Worker Container]
+    end
+
+    subgraph Stateful Infrastructure
+        MYSQL_CONTAINER[("MySQL Container: Port 3306")]
+        REDIS_CONTAINER[("Redis Container: Port 6379")]
+        MINIO_CONTAINER[("MinIO Object Storage Container: Port 9000")]
+        ES_CONTAINER[("Elasticsearch / Infinity Container: Port 9200")]
+    end
+
+    WEB --> NGINX_CONTAINER
+    NGINX_CONTAINER --> RAGFLOW_CONTAINER
+    RAGFLOW_CONTAINER --> MYSQL_CONTAINER
+    RAGFLOW_CONTAINER --> REDIS_CONTAINER
+    RAGFLOW_CONTAINER --> MINIO_CONTAINER
+    WORKER_CONTAINER --> REDIS_CONTAINER
+    WORKER_CONTAINER --> MINIO_CONTAINER
+    WORKER_CONTAINER --> ES_CONTAINER
+    WORKER_CONTAINER --> MYSQL_CONTAINER

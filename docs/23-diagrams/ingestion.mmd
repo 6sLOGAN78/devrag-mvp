@@ -1,0 +1,17 @@
+flowchart TD
+    A[Upload File] --> B[MinIO / S3 Blob Storage]
+    A --> C[MySQL Document Record: UNSTART]
+    C --> D[POST /api/v1/datasets/<dataset_id>/documents/parse]
+    D --> E[Redis Task Queue: ragflow_TASK_EXE_QUEUE]
+    E --> F[Worker: rag/svr/task_executor.py]
+    F --> G[DeepDoc Engine]
+    G --> H[YOLO Layout Recognition]
+    G --> I[PaddleOCR Recognition]
+    G --> J[Table & Figure Extraction]
+    H --> K[Text Chunks & Images]
+    I --> K
+    J --> K
+    K --> L[ChunkTokenizer]
+    L --> M[LLMBundle Embedding]
+    M --> N[Elasticsearch / Infinity Vector Index]
+    N --> O[MySQL Document Status: FINISHED 1.0]

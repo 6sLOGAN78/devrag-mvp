@@ -1,0 +1,20 @@
+sequenceDiagram
+    autonumber
+    participant UI as React Chat Window
+    participant API as chat_api.py (session_completion)
+    participant Search as Search Engine
+    participant LLM as LLM Streaming Service
+    participant DB as MySQL DB (chat_dialog)
+
+    UI->>API: POST /v1/session/completion (stream=true)
+    API->>Search: Search Dealer -> Hybrid Search + Rerank
+    Search-->>API: Chunks & Citation Metadata
+    API->>UI: SSE Header & Citation Metadata Frame
+    
+    loop Stream Output
+        LLM->>API: Yield Token Delta
+        API->>UI: SSE Data Frame: data: {"code": 0, "data": {"answer": delta}}
+    end
+
+    API->>DB: INSERT INTO chat_dialog (answer, citations, tokens)
+    API->>UI: SSE Data Frame: data: true

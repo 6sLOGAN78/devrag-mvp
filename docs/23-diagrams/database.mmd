@@ -1,0 +1,60 @@
+erDiagram
+    USER ||--o{ USER_TENANT : belongs_to
+    TENANT ||--o{ USER_TENANT : owns
+    TENANT ||--o{ KNOWLEDGEBASE : contains
+    TENANT ||--o{ TENANT_LLM : configures
+    TENANT ||--o{ CANVAS : owns
+    KNOWLEDGEBASE ||--o{ DOCUMENT : stores
+    DOCUMENT ||--o{ TASK : triggers
+    CANVAS ||--o{ AGENT_SESSION : executes
+
+    USER {
+        string id PK
+        string email
+        string password
+        string nickname
+    }
+
+    TENANT {
+        string id PK
+        string name
+        string public_key
+    }
+
+    USER_TENANT {
+        string id PK
+        string user_id FK
+        string tenant_id FK
+        string role
+    }
+
+    KNOWLEDGEBASE {
+        string id PK
+        string tenant_id FK
+        string name
+        string emb_id
+        string parser_id
+    }
+
+    DOCUMENT {
+        string id PK
+        string kb_id FK
+        string name
+        string location
+        string run
+        float progress
+    }
+
+    TASK {
+        string id PK
+        string doc_id FK
+        string status
+        int progress
+    }
+
+    CANVAS {
+        string id PK
+        string tenant_id FK
+        string title
+        json dsl
+    }
