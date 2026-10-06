@@ -108,3 +108,56 @@ def test_script_never_executes_prune_or_sysctl() -> None:
     for line in SCRIPT.read_text(encoding="utf-8").splitlines():
         stripped = line.strip()
         assert not stripped.startswith(("docker system prune", "sudo sysctl", "sysctl -w", "docker volume prune"))
+
+
+def _fake_docker(tmp_path: Path, labels: list[str]) -> dict[str, str]:
+    fake = tmp_path / "bin"
+    fake.mkdir()
+    docker = fake / "docker"
+    docker.write_text(
+        "#!/bin/sh\n"
+        'case "$*" in\n'
+        '  *"{{.ID}}"*) for _ in $FAKE_IDS; do echo id; done ;;\n'
+        '  "ps "*) printf "%s" "$FAKE_LABELS" ;;\n'
+        "esac\nexit 0\n"
+    )
+    docker.chmod(0o755)
+    return {
+        "PATH": f"{fake}:{os.environ['PATH']}",
+        "FAKE_IDS": " ".join(str(i) for i in range(len(labels))),
+        "FAKE_LABELS": "".join(f"{label}\n" for label in labels),
+    }
+
+
+def test_foreign_label_is_a_warning_by_default_and_a_failure_when_strict(tmp_path: Path) -> None:
+    env = _fake_docker(tmp_path, [str(ROOT / "docker"), "/elsewhere/docker"])
+    warn = run(**env)
+    assert warn.returncode == 0, warn.stdout
+    assert "WARNING project name collision" in warn.stdout and "/elsewhere/docker" in warn.stdout
+    strict = run(PREFLIGHT_STRICT_PROJECT="1", **env)
+    assert strict.returncode == 1
+    assert "FAIL project name collision" in strict.stdout and "B-05" in strict.stdout
+
+
+def test_project_only_skips_host_checks_and_accepts_own_label_with_space_and_at(tmp_path: Path) -> None:
+    env = _fake_docker(tmp_path, [str(ROOT / "docker")])
+    inherited = {key: value for key, value in os.environ.items() if not key.startswith("PREFLIGHT_")}
+    # Impossible thresholds would fail the full run; --project-only must not evaluate them.
+    result = subprocess.run(
+        [str(SCRIPT), "--project-only"],
+        capture_output=True,
+        text=True,
+        env={**inherited, **env, "PREFLIGHT_MIN_RAM_MB": "999999999", "PREFLIGHT_STRICT_PROJECT": "1"},
+        check=False,
+        cwd=ROOT,
+    )
+    assert result.returncode == 0, result.stdout
+    assert "FAIL RAM" not in result.stdout and "OK RAM" not in result.stdout
+
+
+def test_project_only_strict_rejects_foreign_label_and_unknown_argument_exits_2(tmp_path: Path) -> None:
+    env = _fake_docker(tmp_path, ["/elsewhere/docker"])
+    inherited = {key: value for key, value in os.environ.items() if not key.startswith("PREFLIGHT_")}
+    strict = subprocess.run([str(SCRIPT), "--project-only"], capture_output=True, text=True, env={**inherited, **env, "PREFLIGHT_STRICT_PROJECT": "1"}, check=False, cwd=ROOT)
+    assert strict.returncode == 1
+    assert subprocess.run([str(SCRIPT), "--bogus"], capture_output=True, text=True, check=False, cwd=ROOT).returncode == 2

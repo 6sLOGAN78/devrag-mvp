@@ -37,6 +37,46 @@ fail() { # fail CHECK MEASURED ACTION
   FAILED=1
 }
 
+# Compose project collisions. Every distinct working-dir label of the project is checked (labels may hold
+# spaces or '@', so the loop reads whole lines). A foreign label is a WARNING by default and a FAIL with
+# PREFLIGHT_STRICT_PROJECT=1 (clean_room.sh sets it: it removes volumes). Foreign resources are never touched.
+check_project() {
+  docker info >/dev/null 2>&1 || return 0
+  local filter="label=com.docker.compose.project=$PROJECT" count wd foreign="" foreign_n=0
+  count="$(docker ps -a --filter "$filter" --format '{{.ID}}' 2>/dev/null | wc -l)"
+  if [ "$count" -eq 0 ]; then
+    echo "OK project: no containers named '$PROJECT'"
+    return 0
+  fi
+  while IFS= read -r wd; do
+    if [ -n "$wd" ] && [ "$wd" != "$ROOT/docker" ]; then
+      foreign="${foreign:+$foreign, }$wd"
+      foreign_n=$((foreign_n + 1))
+    fi
+  done < <(docker ps -a --filter "$filter" --format '{{.Label "com.docker.compose.project.working_dir"}}' 2>/dev/null | sort -u)
+  if [ "$foreign_n" -eq 0 ]; then
+    echo "OK project: $count existing container(s) of '$PROJECT' belong to this checkout"
+  elif [ "${PREFLIGHT_STRICT_PROJECT:-0}" = "1" ]; then
+    fail "project name collision" "$count container(s) of project '$PROJECT' belong to another checkout: $foreign (see BLOCKERS B-05)" "choose another COMPOSE_PROJECT_NAME, or stop that checkout's stack yourself; this checkout will not touch it"
+  else
+    echo "WARNING project name collision: $count container(s) of project '$PROJECT' belong to $foreign (see BLOCKERS B-05); choose another COMPOSE_PROJECT_NAME"
+  fi
+}
+
+case "${1:-}" in
+  "") ;;
+  --project-only)
+    check_project
+    if [ "$FAILED" -ne 0 ]; then
+      echo "preflight project check FAILED"
+      exit 1
+    fi
+    echo "preflight project check passed"
+    exit 0
+    ;;
+  *) echo "usage: $0 [--project-only]" >&2; exit 2 ;;
+esac
+
 # Docker compose availability
 if docker compose version >/dev/null 2>&1; then
   echo "OK compose: $(docker compose version --short 2>/dev/null)"
@@ -95,20 +135,7 @@ for port in $PORTS; do
   fi
 done
 
-# Compose project collisions (warning only; foreign resources are never touched)
-if docker info >/dev/null 2>&1; then
-  count="$(docker ps -a --filter "label=com.docker.compose.project=$PROJECT" --format '{{.ID}}' 2>/dev/null | wc -l)"
-  if [ "$count" -gt 0 ]; then
-    wd="$(docker ps -a --filter "label=com.docker.compose.project=$PROJECT" --format '{{.Label "com.docker.compose.project.working_dir"}}' 2>/dev/null | sort -u | head -n1)"
-    if [ -n "$wd" ] && [ "$wd" != "$ROOT/docker" ]; then
-      echo "WARNING project name collision: $count container(s) of project '$PROJECT' belong to $wd (see BLOCKERS B-05); choose another COMPOSE_PROJECT_NAME"
-    else
-      echo "OK project: $count existing container(s) of '$PROJECT' belong to this checkout"
-    fi
-  else
-    echo "OK project: no containers named '$PROJECT'"
-  fi
-fi
+check_project
 
 if [ "$FAILED" -ne 0 ]; then
   echo "preflight FAILED"
