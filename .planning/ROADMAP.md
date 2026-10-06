@@ -40,7 +40,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   4. Through Nginx, `GET /health` and `GET /api/v1/system/ping` are answered by Go with `X-API-Source: go`, `GET /system/healthz` is answered by Python, `GET /api/v1/language` names the answering engine, `GET /system/status` reports the live state of database, Redis, storage and docstore, and every response (including an unhandled error) uses the one decided envelope
   5. The SPA shell loads through Nginx with lazy routes and its HTTP client surfaces a non-zero envelope code as an error notification; the pytest, `go test` (with build-tag tiers) and frontend component harnesses all run green against the live stack
 
-**Plans**: 15 plans
+**Plans**: 24 plans (15 delivered + 9 gap-closure)
 Plans:
 **Wave 1**
 
@@ -83,6 +83,24 @@ Plans:
 **Wave 9** *(blocked on Wave 8 completion)*
 
 - [x] 01-15-PLAN.md — Clean-room exit gate x3, memory budget, browser check, final records
+
+**Gap closure (from 01-VERIFICATION.md and 01-REVIEW.md)** *(Wave 1 plans are independent)*
+
+- [ ] 01-16-PLAN.md — DATA-03: restore real pooling, bounded reconnect, write-safe retry (CR-01, WR-01, WR-02)
+- [ ] 01-17-PLAN.md — Log redaction parity in Go and Python with shared vectors (WR-03, WR-04)
+- [ ] 01-18-PLAN.md — HTTP client: same-origin token, token-aware 401 purge (WR-21, WR-22)
+- [ ] 01-20-PLAN.md — Guard scripts: clean_room --runs validation, foreign-project refusal, run_tests exit 5, go-race -count=1 (WR-15, WR-16, WR-17)
+- [ ] 01-21-PLAN.md — Container: TLS fail-closed, log dir ownership, direct healthchecks, pinned Go port (WR-11..WR-14)
+- [ ] 01-22-PLAN.md — Python: 4xx envelope codes, migration runner db binding, startup hooks on serving loop (WR-07, WR-08, WR-09)
+- [ ] 01-23-PLAN.md — render_conf escaping and CI workflow setup (WR-18, WR-19)
+
+**Gap closure Wave 2** *(blocked on 01-16: shares DECISIONS.md)*
+
+- [ ] 01-19-PLAN.md — Mark /system/version public_until_phase and enforce the marker rule (WR-05)
+
+**Gap closure Wave 3**
+
+- [ ] 01-24-PLAN.md — Re-run exit gate x3, deferred findings, truthful records
 
 **UI hint**: yes
 
