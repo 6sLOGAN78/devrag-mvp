@@ -27,7 +27,10 @@ LOOSE = {
 
 
 def run(**overrides: str) -> subprocess.CompletedProcess[str]:
-    env = {**os.environ, **LOOSE, **overrides}
+    # Drop PREFLIGHT_* inherited from the caller: the exit gate runs this suite with override variables
+    # exported, and an inherited override would mask the failure a test is asserting.
+    inherited = {key: value for key, value in os.environ.items() if not key.startswith("PREFLIGHT_")}
+    env = {**inherited, **LOOSE, **overrides}
     return subprocess.run([str(SCRIPT)], capture_output=True, text=True, env=env, check=False, cwd=ROOT)
 
 
