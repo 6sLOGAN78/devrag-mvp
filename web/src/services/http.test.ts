@@ -169,3 +169,110 @@ describe("unit http client", () => {
     await expect(request({ url: "/x" })).resolves.toEqual({ status: "ok" });
   });
 });
+
+function authOf(index: number): unknown {
+  return new AxiosHeaders(seen[index].headers as never).get("Authorization");
+}
+
+describe("unit http client token handling", () => {
+  beforeEach(() => {
+    seen = [];
+    reply = {};
+    localStorage.clear();
+    useUserStore.getState().reset();
+    http.defaults.adapter = adapter;
+  });
+
+  it("attaches the token to a relative URL", async () => {
+    setAuthorization("fake-token-aaa");
+    reply = { data: { code: 0, message: "", data: null } };
+    await request({ url: "/api/v1/x" });
+    expect(authOf(0)).toBe("Bearer fake-token-aaa");
+  });
+
+  it("attaches the token to an absolute URL on the page origin", async () => {
+    setAuthorization("fake-token-aaa");
+    reply = { data: { code: 0, message: "", data: null } };
+    await request({ url: `${window.location.origin}/api/v1/x` });
+    expect(authOf(0)).toBe("Bearer fake-token-aaa");
+  });
+
+  it("never attaches the token to another origin", async () => {
+    setAuthorization("fake-token-aaa");
+    reply = { data: { code: 0, message: "", data: null } };
+    await request({ url: "https://files.example.test/avatar.png" });
+    expect(authOf(0)).toBeUndefined();
+  });
+
+  it("never attaches the token to a protocol-relative URL", async () => {
+    setAuthorization("fake-token-aaa");
+    reply = { data: { code: 0, message: "", data: null } };
+    await request({ url: "//evil.example.test/x" });
+    expect(authOf(0)).toBeUndefined();
+  });
+
+  it.each([
+    ["HTTP 401", { status: 401 }],
+    ["envelope 401 with HTTP 200", { status: 200 }],
+  ])("keeps state and shows the server message on a tokenless 401 (%s)", async (_name, extra) => {
+    render(createElement(Toaster));
+    const qc = new QueryClient();
+    qc.setQueryData(["k"], 1);
+    registerQueryClient(qc);
+    useUserStore.getState().setUserId("u1");
+    const message = uniqueMessage("wrong credentials");
+    reply = { ...extra, data: { code: 401, message, data: null } };
+    const error = await request({ url: "/x" }).catch((e: unknown) => e);
+    expect(error).toBeInstanceOf(ApiError);
+    expect(error).toMatchObject({ code: 401, message });
+    expect(useUserStore.getState().userId).toBe("u1");
+    expect(qc.getQueryData(["k"])).toBe(1);
+    expect(await screen.findByText(message)).toBeInTheDocument();
+    expect(screen.queryByText(copy.toast.session.description)).toBeNull();
+  });
+
+  it.each([
+    ["HTTP 401", 401],
+    ["envelope 401 with HTTP 200", 200],
+  ])("purges when the sent token is still current (%s)", async (_name, status) => {
+    const qc = new QueryClient();
+    qc.setQueryData(["k"], 1);
+    registerQueryClient(qc);
+    setAuthorization("fake-token-aaa");
+    useUserStore.getState().setUserId("u1");
+    reply = { status, data: { code: 401, message: "expired", data: null } };
+    await request({ url: "/x" }).catch(() => undefined);
+    expect(getAuthorization()).toBeNull();
+    expect(useUserStore.getState().userId).toBeNull();
+    expect(qc.getQueryData(["k"])).toBeUndefined();
+  });
+
+  it.each([
+    ["HTTP 401", 401],
+    ["envelope 401 with HTTP 200", 200],
+  ])("does not purge a newer login on a late 401 (%s)", async (_name, status) => {
+    const qc = new QueryClient();
+    qc.setQueryData(["k"], 1);
+    registerQueryClient(qc);
+    setAuthorization("fake-token-aaa");
+    useUserStore.getState().setUserId("u1");
+    const late: AxiosAdapter = (config) => {
+      setAuthorization("fake-token-bbb");
+      return adapter(config);
+    };
+    reply = { status, data: { code: 401, message: "stale", data: null } };
+    await request({ url: "/x", adapter: late }, { silent: true }).catch(() => undefined);
+    expect(getAuthorization()).toBe("fake-token-bbb");
+    expect(useUserStore.getState().userId).toBe("u1");
+    expect(qc.getQueryData(["k"])).toBe(1);
+  });
+
+  it("shows no toast for a silent tokenless 401", async () => {
+    render(createElement(Toaster));
+    const message = uniqueMessage("silent wrong credentials");
+    reply = { status: 401, data: { code: 401, message, data: null } };
+    await request({ url: "/x" }, { silent: true }).catch(() => undefined);
+    await request({ url: "/x" }).catch(() => undefined);
+    expect(await screen.findAllByText(message)).toHaveLength(1);
+  });
+});
