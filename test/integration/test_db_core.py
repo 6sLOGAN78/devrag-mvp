@@ -7,9 +7,9 @@ import uuid
 
 import peewee
 import pytest
-from playhouse.pool import PooledMySQLDatabase
+from playhouse.pool import MaxConnectionsExceeded
 
-from api.db.database import DB, DatabaseLock, LockError, LockTimeoutError, init_database, transaction
+from api.db.database import DB, DatabaseLock, LockError, LockTimeoutError, RetryingPooledMySQLDatabase, init_database, transaction
 from test.helpers.db import app_connection_settings, kill_connection, scratch_database
 from test.helpers.wait import wait_until
 
@@ -39,7 +39,74 @@ def test_retry_after_kill(db):
     kill_connection(conn_id)
     assert DB.execute_sql("SELECT 1").fetchone()[0] == 1
     assert DB.retry_count >= 1
+    new_id = DB.execute_sql("SELECT CONNECTION_ID()").fetchone()[0]
+    assert new_id != conn_id
+    DB.close()
+    DB.connect()
     assert DB.execute_sql("SELECT CONNECTION_ID()").fetchone()[0] != conn_id
+
+
+def threads_connected() -> int:
+    return int(DB.execute_sql("SHOW STATUS LIKE 'Threads_connected'").fetchone()[1])
+
+
+def test_pool_reuses_one_physical_connection(db):
+    before = threads_connected()
+    DB.close()
+    ids = set()
+    for _ in range(5):
+        DB.connect()
+        ids.add(DB.execute_sql("SELECT CONNECTION_ID()").fetchone()[0])
+        DB.close()
+    DB.connect()
+    after = threads_connected()
+    assert len(ids) == 1
+    assert after - before <= 1
+
+
+def test_pool_cap_enforced_against_live_mysql(db):
+    cfg = app_connection_settings(db.database, max_connections=1)
+    capped = RetryingPooledMySQLDatabase(
+        cfg.name, host=cfg.host, port=cfg.port, user=cfg.user, password=cfg.password, max_connections=1, stale_timeout=300, autoconnect=False
+    )
+    capped.connect()
+    errors: list[BaseException] = []
+
+    def other() -> None:
+        try:
+            capped.connect()
+        except BaseException as exc:  # noqa: BLE001 - captured for the assertion
+            errors.append(exc)
+
+    try:
+        thread = threading.Thread(target=other)
+        thread.start()
+        thread.join(timeout=15)
+        assert not thread.is_alive()
+        assert len(errors) == 1 and isinstance(errors[0], MaxConnectionsExceeded)
+    finally:
+        capped.close_all()
+
+
+@pytest.mark.serial
+def test_write_after_kill_applied_once(db):
+    conn_id = DB.execute_sql("SELECT CONNECTION_ID()").fetchone()[0]
+    DB.close()  # idle in the pool
+    kill_connection(conn_id)
+    DB.connect()  # checkout pings the dead idle connection, discards it and opens a fresh one
+    assert DB.execute_sql("SELECT CONNECTION_ID()").fetchone()[0] != conn_id
+    DB.execute_sql("INSERT INTO scratch (v) VALUES (1)")
+    assert count_rows() == 1
+
+
+@pytest.mark.serial
+def test_write_on_held_killed_connection_is_not_replayed(db):
+    kill_connection(DB.execute_sql("SELECT CONNECTION_ID()").fetchone()[0])
+    with pytest.raises((peewee.OperationalError, peewee.InterfaceError)):
+        DB.execute_sql("INSERT INTO scratch (v) VALUES (1)")
+    DB.close()
+    DB.connect()
+    assert count_rows() == 0
 
 
 def test_retries_exhausted_propagates(db, monkeypatch):
@@ -49,7 +116,7 @@ def test_retries_exhausted_propagates(db, monkeypatch):
         calls["n"] += 1
         raise peewee.OperationalError(2006, "MySQL server has gone away")
 
-    monkeypatch.setattr(PooledMySQLDatabase, "execute_sql", always_lost)
+    monkeypatch.setattr(peewee.Database, "execute_sql", always_lost)
     with pytest.raises(peewee.OperationalError):
         DB.execute_sql("SELECT 1")
     assert calls["n"] == db.max_retries + 1
@@ -70,7 +137,7 @@ def test_backoff_is_exponential(db, monkeypatch):
     def lost(self, sql, params=None):
         raise peewee.OperationalError(2013, "Lost connection")
 
-    monkeypatch.setattr(PooledMySQLDatabase, "execute_sql", lost)
+    monkeypatch.setattr(peewee.Database, "execute_sql", lost)
     with pytest.raises(peewee.OperationalError):
         DB.execute_sql("SELECT 1")
     assert delays == [0.01 * 2**i for i in range(db.max_retries)]
