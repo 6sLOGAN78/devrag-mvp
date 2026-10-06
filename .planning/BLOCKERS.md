@@ -43,12 +43,13 @@ Each entry has: ID `B-NN`, Title, Status (`open` | `mitigated` | `closed`), Affe
 - Update 2026-10-06 (plan 01-15): after three `down -v` cycles of `devrag-stack`, the 16 non-`devrag-stack` containers and 13 non-`devrag-stack` volumes matched a snapshot taken before the gate (diff empty); project `devrag` still has 6 containers.
 
 ## B-06 CI workflow not runnable here
-- Status: open
+- Status: closed
 - Affects: TEST (CI)
 - Evidence: no git remote, so `.github/workflows/ci.yml` cannot execute.
 - Needed from user: push to a remote with Actions enabled.
 - Workaround in repo: workflow authored; it calls the same `make ci` target that runs locally.
 - Update 2026-10-07 (plan 01-23): `ci.yml` now sets up Go from `go.mod`, Node 22 and runs `npm ci`, with `contents: read` permissions. It has still never run on GitHub; status stays open.
+- Closed 2026-10-07: pushed to `6sLOGAN78/devrag-mvp` (user asked for `master` to be replaced; old history kept at branch `archive/mvp-master`, commit `3fe760d`). Workflow run 37517324018 on commit `184e262` passed (job `guardrails`, 1m52s). Follow-up, not blocking: the pinned action versions target the deprecated Node 20 runtime, and `ubuntu-latest` changes to Ubuntu 26 from 2026-10-19.
 
 ## B-07 Go run modes
 - Status: open

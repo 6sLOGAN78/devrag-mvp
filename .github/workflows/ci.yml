@@ -1,6 +1,5 @@
-# Mirrors `make ci` and `make test-unit`. Structurally complete (Go, Node 22, web deps, read-only token)
-# but authored and NEVER run: GitHub Actions cannot be executed in this environment (see
-# .planning/BLOCKERS.md, B-06). The first real run is a human verification item. No secrets are used.
+# Mirrors `make ci` and `make test-unit` (Go, Node 22, web deps, read-only token). No secrets are used.
+# First run on GitHub Actions passed on 2026-10-07 (see .planning/BLOCKERS.md, B-06, closed).
 name: ci
 
 on:
