@@ -100,7 +100,7 @@ Plans:
 
 **Gap closure Wave 3**
 
-- [ ] 01-24-PLAN.md — Re-run exit gate x3, deferred findings, truthful records
+- [x] 01-24-PLAN.md — Re-run exit gate x3, deferred findings, truthful records
 
 **UI hint**: yes
 
