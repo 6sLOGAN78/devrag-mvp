@@ -1,50 +1,68 @@
 ---
 phase: 01-reconciliation-guardrails-and-dual-stack-foundation
-verified: 2026-10-06T15:00:00Z
-status: gaps_found
-score: 4/5 roadmap success criteria verified
-gaps:
-  - truth: "DATA-03: pooled connections with retry/backoff (plan 01-06 must_have: pooled retrying DB honouring max_connections/stale_timeout)"
-    status: failed
-    reason: "CR-01. api/db/database.py overrides _connect() and calls pymysql.connect directly without super(), bypassing PooledDatabase checkout. Nothing is pooled, closed or capped; mysql.max_connections and stale_timeout are inert."
-    artifacts:
-      - path: "api/db/database.py"
-        issue: "RetryingPooledMySQLDatabase._connect (lines 57-59) bypasses pool logic"
-    missing:
-      - "Move the database= keyword fix into a MySQLDatabase subclass below PooledDatabase in the MRO and drop the _connect override"
-      - "Unit test: one physical connection across N connect/close cycles; MaxConnectionsExceeded at the cap"
+verified: 2026-10-07T00:35:00+05:30
+status: human_needed
+score: 5/5 roadmap success criteria verified
+re_verification: true
+previous_status: gaps_found
+previous_score: 4/5
+gaps_closed:
+  - truth: "DATA-03: pooled connections with retry/backoff"
+    closed: true
+    evidence: "api/db/database.py: RetryingPooledMySQLDatabase(PooledDatabase, _PyMySQLDatabase) — the driver keyword fix sits below PooledDatabase in the MRO, no _connect override. test/unit_test/test_db_pool.py passes (reuse of one physical connection, cap, reconnect budget, writes not replayed); 11 of its 17 tests failed against the pre-fix code. Live test_db_core.py pool, cap and KILL tests are in the integration selection that passed in three gate runs."
   - truth: "Routes declared auth: jwt are not served publicly (WR-05)"
-    status: failed
-    reason: "/api/v1/system/version is declared jwt in conf/routes.yaml but served unauthenticated; no public_until_phase and no DECISIONS row (unlike /system/status, R-55)."
-    missing:
-      - "Add public_until_phase plus a DECISIONS row, or return 401 until Phase 2 auth middleware exists"
-  - truth: "Health/deploy robustness (WR-02, WR-11, WR-12, WR-15, WR-17, WR-18)"
-    status: partial
-    reason: "Non-blocking for the stack, but each weakens a stated guardrail: unsafe write retry (WR-02), TLS fail-open (WR-12), clean_room zero-run false pass (WR-15), run_tests exit-5 swallowed (WR-17), CI workflow lacks setup-go/node/npm ci (WR-18). Should be fixed before relying on the gates."
+    closed: true
+    evidence: "conf/routes.yaml marks /api/v1/system/version public_until_phase: 2 with DECISIONS R-84; test_route_auth_markers.py (static + mutation) and the Go behavioural test fail for an unmarked route; the live ingress test passed in the gate."
+  - truth: "Guardrail robustness (WR-02, WR-11, WR-12, WR-15, WR-17, WR-18)"
+    closed: true
+    evidence: "clean_room.sh --runs 0 and --runs abc exit 2 (run by the orchestrator); test_container_scripts.py covers TLS fail-closed and log-dir chown; test_run_tests.py covers pytest exit 5; ci.yml has setup-go, setup-node, npm ci. 69 tests across these files pass."
 human_verification:
-  - test: "Push branch and confirm .github/workflows/ci.yml runs green"
-    expected: "make ci and unit suites pass on a GitHub runner (WR-18 predicts failure as written)"
-    why_human: "Workflow has never run (B-06)"
-  - test: "Review docs/ (incl. docs/apikey llm.md) for credentials, then track docs/"
+  - test: "Push the branch and confirm .github/workflows/ci.yml runs green"
+    expected: "make ci and the unit suites pass on a GitHub runner"
+    why_human: "No git remote and no local Actions runner; the workflow has never run (B-06)"
+  - test: "Review docs/ (including docs/apikey llm.md) for credentials, then track docs/"
     expected: "docs/ committed without secrets"
-    why_human: "Untracked pending user credential review (B-01); the authority for the decision register"
+    why_human: "docs/ is the authority for the decision register and is still untracked pending the user's credential review (B-01); agents were blocked from reading that file"
 ---
 
-# Phase 1 Verification
+# Phase 1 Re-Verification
 
-Run by me: `make ci` 7/7 gates pass, ruff clean; `go test ./cmd/... ./internal/...` ok; `run_tests.py -m unit` 237 passed, 1 skipped (B-13). The clean-room gate (01-15) was not re-run, as instructed.
+Produced from the verifier agent's result (it returned its findings as text and did not write this file) plus checks run by the orchestrator, which are marked as such.
 
-## Gaps
-- **DATA-03 FAILED (BLOCKER)**: CR-01 confirmed by reading the code. The pool is a no-op. DATA-03 is marked Complete in REQUIREMENTS.md but is not delivered.
-- **WR-05 (BLOCKER for SYS/API-auth intent)**: the version route is public although declared jwt.
-- WR-02 (double-applied writes on retry), WR-01 (retry abandons on first failed reconnect) also affect DATA-03 quality.
-- WR-12, WR-15, WR-17, WR-18: guardrail weaknesses (see frontmatter).
+## Checks run
 
-## Honest partials
-- API-12: only `--api` and `--migrate` are real; `--admin`, `--ingestor` and `--syncer` refuse non-zero (B-07).
-- API-13: superuser init, plugin load and daemons are absent (B-08); the startup hooks run on a throwaway loop (WR-07).
-- SEC-05: the restricted unpickler is replaced by a CI ban on production unpickling (R-38); the numpy gadget test is skipped (B-13).
-- DEPLOY-12: only self-signed TLS (B-10).
+- Verifier: `make ci` 7/7 gates, ruff clean; `run_tests.py -m unit` 349 passed, 1 skipped (B-13); Go tests ok; read `ragflow-logs/clean_room_gate.log` — `clean-room: 3 run(s) passed`, EXIT 0.
+- Orchestrator: the 69 tests in `test_db_pool.py`, `test_container_scripts.py`, `test_run_tests.py`, `test_clean_room_guard.py`, `test_route_auth_markers.py` pass; `clean_room.sh --runs 0` and `--runs abc` both exit 2. The verifier said it had not individually re-checked WR-11, WR-12, WR-17, WR-02 or run a pool-cap test; these orchestrator runs cover them.
 
-## Notes
-No placeholder or fake code was found in production trees (check_placeholders passes). Other warnings (WR-03/04 redaction gaps, WR-06 health fan-out, WR-08..10, WR-13/14, WR-16, WR-19..22) are hardening items that do not defeat a must-have, but WR-03/04 weaken the SEC-04 redaction claim.
+## Success criteria
+
+| SC | Result | Evidence |
+|---|---|---|
+| 1 Decision register, blockers, gitignore, CI gates | verified | `check_decisions.py`: 87 rows; 7/7 gates; `docs/apikey llm.md` ignored |
+| 2 Preflight and clean bring-up within budget | verified | three clean-room runs, healthy in 35 to 40 s, 1905.6 MiB of 3891 MiB |
+| 3 One schema owner, Go verify passes | verified | integration and Go tiers in the gate; R-86 records that Go compares type families only |
+| 4 Both engines through Nginx, one envelope | verified | 60 e2e + 3 serial tests per run; status and `X-Api-Source` checked on port 8088 |
+| 5 SPA shell, HTTP client, three harnesses green | verified | frontend 59 unit + 9 live per run; headless-Chrome test in the e2e tier |
+
+## Remaining gaps
+
+None that defeat a success criterion, requirement or plan must-have.
+
+## Non-blocking findings (from the re-review; fix before or at the start of Phase 2)
+
+- **CR-02** — `common/log_utils.py` redaction regex is quadratic on long word runs, and `api/apps/middleware.py` logs the unauthenticated `request.path` through it. Verifier timing: 8,000 characters took 1.55 s; 100,000 characters ran past 200 s. Through Nginx the request line is capped at about 8k (default buffers; not confirmed against this config), so about 1.5 s of event-loop time per request; direct hits on the Python port are unbounded. This is a real unauthenticated CPU denial-of-service. It does not defeat SEC-04 (redaction correctness) but should be fixed first in Phase 2.
+- **WR-16 (partial)** — `clean_room.sh` uses `COMPOSE_PROJECT_NAME` from the environment while `preflight.sh` also reads `docker/.env`. `init_env.sh` never writes that variable and `clean_room.sh` refuses any project other than `devrag-stack`, so a `down -v` on a foreign project is not realistic; the two scripts should still resolve the name the same way.
+- **WR-19 (partial)** — `render_conf.py` does not reject U+0085/U+2028/U+2029 in values.
+- **WR-04 (partial) / WR-24** — redaction still misses `redis://:pw@host`, `Authorization: ApiKey ...`, later cookies and escaped quotes.
+- **WR-25** — the route-marker tests do not exercise prefix or catch-all routes.
+- **WR-26** — the pool's idle ping has no read timeout (not reproduced).
+
+## Honest partials (BLOCKERS entries, unchanged)
+
+API-12 (B-07), API-13 (B-08), SEC-05 via R-38 with the numpy test skipped (B-13), TLS self-signed only (B-10), deferred review findings (B-15).
+
+## Not verified
+
+- The CI workflow on a hosted runner (B-06).
+- Port 8080 after the gap fixes; this gate ran on 8088 (R-87, B-16).
+- Nginx request-line limits for CR-02.
