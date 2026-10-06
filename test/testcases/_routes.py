@@ -19,6 +19,8 @@ class Probe:
     owner: str
     match: str
     path: str
+    auth: str = "none"
+    public_until_phase: int | None = None
 
     @property
     def id(self) -> str:
@@ -36,7 +38,9 @@ def load_probes(path: Path = ROUTES_FILE) -> list[Probe]:
     probes: list[Probe] = []
     for entry in data["routes"]:
         paths = [entry["path"], *entry.get("also", [])]
-        probes.extend(Probe(entry["owner"], entry["match"], p) for p in paths)
+        probes.extend(
+            Probe(entry["owner"], entry["match"], p, entry.get("auth", "none"), entry.get("public_until_phase")) for p in paths
+        )
     return probes
 
 

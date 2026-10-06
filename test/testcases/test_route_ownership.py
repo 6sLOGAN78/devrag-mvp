@@ -35,6 +35,16 @@ def test_declared_owner_answers(ingress: httpx.Client, probe: Probe) -> None:
     assert resp.headers.get("x-api-source") == probe.owner, f"{probe.id} answered {resp.status_code}"
 
 
+UNMARKED_AUTH = [p for p in PROBES if p.auth != "none" and p.public_until_phase is None]
+
+
+@pytest.mark.parametrize("probe", UNMARKED_AUTH, ids=[p.id for p in UNMARKED_AUTH])
+def test_unmarked_auth_route_is_not_public_through_ingress(ingress: httpx.Client, probe: Probe) -> None:
+    """WR-05: auth != none without a public_until_phase marker must not answer 200 unauthenticated."""
+    resp = ingress.get(probe.request_path())
+    assert resp.status_code != 200, f"{probe.id} declared auth={probe.auth} but answered 200 without a token"
+
+
 @pytest.mark.parametrize("path", COLLISIONS)
 def test_python_documented_paths_under_go_looking_prefixes(ingress: httpx.Client, path: str) -> None:
     resp = ingress.get(path)

@@ -220,6 +220,9 @@ type routeEntry struct {
 	Owner string `yaml:"owner"`
 	Match string `yaml:"match"`
 	Path  string `yaml:"path"`
+	Auth  string `yaml:"auth"`
+	// PublicUntilPhase records a deliberate unauthenticated exposure (WR-05).
+	PublicUntilPhase *int `yaml:"public_until_phase"`
 }
 
 func TestRegisteredRoutesBelongToGoEntriesInRoutesYAML(t *testing.T) {
@@ -256,4 +259,26 @@ func TestRegisteredRoutesBelongToGoEntriesInRoutesYAML(t *testing.T) {
 			assert.Contains(t, []string{"/api/v1/system/ping", "/api/v1/system/config", "/api/v1/system/version"}, r.Path)
 		}
 	}
+}
+
+func TestUnmarkedAuthRoutesNeverAnswer200Unauthenticated(t *testing.T) {
+	raw, err := os.ReadFile("../../conf/routes.yaml")
+	require.NoError(t, err)
+	var doc struct {
+		Routes []routeEntry `yaml:"routes"`
+	}
+	require.NoError(t, yaml.Unmarshal(raw, &doc))
+	e := healthy(t)
+	checked := 0
+	for _, r := range doc.Routes {
+		if r.Owner != "go" || r.Match != "exact" || r.Auth == "" || r.Auth == "none" {
+			continue
+		}
+		checked++
+		w := do(e, http.MethodGet, r.Path, nil)
+		if w.Code == http.StatusOK {
+			assert.NotNil(t, r.PublicUntilPhase, "%s is auth=%s, answers 200 unauthenticated, and has no public_until_phase marker", r.Path, r.Auth)
+		}
+	}
+	assert.GreaterOrEqual(t, checked, 2)
 }
