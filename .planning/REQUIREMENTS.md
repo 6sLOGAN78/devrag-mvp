@@ -587,7 +587,7 @@ Requirements for initial release. Each maps to exactly one roadmap phase.
 
 ### SEC — Security
 
-- [ ] **SEC-01**: Every non-public endpoint is behind the auth decorator/middleware
+- [x] **SEC-01**: Every non-public endpoint is behind the auth decorator/middleware
 - [ ] **SEC-02**: API keys, access tokens, and LLM credentials are masked in API responses
 - [ ] **SEC-03**: LLM provider keys are encrypted at rest
 - [x] **SEC-04**: Secrets come from environment/config, never hard-coded, never logged
@@ -1179,7 +1179,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DEPLOY-19 | Phase 8 | Pending |
 | DEPLOY-20 | Phase 8 | Pending |
 | DEPLOY-21 | Phase 8 | Pending |
-| SEC-01 | Phase 2 | Pending |
+| SEC-01 | Phase 2 | Complete |
 | SEC-02 | Phase 3 | Pending |
 | SEC-03 | Phase 3 | Pending |
 | SEC-04 | Phase 1 | Complete |
