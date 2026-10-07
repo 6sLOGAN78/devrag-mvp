@@ -66,16 +66,25 @@ describe("StandardLayout", () => {
     expect(skip).toHaveAttribute("href", "#main");
   });
 
-  it("lists exactly one nav item, System status, marked current on /system-status", () => {
+  it("lists exactly Home then System status, with System status marked current on /system-status", () => {
     renderIn(StandardLayout, "/system-status");
     const nav = screen.getByRole("navigation", { name: "Primary" });
     const links = within(nav).getAllByRole("link");
-    expect(links).toHaveLength(1);
-    expect(links[0]).toHaveTextContent("System status");
-    expect(links[0]).toHaveAttribute("aria-current", "page");
-    expect(screen.getByTestId("nav-item-system-status")).toBe(links[0]);
-    expect(within(links[0]).getByTestId("nav-active-indicator")).toHaveClass("w-0.5");
-    expect(links[0].querySelector("svg")).toHaveClass("text-primary");
+    expect(links).toHaveLength(2);
+    expect(links[0]).toHaveTextContent("Home");
+    expect(links[0]).not.toHaveAttribute("aria-current");
+    expect(screen.getByTestId("nav-item-home")).toBe(links[0]);
+    expect(links[1]).toHaveTextContent("System status");
+    expect(links[1]).toHaveAttribute("aria-current", "page");
+    expect(screen.getByTestId("nav-item-system-status")).toBe(links[1]);
+    expect(within(links[1]).getByTestId("nav-active-indicator")).toHaveClass("w-0.5");
+    expect(links[1].querySelector("svg")).toHaveClass("text-primary");
+  });
+
+  it("marks Home current on /home", () => {
+    renderIn(StandardLayout, "/home");
+    expect(screen.getByTestId("nav-item-home")).toHaveAttribute("aria-current", "page");
+    expect(screen.getByTestId("nav-item-system-status")).not.toHaveAttribute("aria-current");
   });
 
   it("does not mark the item current or accent its icon on another path", () => {
@@ -169,14 +178,14 @@ describe("FullBleedLayout and BareLayout", () => {
 });
 
 describe("registry", () => {
-  it("contains exactly the entries /, /login, /system-status and *", () => {
-    expect(routes.map((r) => r.path)).toEqual(["/", "/login", "/system-status", "*"]);
-    expect(navEntries().map((r) => i18n.t(r.nav?.labelKey ?? ""))).toEqual(["System status"]);
+  it("contains exactly the entries /, /login, /home, /system-status and *", () => {
+    expect(routes.map((r) => r.path)).toEqual(["/", "/login", "/home", "/system-status", "*"]);
+    expect(navEntries().map((r) => i18n.t(r.nav?.labelKey ?? ""))).toEqual(["Home", "System status"]);
   });
 
   it("navEntries excludes entries without nav", () => {
     const extra: RouteEntry = { path: "/x", layout: "bare", auth: "none", component: () => Promise.reject(new Error("unused")) };
-    expect(navEntries([...routes, extra]).map((r) => r.path)).toEqual(["/system-status"]);
+    expect(navEntries([...routes, extra]).map((r) => r.path)).toEqual(["/home", "/system-status"]);
   });
 });
 

@@ -86,13 +86,14 @@ def test_sign_out_from_the_account_menu_lands_on_a_bare_login_in_real_browser(
     assert browser.evaluate("document.querySelector('[data-testid=\"user-menu\"]') === null") is True
 
 
-def test_root_redirects_a_signed_in_visitor_to_system_status_in_real_browser(
+def test_root_redirects_a_signed_in_visitor_to_home_in_real_browser(
     stack_ready: object, account: Account, browser: ChromeSession
 ) -> None:
     _store_token(browser, account.token)
     browser.navigate(f"{ORIGIN}/")
-    _wait_healthy_cards(browser)
-    assert browser.evaluate("location.pathname") == "/system-status"
+    browser.wait_for("document.querySelector('[data-testid=\"home-page\"]') !== null", "the home dashboard rendered behind the guard", timeout=60)
+    assert browser.evaluate("location.pathname") == "/home"
+    assert browser.evaluate("document.querySelector('[data-testid=\"stat-role\"]') !== null") is True
 
 
 def test_root_redirects_a_signed_out_visitor_to_login_in_real_browser(stack_ready: object, browser: ChromeSession) -> None:

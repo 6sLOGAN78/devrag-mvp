@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AxiosError, AxiosHeaders, type AxiosAdapter } from "axios";
 import { createMemoryRouter, RouterProvider } from "react-router";
-import { Activity } from "lucide-react";
+import { Activity, House } from "lucide-react";
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { routes, type RouteEntry } from "@/constants/routes";
 import { ShellError } from "@/pages/route-error";
@@ -126,20 +126,34 @@ describe("the root entry redirect (UI-02)", () => {
     expect(screen.queryByTestId("layout-standard")).toBeNull();
   });
 
-  it("sends a signed-in visitor at / to /system-status and renders the page", async () => {
+  it("sends a signed-in visitor at / to /home and renders the dashboard", async () => {
     signIn();
     const { router } = renderAt("/");
-    expect(await screen.findByRole("heading", { name: "System status" })).toBeInTheDocument();
-    expect(router.state.location.pathname).toBe("/system-status");
+    expect(await screen.findByRole("heading", { name: "Welcome, Ada" })).toBeInTheDocument();
+    expect(router.state.location.pathname).toBe("/home");
     expect(screen.getByTestId("layout-standard")).toBeInTheDocument();
+    expect(screen.getByTestId("stat-role")).toHaveTextContent("Owner");
+  });
+
+  it("redirects a signed-out visitor at /home to /login?next=%2Fhome, never showing the shell", async () => {
+    const { router } = renderAt("/home");
+    expect(await screen.findByTestId("layout-bare")).toBeInTheDocument();
+    expect(router.state.location.pathname).toBe("/login");
+    expect(router.state.location.search).toBe("?next=%2Fhome");
+    expect(screen.queryByTestId("layout-standard")).toBeNull();
   });
 
   it("keeps the root redirect public and the status page guarded in the registry", () => {
     const root = routes.find((r) => r.path === "/");
     expect(root?.auth).toBe("none");
     expect(root?.nav).toBeUndefined();
-    expect(root?.redirect?.({ signedIn: true })).toBe("/system-status");
+    expect(root?.redirect?.({ signedIn: true })).toBe("/home");
     expect(root?.redirect?.({ signedIn: false })).toBe("/login");
+    const home = routes.find((r) => r.path === "/home");
+    expect(home?.auth).toBe("required");
+    expect(home?.layout).toBe("standard");
+    expect(home?.nav).toMatchObject({ labelKey: "nav.home", order: 1, group: "platform" });
+    expect(home?.nav?.icon).toBe(House);
     const status = routes.find((r) => r.path === "/system-status");
     expect(status?.auth).toBe("required");
     expect(status?.layout).toBe("standard");
@@ -152,6 +166,10 @@ describe("route table", () => {
   it("renders every registry route inside its declared layout", async () => {
     signIn();
     expect(routes.length).toBeGreaterThan(0);
+    const home = renderAt("/home");
+    expect(await screen.findByTestId("layout-standard")).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Welcome, Ada" })).toBeInTheDocument();
+    home.unmount();
     const status = renderAt("/system-status");
     expect(await screen.findByTestId("layout-standard")).toBeInTheDocument();
     expect(await screen.findByRole("heading", { name: "System status" })).toBeInTheDocument();
@@ -164,7 +182,7 @@ describe("route table", () => {
     renderAt(path);
     expect(await screen.findByRole("heading", { name: "Page not found" })).toBeInTheDocument();
     expect(screen.getByText("404")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Go to System status" })).toHaveAttribute("href", "/system-status");
+    expect(screen.getByRole("link", { name: "Go to home" })).toHaveAttribute("href", "/home");
     expect(screen.queryByText(/coming soon/i)).toBeNull();
   });
 

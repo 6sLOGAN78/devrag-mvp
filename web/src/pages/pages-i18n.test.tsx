@@ -17,8 +17,8 @@ const ENGLISH: Record<string, string> = {
   "notFound.display": "404",
   "notFound.heading": "Page not found",
   "notFound.pageTitle": "Page not found - devRag",
-  "notFound.body": "This page doesn't exist or isn't available in this version. Go back to System status.",
-  "notFound.action": "Go to System status",
+  "notFound.body": "This page doesn't exist or isn't available in this version.",
+  "notFound.action": "Go to home",
   "renderError.heading": "Something went wrong",
   "renderError.body": "This page failed to load. Reload to try again.",
   "renderError.action": "Reload page",
@@ -71,7 +71,7 @@ describe("pages render in both languages", () => {
       </MemoryRouter>,
     );
     expect(screen.getByRole("heading", { name: "Page not found" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Go to System status" })).toHaveAttribute("href", "/system-status");
+    expect(screen.getByRole("link", { name: "Go to home" })).toHaveAttribute("href", "/home");
     expect(document.title).toBe("Page not found - devRag");
     view.unmount();
     await act(async () => {
@@ -83,7 +83,7 @@ describe("pages render in both languages", () => {
       </MemoryRouter>,
     );
     expect(screen.getByRole("heading", { name: i18n.t("notFound.heading") }).textContent).not.toBe("Page not found");
-    expect(screen.getByRole("link").textContent).not.toBe("Go to System status");
+    expect(screen.getByRole("link").textContent).not.toBe("Go to home");
   });
 
   it("the render error page uses the keys", async () => {
