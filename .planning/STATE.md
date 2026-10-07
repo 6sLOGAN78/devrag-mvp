@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 02-20-PLAN.md
-last_updated: "2026-10-07T22:50:23.374Z"
+stopped_at: Completed 02-22-PLAN.md
+last_updated: "2026-10-07T23:19:06.320Z"
 last_activity: 2026-10-07
 progress:
   total_phases: 8
   completed_phases: 1
   total_plans: 52
-  completed_plans: 46
+  completed_plans: 47
   percent: 13
 ---
 
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-10-05)
 ## Current Position
 
 Phase: 2 (Identity, Tenancy and Authorization) — EXECUTING
-Plan: 23 of 28
+Plan: 24 of 28
 Status: Ready to execute
 Last activity: 2026-10-07
 
-Progress: [█████████░] 88%
+Progress: [█████████░] 90%
 
 ## Performance Metrics
 
@@ -60,6 +60,7 @@ Progress: [█████████░] 88%
 | Phase 02 P13 | resumed after interruption | 3 tasks | 30 files |
 | Phase 02 P16 | one session | 3 tasks | 26 files |
 | Phase 02 P20 | single session | 3 tasks | 25 files |
+| Phase 02 P22 | single session | 3 tasks | 26 files |
 
 ## Accumulated Context
 
@@ -81,6 +82,7 @@ Recent decisions affecting current work:
 - [Phase 02]: R-117 Python gate details: 5 s lookup timeout, fail-closed 503 on any resolver error, beta rows also accept access and API tokens, resolver seam keyword-only, static_folder=None
 - [Phase 02]: [02-16] R-120: avatar re-encoded on a 256x256 canvas, confirmation field on password change, server Dark theme only without a local choice
 - [Phase 02]: Plan 02-20 (R-121): API token management is owner-session only; cap 50 and 20 creations/hour per tenant; exact BINARY matching; token principals never superuser; route-template request log
+- [Phase 02]: R-123: permission matrix keyed (area, action); invite never membership; one 404 for invisible tenants; owner-only invite rate limited
 
 ### Pending Todos
 
@@ -116,6 +118,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-10-07T22:50:23.364Z
-Stopped at: Completed 02-20-PLAN.md
+Last session: 2026-10-07T23:19:06.302Z
+Stopped at: Completed 02-22-PLAN.md
 Resume file: None

@@ -173,7 +173,7 @@ Plans:
 **Wave 10** *(blocked on Wave 9 completion)*
 
 - [x] 02-18-PLAN.md - Forgot password page with live reset
-- [ ] 02-22-PLAN.md - Permission table, member list, invite, accept and decline
+- [x] 02-22-PLAN.md - Permission table, member list, invite, accept and decline
 
 **Wave 11** *(blocked on Wave 10 completion)*
 

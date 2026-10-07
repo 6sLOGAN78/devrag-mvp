@@ -57,7 +57,7 @@ The shared permission matrix is generated into Go and Python under the existing 
 | 430c217 | Task 1: permission table, generator output, shared oracle, failing service and e2e tests |
 | 86fb96f | Task 2: DAO and membership service |
 | 0e477db | Task 3: handlers, routes, main wiring, registry rows, router integration tests, decision R-123 |
-| (fix) | `test(02-22)`: drift-gate fixture copies the new generated Go file |
+| aec9079 | `test(02-22)`: drift-gate fixture copies the new generated Go file |
 
 ## Test-first record
 
