@@ -18,6 +18,9 @@ from _walk import is_test_path
 
 NEVER_OPEN_PREFIXES = ("docs/",)
 EXCLUDED_PREFIXES = ("scripts/ci/", ".planning/", ".serena/")
+# UI copy catalogs hold display words such as "password": "Password"; they carry no credentials. They are still
+# scanned for the known default literals, only the generic assignment heuristic is skipped for them.
+CATALOG_PREFIXES = ("web/src/locales/",)
 EXEMPT_SUFFIXES = (".example", ".sample", ".lock", ".png", ".jpg", ".jpeg", ".gif", ".ico", ".woff", ".woff2", ".pdf", ".zip", ".gz")
 DEFAULT_LITERAL = re.compile(r"infini_rag_flow")
 DEFAULT_PASSWORD = re.compile(r"(?:password|passwd|pwd)\w*[\"']?\s*[:=]\s*[\"']?rag_flow\b", re.IGNORECASE)
@@ -82,7 +85,7 @@ def scan(root: Path) -> list[str]:
             if DEFAULT_LITERAL.search(src) or DEFAULT_PASSWORD.search(src):
                 findings.append(f"{relpath}:{idx}: known default secret literal")
                 continue
-            if in_test:
+            if in_test or relpath.startswith(CATALOG_PREFIXES):
                 continue
             if _literal_finding(src, bare):
                 findings.append(f"{relpath}:{idx}: hard-coded secret literal")

@@ -13,8 +13,10 @@ interface PasswordInputProps extends Omit<InputProps, "type"> {
  * Password field with a show/hide button. It hides again on unmount (state is local) and on `resetSignal`.
  * Pointer activation keeps focus and caret in the input; keyboard users stay on the button.
  */
-const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputProps>(({ className, resetSignal, ...props }, ref) => {
+const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputProps>(function PasswordInput({ className, resetSignal, ...props }, ref) {
   const { t } = useTranslation();
+  const showLabel = t("auth.password.show");
+  const hideLabel = t("auth.password.hide");
   const [revealed, setRevealed] = React.useState(false);
   React.useEffect(() => {
     setRevealed(false);
@@ -26,7 +28,7 @@ const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputProps>(({ 
         type="button"
         data-testid="password-toggle"
         aria-pressed={revealed}
-        aria-label={t(revealed ? "auth.password.hide" : "auth.password.show")}
+        aria-label={revealed ? hideLabel : showLabel}
         onMouseDown={(event) => event.preventDefault()}
         onClick={() => setRevealed((value) => !value)}
         className="absolute right-0 top-0 inline-flex h-10 w-10 items-center justify-center rounded-md text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring [@media(pointer:coarse)]:h-11 [@media(pointer:coarse)]:w-11"
@@ -36,6 +38,5 @@ const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputProps>(({ 
     </div>
   );
 });
-PasswordInput.displayName = "PasswordInput";
 
 export { PasswordInput };

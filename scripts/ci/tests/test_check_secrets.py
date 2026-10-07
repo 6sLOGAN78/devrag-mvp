@@ -124,3 +124,22 @@ def test_wr23_allowed_shapes_pass(tmp_path: Path, rel: str, body: str) -> None:
     put(root, rel, body)
     r = run(root)
     assert r.returncode == 0, r.stdout
+
+
+def test_locale_catalog_copy_is_not_mistaken_for_a_credential(tmp_path: Path) -> None:
+    root = repo(tmp_path)
+    put(root, "web/src/locales/en.json", '{"auth": {"field": {"password": "Password"}, "password": {"show": "Show password"}}}\n')
+    result = run(root)
+    assert result.returncode == 0, result.stdout
+
+
+def test_locale_catalog_is_still_scanned_for_the_default_literal(tmp_path: Path) -> None:
+    root = repo(tmp_path)
+    put(root, "web/src/locales/en.json", '{"hint": "' + DEFAULT_PW + '"}\n')
+    assert run(root).returncode == 1
+
+
+def test_the_catalog_exemption_does_not_cover_source_files(tmp_path: Path) -> None:
+    root = repo(tmp_path)
+    put(root, "web/src/pages/login.ts", 'const password = "hunter2hunter2";\n')
+    assert run(root).returncode == 1
