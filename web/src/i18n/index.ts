@@ -42,3 +42,15 @@ export async function setLanguage(code: string): Promise<Language> {
 }
 
 export default i18n;
+
+/**
+ * Applies the signed-in user's language when the visitor has made no explicit local choice (UI-07).
+ * It does not persist anything, so a later explicit choice still wins.
+ */
+export function applyUserLanguage(language: string | null | undefined): void {
+  if (readStored() !== null || !language || language.trim() === "") return;
+  const lang = normalizeLanguage(language);
+  if (lang === i18n.language) return;
+  void i18n.changeLanguage(lang);
+  document.documentElement.lang = lang;
+}

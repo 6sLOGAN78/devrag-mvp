@@ -30,6 +30,11 @@
     "fallbackHeading": "Nothing here yet",
     "headingFor": "No {{noun}} yet"
   },
+  "session": {
+    "restoring": "Restoring your session",
+    "errorHeading": "Couldn't load your session",
+    "signInAgain": "Sign in again"
+  },
   "notFound": {
     "display": "404",
     "heading": "Page not found",

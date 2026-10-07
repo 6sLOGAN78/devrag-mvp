@@ -30,6 +30,11 @@
     "fallbackHeading": "这里还没有内容",
     "headingFor": "还没有{{noun}}"
   },
+  "session": {
+    "restoring": "正在恢复你的会话",
+    "errorHeading": "无法加载你的会话",
+    "signInAgain": "重新登录"
+  },
   "notFound": {
     "display": "404",
     "heading": "页面不存在",

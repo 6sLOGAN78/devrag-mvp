@@ -9,6 +9,7 @@ import { RetCode } from "@/constants/retcode";
 import type { Envelope } from "@/interfaces/envelope";
 import i18n from "@/i18n";
 import { useUserStore } from "@/stores/user-store";
+import { loginRedirect } from "@/utils/safe-next";
 import { getAuthorization, removeAuthorization } from "@/utils/authorization";
 import { notifyError } from "./notify";
 
@@ -69,10 +70,23 @@ export function registerQueryClient(client: QueryClient): void {
   queryClient = client;
 }
 
+/** Client-side navigation hooks supplied by the router so a purge never needs a hard reload. */
+export interface SessionNavigator {
+  navigate: (to: string) => unknown;
+  /** Current path plus search, carried into `next` on the sign-in redirect. */
+  currentPath: () => string;
+}
+
+let sessionNavigator: SessionNavigator | null = null;
+
+export function registerNavigate(value: SessionNavigator | null): void {
+  sessionNavigator = value;
+}
+
 /** True only when the effective request URL resolves to the page origin. */
 export function isSameOrigin(url: string | undefined, baseURL: string | undefined): boolean {
   try {
-    const origin = window.location.origin;
+    const origin = globalThis.location.origin;
     return new URL(url ?? "", new URL(baseURL || "", origin)).origin === origin;
   } catch {
     return false;
@@ -95,12 +109,14 @@ export function purgeSession(options: PurgeOptions = {}): void {
   removeAuthorization();
   useUserStore.getState().reset();
   queryClient?.clear();
-  if (options.toast === false) return;
-  notifyError({
-    id: SESSION_TOAST_ID,
-    title: i18n.t("toast.session.title"),
-    description: i18n.t("toast.session.description"),
-  });
+  if (options.toast !== false) {
+    notifyError({
+      id: SESSION_TOAST_ID,
+      title: i18n.t("toast.session.title"),
+      description: i18n.t("toast.session.description"),
+    });
+  }
+  if (sessionNavigator) void sessionNavigator.navigate(loginRedirect(sessionNavigator.currentPath()));
 }
 
 function toastFor(error: ApiError, silent: boolean): void {

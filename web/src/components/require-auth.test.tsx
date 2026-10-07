@@ -156,7 +156,7 @@ describe("RequireAuth: session recovery", () => {
     script = [{ kind: "ok", user: { language: "zh" } }];
     renderGuard("/user-setting/profile");
     await screen.findByText("protected content");
-    expect(i18n.language).toBe("zh");
+    await waitUntil(() => i18n.language === "zh", { describe: "language switched to zh" });
   });
 
   it("keeps an explicit local language choice", async () => {
@@ -164,6 +164,7 @@ describe("RequireAuth: session recovery", () => {
     script = [{ kind: "ok", user: { language: "zh" } }];
     renderGuard("/user-setting/profile");
     await screen.findByText("protected content");
+    expect(useUserStore.getState().user?.language).toBe("zh");
     expect(i18n.language).toBe("en");
   });
 

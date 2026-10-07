@@ -20,7 +20,7 @@ export interface RouteNav {
 export interface RouteEntry {
   path: string;
   layout: LayoutKind;
-  /** Recorded now, enforced from the auth guard onward (UI-02). */
+  /** `required` entries sit behind RequireAuth (UI-02); `none` entries stay public. */
   auth: "none" | "required";
   component: () => Promise<{ default: ComponentType }>;
   nav?: RouteNav;
@@ -30,7 +30,7 @@ export const routes: readonly RouteEntry[] = [
   {
     path: "/",
     layout: "standard",
-    auth: "none",
+    auth: "required",
     component: () => import("@/pages/system-status"),
     nav: { labelKey: "nav.systemStatus", icon: Activity, order: 1 },
   },

@@ -3,7 +3,7 @@ import { render, screen } from "@testing-library/react";
 import { createElement } from "react";
 import type { AxiosAdapter, AxiosRequestConfig, AxiosResponse } from "axios";
 import { AxiosError, AxiosHeaders } from "axios";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi, type Mock } from "vitest";
 import { Toaster } from "@/components/ui/sonner";
 import i18n from "@/i18n";
 import { useUserStore } from "@/stores/user-store";
@@ -340,7 +340,7 @@ describe("unit http purgeSession and infrastructure errors", () => {
 });
 
 describe("unit http 401 navigation", () => {
-  let navigate: ReturnType<typeof vi.fn>;
+  let navigate: Mock<(to: string) => void>;
   let here = "/user-setting/api?x=1";
 
   beforeEach(() => {
@@ -350,7 +350,7 @@ describe("unit http 401 navigation", () => {
     localStorage.clear();
     useUserStore.getState().reset();
     http.defaults.adapter = adapter;
-    navigate = vi.fn();
+    navigate = vi.fn<(to: string) => void>();
     registerNavigate({ navigate: (to: string) => navigate(to), currentPath: () => here });
     registerQueryClient(new QueryClient());
   });
