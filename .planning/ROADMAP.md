@@ -162,7 +162,7 @@ Plans:
 
 **Wave 8** *(blocked on Wave 7 completion)*
 
-- [ ] 02-13-PLAN.md - Sign in and sign up page, home dashboard, live browser flow
+- [x] 02-13-PLAN.md - Sign in and sign up page, home dashboard, live browser flow
 - [ ] 02-17-PLAN.md - Go OTP, SMTP mail and password reset against Mailpit
 
 **Wave 9** *(blocked on Wave 8 completion)*
