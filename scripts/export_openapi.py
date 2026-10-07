@@ -1,6 +1,8 @@
 """Write the OpenAPI document for TS type generation: ``uv run python scripts/export_openapi.py [--check]``.
 
-The app is built from in-memory settings, so no live dependency is contacted.
+The app is built from in-memory settings with a stub principal resolver (the offline-export seam of
+``create_app``) and the request sends the stub token, because the schema route requires authentication
+(R-113). No live dependency is contacted and nothing here is reachable from the production entrypoint.
 """
 from __future__ import annotations
 
@@ -14,14 +16,15 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO_ROOT))
 
 from api.apps import OPENAPI_PATH, create_app  # noqa: E402
-from test.helpers.app import memory_settings  # noqa: E402
+from test.helpers.app import StubPrincipalResolver, memory_settings  # noqa: E402
 
 DEFAULT_OUT = REPO_ROOT / "web" / "openapi" / "openapi.json"
 
 
 async def render() -> str:
-    app = create_app(memory_settings())
-    response = await app.test_client().get(OPENAPI_PATH)
+    resolver = StubPrincipalResolver()
+    app = create_app(memory_settings(), principal_resolver=resolver)
+    response = await app.test_client().get(OPENAPI_PATH, headers={"Authorization": f"Bearer {resolver.token}"})
     if response.status_code != 200:
         raise SystemExit(f"openapi endpoint returned {response.status_code}")
     document = json.loads(await response.get_data(as_text=True))

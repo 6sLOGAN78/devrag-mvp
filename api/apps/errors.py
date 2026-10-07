@@ -35,6 +35,21 @@ _MESSAGE_FOR_STATUS = {
 }
 INVALID_REQUEST = "invalid request"
 INTERNAL_ERROR = "internal error"
+UNAUTHORIZED_MESSAGE = "unauthorized"  # one message for every credential failure, no enumeration (AUTH-12)
+UNAVAILABLE_MESSAGE = "service unavailable"
+
+
+def unauthorized_response() -> Response:
+    return error_result(RetCode.UNAUTHORIZED, UNAUTHORIZED_MESSAGE, 401)
+
+
+def forbidden_response() -> Response:
+    return error_result(RetCode.FORBIDDEN, _MESSAGE_FOR_STATUS[403], 403)
+
+
+def service_unavailable_response() -> Response:
+    """The gate's fail-closed answer for an infrastructure error: no detail, never a 401 (R-114)."""
+    return error_result(RetCode.SERVICE_UNAVAILABLE, UNAVAILABLE_MESSAGE, 503)
 
 
 def register_error_handlers(app: Quart) -> None:

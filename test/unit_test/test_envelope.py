@@ -7,7 +7,7 @@ import pytest
 
 from api.utils.api_utils import json_result
 from common.settings import ConfigError
-from test.helpers.app import make_test_app
+from test.helpers.app import make_client, make_test_app
 
 pytestmark = pytest.mark.unit
 
@@ -30,6 +30,13 @@ async def test_not_found_envelope():
     resp = await make_test_app().test_client().get("/nope")
     assert resp.status_code == 404
     assert await resp.get_json() == {"code": 404, "message": "not found", "data": None}
+    assert resp.headers["X-API-Source"] == "python"
+
+
+async def test_unknown_path_without_credentials_is_401_envelope():
+    resp = await make_client(make_test_app(authenticated=False), authenticated=False).get("/nope")
+    assert resp.status_code == 401
+    assert await resp.get_json() == {"code": 401, "message": "unauthorized", "data": None}
     assert resp.headers["X-API-Source"] == "python"
 
 
@@ -74,7 +81,7 @@ async def test_source_header_on_success():
     assert await resp.get_json() == {"code": 0, "message": "", "data": {"name": "ok"}}
 
 
-async def test_access_log_fields():
+async def _logged_request(path: str, headers: dict[str, str] | None) -> logging.LogRecord:
     records: list[logging.LogRecord] = []
 
     class Capture(logging.Handler):
@@ -87,15 +94,28 @@ async def test_access_log_fields():
     old = logger.level
     logger.setLevel(logging.INFO)
     try:
-        await make_test_app().test_client().get("/nope", headers={"Authorization": "Bearer abc"})
+        await make_test_app().test_client().get(path, headers=headers)
     finally:
         logger.removeHandler(handler)
         logger.setLevel(old)
     assert len(records) == 1
-    rec = records[0]
+    return records[0]
+
+
+async def test_access_log_fields():
+    # The default test client sends the stub token, so the unknown path is a logged 404 (the original expectation).
+    rec = await _logged_request("/nope", None)
     assert rec.method == "GET" and rec.path == "/nope" and rec.status == 404
     assert isinstance(rec.duration_ms, float)
     assert not hasattr(rec, "headers") and "abc" not in rec.getMessage()
+
+
+async def test_access_log_for_a_rejected_credential_is_401_and_carries_no_secret():
+    rec = await _logged_request("/nope", {"Authorization": "Bearer abc"})
+    assert rec.method == "GET" and rec.path == "/nope" and rec.status == 401
+    assert isinstance(rec.duration_ms, float)
+    assert not hasattr(rec, "headers") and "abc" not in rec.getMessage()
+    assert "abc" not in repr(rec.__dict__.get("args")) and "abc" not in str(rec.__dict__.get("msg"))
 
 
 async def test_cors_allow_list():

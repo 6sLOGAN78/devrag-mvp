@@ -19,7 +19,7 @@ from quart.testing import QuartClient
 
 from api.apps import create_app
 from api.db.services import auth_service
-from api.db.services.auth_service import ApiTokenRecord, AuthInfrastructureError, Principal, UserRecord
+from api.db.services.auth_service import ApiTokenRecord, AuthInfrastructureError, MembershipRecord, Principal, UserRecord
 from common.security import tokens
 from test.helpers.app import STUB_SECRET, StubPrincipalResolver, make_client, make_test_app, memory_settings
 
@@ -71,9 +71,10 @@ class FakeStore:
         self._tick()
         return self.users.get(user_id)
 
-    def find_own_role(self, user_id: str) -> str | None:
+    def find_own_membership(self, user_id: str) -> MembershipRecord | None:
         self._tick()
-        return self.roles.get(user_id)
+        role = self.roles.get(user_id)
+        return MembershipRecord(tenant_id=user_id, role=role) if role else None
 
     def find_api_token(self, token: str) -> ApiTokenRecord | None:
         self._tick()
@@ -562,3 +563,30 @@ def test_default_resolver_is_the_real_service(monkeypatch):
     app = create_app(memory_settings())
     resolver = app.extensions["principal_resolver"]
     assert getattr(resolver, "__module__", "") == auth_service.__name__
+
+
+# --- loopback trust rule (R-114, R-115, R-116) -----------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    ("addr", "expected"),
+    [
+        ("127.0.0.1", True),
+        ("::1", True),
+        ("[::1]", True),
+        ("::ffff:127.0.0.1", True),
+        ("198.51.100.7", False),
+        ("172.18.0.5", False),
+        ("", False),
+        (None, False),
+        ("not-an-address", False),
+    ],
+)
+def test_loopback_peer_rule_matches_the_go_rule(addr, expected):
+    from common.security.proxy import is_loopback_peer
+
+    assert is_loopback_peer(addr) is expected
+
+
+def test_the_api_server_serves_no_static_files():
+    assert not any(rule.endpoint == "static" for rule in create_app(memory_settings()).url_map.iter_rules())

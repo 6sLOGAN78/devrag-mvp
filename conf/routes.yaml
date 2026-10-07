@@ -2,7 +2,7 @@
 #   uv run python scripts/gen_routes.py          # regenerate
 #   uv run python scripts/gen_routes.py --check  # CI drift gate
 # Fields: owner (go|python), match (exact|prefix), path, auth (none|jwt|beta|api),
-#         also (alias paths expanded into their own entries), public_until_phase, catch_all, note.
+#         also (alias paths expanded into their own entries), catch_all, note.
 # The `endpoints:` registry below lists individual endpoints (method, path, owner, auth, roles, scope, implemented).
 # Each row must agree with the family entry that serves its path; the generator also emits the Go and Python
 # policy resolvers (PolicyFor / policy_for): registry row, then exact family, then longest prefix, then default jwt.
@@ -59,8 +59,7 @@ routes:
     path: /api/v1/system/status
     also: [/system/status]
     auth: jwt
-    public_until_phase: 2
-    note: R-55 public until the auth phase lands.
+    note: D-19 authenticated since plan 02-14 (R-55 public marker removed); the Python gate answers 401 without a token.
 
   # --- Python catch-alls (/api/v1/system/tokens, /stats, /api/v1/mcp/servers etc. land here, D-04/D-06/D-07) ---
   - {owner: python, match: prefix, path: /api/, auth: api, catch_all: true}
@@ -78,9 +77,9 @@ endpoints:
   - {method: GET, path: /api/v1/system/healthz, owner: python, auth: none, roles: [], scope: none, implemented: true}
   - {method: GET, path: /system/healthz, owner: python, auth: none, roles: [], scope: none, implemented: true}
   - {method: GET, path: /api/v1/system/status, owner: python, auth: jwt, roles: [], scope: none, implemented: true,
-     note: public_until_phase marker on the family entry stays until plan 02-14}
+     note: authenticated since plan 02-14 (D-19)}
   - {method: GET, path: /system/status, owner: python, auth: jwt, roles: [], scope: none, implemented: true,
-     note: public_until_phase marker on the family entry stays until plan 02-14}
+     note: authenticated since plan 02-14 (D-19)}
   - {method: GET, path: /api/v1/openapi.json, owner: python, auth: api, roles: [], scope: none, implemented: true,
      note: R-113 requires authentication; frontend types come from the offline scripts/export_openapi.py}
 

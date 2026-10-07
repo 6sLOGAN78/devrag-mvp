@@ -6,16 +6,29 @@ from collections.abc import Iterable
 from quart import Blueprint, Quart
 from quart_schema import QuartSchema
 
+from api.apps.auth import Resolver, register_auth_gate
 from api.apps.errors import register_error_handlers
 from api.apps.middleware import register_middleware
+from api.db.services import auth_service
 from common.settings import Settings, get_settings
 
 OPENAPI_PATH = "/api/v1/openapi.json"
 
 
-def create_app(settings: Settings | None = None, extra_blueprints: Iterable[Blueprint] = ()) -> Quart:
+def create_app(
+    settings: Settings | None = None,
+    extra_blueprints: Iterable[Blueprint] = (),
+    *,
+    principal_resolver: Resolver | None = None,
+) -> Quart:
+    """Build the application.
+
+    ``principal_resolver`` is a keyword for unit tests and the offline OpenAPI export only. It is never read
+    from configuration or the environment, and the production entrypoint never passes it (test_auth_gate).
+    """
     settings = settings or get_settings()
-    app = Quart("ragflow_server")
+    # No static folder: this server serves the API only (the SPA is served by Nginx), so no route is undeclared.
+    app = Quart("ragflow_server", static_folder=None)
     app.config["MAX_CONTENT_LENGTH"] = 1024 * 1024 * 1024
     app.extensions["ragflow_settings"] = settings
     # Docs UIs are disabled; the schema itself is served at OPENAPI_PATH (API-08).
@@ -30,6 +43,7 @@ def create_app(settings: Settings | None = None, extra_blueprints: Iterable[Blue
     # Registered after QuartSchema so these handlers win over its default 400 responses.
     register_error_handlers(app)
     register_middleware(app, settings)
+    register_auth_gate(app, settings, principal_resolver or auth_service.make_resolver(settings.security.secret_key))
 
     from api.apps.restful_apis.system_api import system_bp
 

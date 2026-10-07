@@ -57,7 +57,7 @@
       "match": "exact",
       "path": "/api/v1/system/status",
       "auth": "jwt",
-      "publicUntilPhase": 2,
+      "publicUntilPhase": null,
       "port": 9380
     },
     {
@@ -105,7 +105,7 @@
       "match": "exact",
       "path": "/system/status",
       "auth": "jwt",
-      "publicUntilPhase": 2,
+      "publicUntilPhase": null,
       "port": 9380
     },
     {
