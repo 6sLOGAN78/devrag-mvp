@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { act, fireEvent, render, screen } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { AxiosError, AxiosHeaders, type AxiosAdapter, type InternalAxiosRequestConfig } from "axios";
 import { createMemoryRouter, RouterProvider, useLocation } from "react-router";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -157,6 +157,21 @@ describe("RequireAuth: session recovery", () => {
     renderGuard("/user-setting/profile");
     await screen.findByText("protected content");
     await waitUntil(() => i18n.language === "zh", { describe: "language switched to zh" });
+  });
+
+  it("applies a server Dark theme when this browser has no stored choice, and keeps an explicit local one", async () => {
+    script = [{ kind: "ok", user: { color_schema: "Dark" } }];
+    renderGuard("/user-setting/profile");
+    await screen.findByText("protected content");
+    await waitUntil(() => document.documentElement.classList.contains("dark"), { describe: "dark class from the server colour schema" });
+    expect(localStorage.getItem("devrag.theme")).toBeNull();
+    cleanup();
+    document.documentElement.classList.remove("dark");
+    localStorage.setItem("devrag.theme", "light");
+    script = [{ kind: "ok", user: { color_schema: "Dark" } }];
+    renderGuard("/user-setting/profile");
+    await screen.findByText("protected content");
+    expect(document.documentElement.classList.contains("dark")).toBe(false);
   });
 
   it("keeps an explicit local language choice", async () => {

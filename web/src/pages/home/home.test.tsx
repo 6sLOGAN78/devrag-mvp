@@ -67,8 +67,25 @@ describe("home dashboard (UI-09)", () => {
     useUserStore.getState().setUser(USER);
     renderHome();
     for (const id of ["stat-members", "stat-tokens", "stat-invitations"]) expect(screen.queryByTestId(id)).toBeNull();
-    expect(screen.queryAllByRole("link")).toHaveLength(0);
+    // Only the profile row exists now; the tokens and team rows arrive with their own pages.
+    const links = screen.queryAllByRole("link");
+    expect(links.map((link) => link.getAttribute("href"))).toEqual(["/user-setting/profile"]);
     expect(screen.queryByText(/coming soon/i)).toBeNull();
+  });
+
+  it("has a Manage your account card with an Edit your profile link row to the profile page", () => {
+    useUserStore.getState().setUser(USER);
+    renderHome();
+    const card = screen.getByTestId("home-links");
+    expect(within(card).getByRole("heading", { level: 2, name: "Manage your account" })).toBeInTheDocument();
+    const link = within(card).getByRole("link", { name: "Edit your profile" });
+    expect(link).toHaveAttribute("href", "/user-setting/profile");
+    expect(link.querySelector("svg")).not.toBeNull();
+  });
+
+  it("does not render the account links while the user is loading", () => {
+    renderHome();
+    expect(screen.queryByTestId("home-links")).toBeNull();
   });
 
   it("renders text only: a hostile nickname is never interpreted as markup", () => {

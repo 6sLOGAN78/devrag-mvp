@@ -6,11 +6,16 @@
     <title>devRag</title>
     <script>
       (function () {
+        /* Mirrors shouldUseDark in src/utils/theme.ts (a unit test runs this script against it). Inline so the class is set before first paint. */
+        var stored = null;
         try {
-          var stored = localStorage.getItem("devrag.theme");
-          var dark = stored === "dark" || ((!stored || stored === "system") && window.matchMedia("(prefers-color-scheme: dark)").matches);
-          if (dark) document.documentElement.classList.add("dark");
+          stored = localStorage.getItem("devrag.theme");
         } catch (e) {}
+        var system = false;
+        try {
+          system = typeof window.matchMedia === "function" && window.matchMedia("(prefers-color-scheme: dark)").matches;
+        } catch (e) {}
+        if (stored === "dark" || (stored !== "light" && system)) document.documentElement.classList.add("dark");
       })();
     </script>
   </head>

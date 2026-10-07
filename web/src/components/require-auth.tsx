@@ -10,6 +10,7 @@ import { applyUserLanguage } from "@/i18n";
 import { BareLayout } from "@/layouts/bare-layout";
 import { purgeSession } from "@/services/http";
 import { useUserStore } from "@/stores/user-store";
+import { applyUserColourSchema } from "@/utils/theme";
 import { loginRedirect } from "@/utils/safe-next";
 import { isSigningOut } from "@/utils/sign-out-intent";
 
@@ -36,6 +37,7 @@ function SessionRecovery({ path }: { path: string }) {
     if (!data) return;
     useUserStore.getState().setUser(data);
     applyUserLanguage(data.language);
+    applyUserColourSchema(data.colorSchema);
   }, [data]);
 
   if (query.isError && !query.isFetching) {

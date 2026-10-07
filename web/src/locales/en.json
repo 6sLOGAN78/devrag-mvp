@@ -165,6 +165,10 @@
     "loading": "Loading your workspace",
     "stat": {
       "role": "Your role"
+    },
+    "links": {
+      "title": "Manage your account",
+      "profile": "Edit your profile"
     }
   },
   "role": {

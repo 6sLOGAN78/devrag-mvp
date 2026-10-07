@@ -1,7 +1,9 @@
+import { ChevronRight } from "lucide-react";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import { Link } from "react-router";
 import { PageHeader } from "@/components/page-header";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useUserStore } from "@/stores/user-store";
 
@@ -29,7 +31,8 @@ function HomeSkeleton() {
 /**
  * Signed-in landing page (UI-09). Real data only: the greeting, the workspace and the caller's role come from the
  * recovered user. Members, tokens and invitations cards arrive with the plans that add those endpoints, so no
- * empty tile or dead link is rendered here.
+ * empty tile or dead link is rendered here. The "Manage your account" card lists only pages that exist: the profile
+ * row now, the API tokens and team rows when their pages are built.
  */
 export default function HomePage() {
   const { t, i18n } = useTranslation();
@@ -58,6 +61,21 @@ export default function HomePage() {
           </CardContent>
         </Card>
       </div>
+      <Card data-testid="home-links">
+        <CardHeader>
+          <CardTitle>{t("home.links.title")}</CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-col">
+          <Link
+            to="/user-setting/profile"
+            data-testid="home-link-profile"
+            className="flex min-h-10 items-center justify-between rounded-md text-sm font-normal text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+          >
+            <span>{t("home.links.profile")}</span>
+            <ChevronRight className="size-4 text-muted-foreground" aria-hidden="true" />
+          </Link>
+        </CardContent>
+      </Card>
     </div>
   );
 }

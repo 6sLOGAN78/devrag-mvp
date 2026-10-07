@@ -2,13 +2,21 @@ import { Monitor, Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useTranslation } from "react-i18next";
-import { setThemeChoice, type ThemeChoice } from "@/utils/theme";
+import { saveSettingQuietly } from "@/hooks/use-profile-request";
+import { colourSchemaFor, setThemeChoice, type ThemeChoice } from "@/utils/theme";
 
 const items: { choice: ThemeChoice; icon: typeof Sun }[] = [
   { choice: "light", icon: Sun },
   { choice: "dark", icon: Moon },
   { choice: "system", icon: Monitor },
 ];
+
+/** Applies and stores the choice at once; for a signed-in user Bright or Dark is also written to the profile, best effort and silent. */
+function select(choice: ThemeChoice): void {
+  setThemeChoice(choice);
+  const schema = colourSchemaFor(choice);
+  if (schema !== null) void saveSettingQuietly({ color_schema: schema });
+}
 
 export function ThemeToggle() {
   const { t } = useTranslation();
@@ -22,7 +30,7 @@ export function ThemeToggle() {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         {items.map(({ choice, icon: Icon }) => (
-          <DropdownMenuItem key={choice} onSelect={() => setThemeChoice(choice)}>
+          <DropdownMenuItem key={choice} onSelect={() => select(choice)}>
             <Icon />
             {t(`theme.${choice}`)}
           </DropdownMenuItem>
