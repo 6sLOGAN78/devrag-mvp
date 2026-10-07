@@ -175,6 +175,8 @@ def _conf_env(db_name: str) -> dict[str, str]:
         "REDIS_PASSWORD": "x",
         "MINIO_PASSWORD": "x",
         "ELASTIC_PASSWORD": "x",
+        # The renderer requires a key of at least 32 characters; this value is obviously fake (plan 02-04).
+        "SECRET_KEY": "fake-test-secret-key-0123456789abcdef-ZZ",
     }
 
 
