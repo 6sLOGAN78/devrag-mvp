@@ -17,7 +17,7 @@ export default function NotFoundPage() {
         body={t("notFound.body")}
         action={
           <Button asChild>
-            <Link to="/">{t("notFound.action")}</Link>
+            <Link to="/system-status">{t("notFound.action")}</Link>
           </Button>
         }
       />

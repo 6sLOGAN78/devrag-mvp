@@ -10,11 +10,18 @@ import type { ComponentType } from "react";
  */
 export type LayoutKind = "standard" | "fullBleed" | "bare";
 
+export type NavGroup = "platform" | "account";
+
+/** Order in which captioned groups render in the sidebar. */
+export const NAV_GROUPS: readonly NavGroup[] = ["platform", "account"];
+
 export interface RouteNav {
   /** i18n key, resolved at render so the label follows the language. */
   labelKey: string;
   icon: LucideIcon;
   order: number;
+  /** Captioned sidebar group (UI-SPEC "Navigation entries"). */
+  group: NavGroup;
 }
 
 export interface RouteEntry {
@@ -22,17 +29,32 @@ export interface RouteEntry {
   layout: LayoutKind;
   /** `required` entries sit behind RequireAuth (UI-02); `none` entries stay public. */
   auth: "none" | "required";
-  component: () => Promise<{ default: ComponentType }>;
+  /** Lazy page. Absent on redirect entries. */
+  component?: () => Promise<{ default: ComponentType }>;
+  /**
+   * Redirect entry: renders no page and replaces the location with the returned same-origin path.
+   * The target is computed from the stored token, never from a flag in client state.
+   */
+  redirect?: (session: { signedIn: boolean }) => string;
   nav?: RouteNav;
 }
+
+/** Where `/` sends a visitor. Transitional: plan 02-13 registers /home and switches the signed-in target to it. */
+export const ROOT_SIGNED_IN_TARGET = "/system-status";
 
 export const routes: readonly RouteEntry[] = [
   {
     path: "/",
+    layout: "bare",
+    auth: "none",
+    redirect: ({ signedIn }) => (signedIn ? ROOT_SIGNED_IN_TARGET : "/login"),
+  },
+  {
+    path: "/system-status",
     layout: "standard",
     auth: "required",
     component: () => import("@/pages/system-status"),
-    nav: { labelKey: "nav.systemStatus", icon: Activity, order: 1 },
+    nav: { labelKey: "nav.systemStatus", icon: Activity, order: 2, group: "platform" },
   },
   {
     path: "*",
