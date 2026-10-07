@@ -51,3 +51,18 @@ def test_overlong_rejected_before_hmac(monkeypatch):
 @pytest.mark.parametrize("value,ok", [("0" * 32, True), ("f" * 40, True), ("0" * 31, False), ("   ", False), ("", False), ("INVALID_" + "a" * 30, False), (None, False), (123, False)])
 def test_valid_inner(value, ok):
     assert tokens.valid_inner(value) is ok
+
+
+def test_go_issued_token_verifies_in_python():
+    go = json.loads((FIXTURES / "go_issued_token.json").read_text(encoding="utf-8"))
+    for field in ("token", "secret", "inner", "issued_at", "max_age"):
+        assert field in go
+    assert go["max_age"] == 2592000
+    assert tokens.verify(go["token"], go["secret"], go["max_age"], now=go["issued_at"] + 10) == go["inner"]
+    assert tokens.verify(go["token"], go["secret"], go["max_age"], now=go["issued_at"] + go["max_age"]) == go["inner"]
+
+
+def test_go_issued_token_rejected_with_other_secret_or_late():
+    go = json.loads((FIXTURES / "go_issued_token.json").read_text(encoding="utf-8"))
+    assert tokens.verify(go["token"], go["secret"] + "x", go["max_age"], now=go["issued_at"] + 1) is None
+    assert tokens.verify(go["token"], go["secret"], go["max_age"], now=go["issued_at"] + 2592001) is None
