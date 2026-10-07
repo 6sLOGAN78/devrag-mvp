@@ -325,6 +325,20 @@ async def test_api_token_resolves_to_its_own_tenant(store):
     assert data == {"user_id": USER_ID, "tenant_id": USER_ID, "role": "owner", "auth_type": "api"}
 
 
+def test_a_token_principal_never_carries_superuser_rights(store):
+    """Plan 02-20: a long-lived plaintext token must not confer superuser, even when its owner is one."""
+    store.users[USER_ID] = UserRecord(id=USER_ID, access_token=INNER, status="1", is_superuser=True)
+    store.roles[USER_ID] = "owner"
+    store.api_tokens.append(ApiTokenRecord(tenant_id=USER_ID, token=API_TOKEN, beta="b" * 32))
+    resolve = auth_service.make_resolver(STUB_SECRET, store)
+    session = resolve(tokens.dump(INNER, STUB_SECRET), (auth_service.AUTH_JWT,))
+    assert session is not None and session.is_superuser is True
+    for credential, types, kind in [(API_TOKEN, (auth_service.AUTH_API,), "api"), ("b" * 32, (auth_service.AUTH_BETA,), "beta")]:
+        principal = resolve(credential, types)
+        assert principal is not None and principal.auth_type == kind
+        assert principal.is_superuser is False
+
+
 async def test_api_token_of_a_missing_or_disabled_owner_is_401(store):
     store.api_tokens.append(ApiTokenRecord(tenant_id="ghost" + "0" * 27, token=API_TOKEN, beta=None))
     assert await _is_401(await _client(_app(store)).get(API_PATH, headers=_bearer(API_TOKEN)))

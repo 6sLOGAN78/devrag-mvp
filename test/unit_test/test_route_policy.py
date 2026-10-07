@@ -51,14 +51,22 @@ def test_registry_has_phase2_endpoints_unimplemented() -> None:
     data = yaml.safe_load(ROUTES.read_text(encoding="utf-8"))
     rows = {(e["method"], e["path"]): e for e in data["endpoints"]}
     for key in [
-        ("POST", "/api/v1/system/tokens"),
-        ("DELETE", "/api/v1/system/tokens/{token}"),
         ("GET", "/api/v1/tenants/{tenant_id}/users"),
         ("PATCH", "/api/v1/tenants/{tenant_id}/users/{user_id}"),
     ]:
         assert key in rows, key
         assert rows[key]["owner"] == "go"
         assert rows[key]["implemented"] is False, key
+
+
+def test_registry_marks_token_management_implemented_and_jwt_only() -> None:
+    """Plan 02-20 landed API token create, list and delete; they accept the session token only (R-90)."""
+    data = yaml.safe_load(ROUTES.read_text(encoding="utf-8"))
+    rows = {(e["method"], e["path"]): e for e in data["endpoints"]}
+    for key in [("GET", "/api/v1/system/tokens"), ("POST", "/api/v1/system/tokens"), ("DELETE", "/api/v1/system/tokens/{token}")]:
+        row = rows[key]
+        assert (row["owner"], row["auth"], row["implemented"], row["scope"]) == ("go", "jwt", True, "tenant"), key
+        assert row["roles"] == ["owner"], key
 
 
 def test_registry_marks_profile_password_and_tenant_endpoints_implemented() -> None:

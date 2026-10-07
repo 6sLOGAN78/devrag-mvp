@@ -125,7 +125,8 @@ def _principal_for_token(store: AuthStore, record: ApiTokenRecord, auth_type: st
     if owner is None or owner.status != _ACTIVE:
         return None
     principal = _principal_for_user(store, owner, auth_type)
-    return Principal(principal.user_id, record.tenant_id, principal.role, auth_type, principal.is_superuser)
+    # A long-lived token never carries superuser rights, whatever its owner is (plan 02-20, R-121).
+    return Principal(principal.user_id, record.tenant_id, principal.role, auth_type, False)
 
 
 def resolve_credential(

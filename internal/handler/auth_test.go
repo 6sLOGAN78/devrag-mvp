@@ -207,8 +207,10 @@ func TestCookieIsOnlyHonouredOnJWTRoutes(t *testing.T) {
 	e := gin.New()
 	e.Use(handler.AuthGate(svc, nil))
 	e.GET("/api/v1/mcp", func(c *gin.Context) { common.OK(c, "reached") })
-	assert.Equal(t, http.StatusUnauthorized, call(e, "GET", "/api/v1/mcp", nil, good).Code, "beta route never accepts the cookie, and beta resolution is not built yet")
-	assert.Equal(t, http.StatusUnauthorized, call(e, "GET", "/api/v1/mcp", bearer(good), "").Code, "jwt credential is not an api or beta credential")
+	assert.Equal(t, http.StatusUnauthorized, call(e, "GET", "/api/v1/mcp", nil, good).Code, "beta route never accepts the cookie")
+	// Plan 02-20: beta routes accept an access token in the Authorization header (as the reference does),
+	// so the header form now passes; the cookie form above stays refused.
+	assert.Equal(t, http.StatusOK, call(e, "GET", "/api/v1/mcp", bearer(good), "").Code, "an access token in the header passes a beta route")
 }
 
 func TestCookieCSRFRule(t *testing.T) {

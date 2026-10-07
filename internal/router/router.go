@@ -102,3 +102,12 @@ func WithPasswordReset(h *handler.PasswordReset) Option {
 		e.POST("/api/v1/auth/password/reset", h.Reset)
 	})
 }
+
+// WithTokens registers API token management. The three routes are jwt-only in conf/routes.yaml.
+func WithTokens(h *handler.Token) Option {
+	return WithExtraRoutes(func(e *gin.Engine) {
+		e.GET("/api/v1/system/tokens", h.List)
+		e.POST("/api/v1/system/tokens", h.Create)
+		e.DELETE("/api/v1/system/tokens/:token", h.Delete)
+	})
+}

@@ -45,9 +45,19 @@ func deny(c *gin.Context) {
 	c.Abort()
 }
 
+// acceptedTypes maps a route's auth value to the credential types it accepts. jwt is the access token
+// only (and the only value that may arrive in the cookie); api adds API tokens; beta adds the beta value
+// and, as in the reference, access and API tokens (R-117).
+var acceptedTypes = map[string][]string{
+	service.AuthTypeJWT:  {service.AuthTypeJWT},
+	service.AuthTypeAPI:  {service.AuthTypeJWT, service.AuthTypeAPI},
+	service.AuthTypeBeta: {service.AuthTypeBeta, service.AuthTypeJWT, service.AuthTypeAPI},
+}
+
 // AuthGate is the default-deny middleware (D-30, SEC-01). It must be installed before any route.
 // The policy comes from the generated table: a path with no entry is jwt. Only an explicit
-// "none" entry is public. The api and beta credential types answer 401 until their resolver exists.
+// "none" entry is public. Every credential failure, for every credential type, is HTTP 401 with the
+// generic envelope; the cookie is honoured for jwt routes only.
 func AuthGate(resolver PrincipalResolver, allowedOrigins []string) gin.HandlerFunc {
 	origins := make([]string, 0, len(allowedOrigins))
 	for _, o := range allowedOrigins {
@@ -64,11 +74,12 @@ func AuthGate(resolver PrincipalResolver, allowedOrigins []string) gin.HandlerFu
 			c.Next()
 			return
 		}
-		if policy.Auth != service.AuthTypeJWT {
+		types, known := acceptedTypes[policy.Auth]
+		if !known {
 			deny(c)
 			return
 		}
-		credential, ok, viaCookie := extractCredential(r)
+		credential, ok, viaCookie := extractCredential(r, policy.Auth == service.AuthTypeJWT)
 		if !ok {
 			deny(c)
 			return
@@ -78,7 +89,7 @@ func AuthGate(resolver PrincipalResolver, allowedOrigins []string) gin.HandlerFu
 			c.Abort()
 			return
 		}
-		p, err := resolver.ResolvePrincipal(r.Context(), credential, []string{service.AuthTypeJWT})
+		p, err := resolver.ResolvePrincipal(r.Context(), credential, types)
 		if err != nil {
 			if isUnauthenticated(err) {
 				deny(c)
@@ -104,14 +115,17 @@ const errAuthInfrastructure = coarseError("auth gate: infrastructure failure")
 func isUnauthenticated(err error) bool { return err == service.ErrUnauthenticated } //nolint:errorlint // sentinel returned unwrapped
 
 // extractCredential reads the Authorization header (Bearer or raw). The cookie is consulted only
-// when no Authorization header is present (D-21).
-func extractCredential(r *http.Request) (credential string, ok, viaCookie bool) {
+// when no Authorization header is present and the route accepts the cookie (jwt routes, D-21).
+func extractCredential(r *http.Request, allowCookie bool) (credential string, ok, viaCookie bool) {
 	if h := r.Header.Get("Authorization"); strings.TrimSpace(h) != "" {
 		h = strings.TrimSpace(h)
 		if len(h) >= 7 && strings.EqualFold(h[:7], "bearer ") {
 			h = strings.TrimSpace(h[7:])
 		}
 		return h, true, false
+	}
+	if !allowCookie {
+		return "", false, false
 	}
 	if ck, err := r.Cookie(AuthCookieName); err == nil {
 		return ck.Value, true, true

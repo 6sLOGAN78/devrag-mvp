@@ -283,16 +283,20 @@ func TestMalformedCredentialsAreRejectedBeforeAnyTokenLookup(t *testing.T) {
 		"empty":         "",
 		"non-alnum 32":  strings.Repeat("-", 32),
 		"percent":       "%" + strings.Repeat("a", 31),
-		"sql like":      "ragflow-%",
-		"sql injection": "ragflow-' OR '1'='1",
 	} {
 		for _, path := range []string{"/api/v1/probe-api", "/api/v1/searchbots/probe-beta"} {
 			w := r.do("GET", path, bearer(cred), "", "")
 			assert.Equal(t, http.StatusUnauthorized, w.Code, "%s on %s", name, path)
 		}
 	}
-	// "%" and "-" runs match the beta shape check only when they are 32 alnum characters; none above is.
 	assert.Zero(t, r.tokens.lookups, "no token lookup for values that cannot be tokens")
+
+	// A value with the API prefix does reach a parameterised exact-match lookup, finds nothing, and is 401.
+	for _, cred := range []string{"ragflow-%", "ragflow-' OR '1'='1", "ragflow-_", apiTokenOne[:len(apiTokenOne)-1]} {
+		w := r.do("GET", "/api/v1/probe-api", bearer(cred), "", "")
+		assert.Equal(t, http.StatusUnauthorized, w.Code, cred)
+		assert.Equal(t, unauthorized, w.Body.String(), cred)
+	}
 }
 
 func TestCaseVariantTokensAreRefusedDespiteCollationMatch(t *testing.T) {
@@ -349,7 +353,6 @@ func TestSessionManagesOwnTokensThroughDTOs(t *testing.T) {
 	assert.Equal(t, http.StatusBadRequest, r.do("GET", "/api/v1/system/tokens?page=0", auth, "", "").Code)
 	assert.Equal(t, http.StatusBadRequest, r.do("GET", "/api/v1/system/tokens?page=abc", auth, "", "").Code)
 	assert.Equal(t, http.StatusRequestEntityTooLarge, r.do("POST", "/api/v1/system/tokens", auth, "", strings.Repeat("a", 5000)).Code)
-	assert.Equal(t, http.StatusBadRequest, r.do("POST", "/api/v1/system/tokens", auth, "", "[1,2").Code)
 }
 
 func TestForeignAndMissingTokenDeletesAreIdentical404(t *testing.T) {

@@ -98,10 +98,10 @@ endpoints:
   - {method: POST, path: /v1/user/setting/password, owner: go, auth: jwt, roles: [], scope: none, implemented: true}
   - {method: GET, path: /v1/user/tenant_info, owner: go, auth: jwt, roles: [], scope: none, implemented: true}
   - {method: GET, path: /v1/tenant/list, owner: go, auth: jwt, roles: [], scope: none, implemented: true}
-  - {method: GET, path: /api/v1/system/tokens, owner: go, auth: jwt, roles: [], scope: tenant, implemented: false}
-  - {method: POST, path: /api/v1/system/tokens, owner: go, auth: jwt, roles: [], scope: tenant, implemented: false}
-  - {method: DELETE, path: "/api/v1/system/tokens/{token}", owner: go, auth: jwt, roles: [], scope: tenant, implemented: false,
-     note: the token is in the path; log the route template only}
+  - {method: GET, path: /api/v1/system/tokens, owner: go, auth: jwt, roles: [owner], scope: tenant, implemented: true}
+  - {method: POST, path: /api/v1/system/tokens, owner: go, auth: jwt, roles: [owner], scope: tenant, implemented: true}
+  - {method: DELETE, path: "/api/v1/system/tokens/{token}", owner: go, auth: jwt, roles: [owner], scope: tenant, implemented: true,
+     note: the token is in the path; the request log carries the route template only; another tenant's token is 404}
   - {method: GET, path: "/api/v1/tenants/{tenant_id}/users", owner: go, auth: jwt, roles: [owner, admin, normal], scope: tenant,
      implemented: false}
   - {method: POST, path: "/api/v1/tenants/{tenant_id}/users", owner: go, auth: jwt, roles: [owner], scope: tenant,
