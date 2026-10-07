@@ -178,3 +178,66 @@ def test_wait_stack_tls_probe_urls(tmp_path: Path) -> None:
     assert result.returncode == 0, result.stderr
     assert "https://127.0.0.1:" in result.stdout
     assert "-k" in result.stdout.split()
+
+
+# --- scripts/init_env.sh --append-missing (SEC-09, R-96, T-02-15) ---
+INIT_ENV = ROOT / "scripts" / "init_env.sh"
+FAKE_EXAMPLE = "A=1\n# secret\nSECRET_KEY=\n# secret\nSMTP_PASSWORD=\nB=two\n"
+
+
+def _init_env(tmp_path: Path, existing: str | None, *args: str) -> tuple[subprocess.CompletedProcess[str], Path]:
+    example = tmp_path / "env.example"
+    example.write_text(FAKE_EXAMPLE)
+    target = tmp_path / "env"
+    if existing is not None:
+        target.write_text(existing)
+    env = {**os.environ, "ENV_EXAMPLE": str(example), "ENV_TARGET": str(target)}
+    result = subprocess.run(["bash", str(INIT_ENV), *args], capture_output=True, text=True, env=env, check=False)
+    return result, target
+
+
+def test_append_missing_adds_only_absent_keys_and_keeps_existing_lines(tmp_path: Path) -> None:
+    existing = "A=custom\nUNRELATED=keep\n"
+    result, target = _init_env(tmp_path, existing, "--append-missing")
+    assert result.returncode == 0, result.stderr
+    text = target.read_text()
+    assert text.startswith(existing)
+    values = dict(line.split("=", 1) for line in text.splitlines() if "=" in line and not line.startswith("#"))
+    assert values["A"] == "custom"
+    assert values["B"] == "two"
+    assert len(values["SECRET_KEY"]) == 64 and int(values["SECRET_KEY"], 16) >= 0
+    assert values["SMTP_PASSWORD"] == ""
+    assert values["SECRET_KEY"] not in result.stdout + result.stderr
+
+
+def test_append_missing_is_idempotent_and_never_regenerates(tmp_path: Path) -> None:
+    _, target = _init_env(tmp_path, "A=1\n", "--append-missing")
+    first = target.read_bytes()
+    result, _ = _init_env(tmp_path, None, "--append-missing")
+    assert result.returncode == 0
+    assert target.read_bytes() == first
+
+
+def test_append_missing_keeps_existing_secret_key(tmp_path: Path) -> None:
+    existing = "SECRET_KEY=" + "ab" * 32 + "\n"
+    _, target = _init_env(tmp_path, existing, "--append-missing")
+    assert target.read_text().count("SECRET_KEY=") == 1
+    assert target.read_text().startswith(existing)
+
+
+def test_append_missing_creates_missing_file_with_operator_keys_empty(tmp_path: Path) -> None:
+    result, target = _init_env(tmp_path, None, "--append-missing")
+    assert result.returncode == 0
+    assert "SMTP_PASSWORD=\n" in target.read_text()
+
+
+def test_plain_mode_still_refuses_existing_env_and_leaves_operator_secret_empty(tmp_path: Path) -> None:
+    result, target = _init_env(tmp_path, "A=1\n")
+    assert result.returncode == 0
+    assert target.read_text() == "A=1\n"
+    fresh = tmp_path / "fresh"
+    fresh.mkdir()
+    _, target = _init_env(fresh, None)
+    text = target.read_text()
+    assert "SMTP_PASSWORD=\n" in text
+    assert len(dict(line.split("=", 1) for line in text.splitlines() if "=" in line)["SECRET_KEY"]) == 64

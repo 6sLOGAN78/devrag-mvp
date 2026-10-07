@@ -77,3 +77,29 @@ def test_compose_accepts_supplied_secrets(tmp_path: Path) -> None:
     env_file.write_text("\n".join(lines) + "\n", encoding="utf-8")
     result = compose_config(env_file)
     assert result.returncode == 0, result.stderr
+
+
+NEW_VARIABLES = {
+    "SECRET_KEY", "REGISTER_ENABLED", "SUPERUSER_EMAIL", "SUPERUSER_PASSWORD", "OTP_TTL_SECONDS",
+    "SMTP_HOST", "SMTP_PORT", "SMTP_SECURITY", "SMTP_USERNAME", "SMTP_PASSWORD", "SMTP_FROM",
+    "DEFAULT_CHAT_MODEL", "DEFAULT_EMBEDDING_MODEL", "DEFAULT_RERANK_MODEL", "DEFAULT_MODEL_FACTORY", "DEFAULT_MODEL_BASE_URL",
+    "RATE_LIMIT_REGISTER_PER_IP", "RATE_LIMIT_REGISTER_WINDOW_SECONDS", "RATE_LIMIT_LOGIN_FAILURES_PER_EMAIL",
+    "RATE_LIMIT_LOGIN_PER_IP", "RATE_LIMIT_LOGIN_WINDOW_SECONDS", "RATE_LIMIT_OTP_EMAIL_INTERVAL_SECONDS",
+    "RATE_LIMIT_OTP_PER_EMAIL_PER_HOUR", "RATE_LIMIT_OTP_PER_IP_PER_HOUR", "RATE_LIMIT_OTP_WINDOW_SECONDS",
+}
+
+
+def test_phase2_variables_are_catalogued_and_secrets_empty() -> None:
+    values, secrets = parse_env(EXAMPLE)
+    assert NEW_VARIABLES <= set(values), sorted(NEW_VARIABLES - set(values))
+    assert {"SECRET_KEY", "SMTP_PASSWORD", "SUPERUSER_PASSWORD"} <= secrets
+    for key in ("SECRET_KEY", "SMTP_PASSWORD", "SUPERUSER_PASSWORD", "SUPERUSER_EMAIL"):
+        assert values[key] == ""
+    assert values["REGISTER_ENABLED"] == "1"
+    assert values["OTP_TTL_SECONDS"] == "600"
+
+
+def test_dev_rate_limit_override_is_documented_but_not_set_in_the_example() -> None:
+    values, _ = parse_env(EXAMPLE)
+    assert "DEV_RATE_LIMIT_PER_IP_MAX" not in values
+    assert "# DEV_RATE_LIMIT_PER_IP_MAX" in EXAMPLE.read_text(encoding="utf-8")
