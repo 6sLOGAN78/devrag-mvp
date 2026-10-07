@@ -158,7 +158,7 @@ Plans:
 
 - [x] 02-15-PLAN.md - Go profile settings, password change, tenant info and list
 - [x] 02-19-PLAN.md - Superuser startup hook, B-08 update
-- [ ] 02-28-PLAN.md - Account menu and sign out, System status at /system-status, root redirect
+- [x] 02-28-PLAN.md - Account menu and sign out, System status at /system-status, root redirect
 
 **Wave 8** *(blocked on Wave 7 completion)*
 
