@@ -177,7 +177,7 @@ Plans:
 
 **Wave 11** *(blocked on Wave 10 completion)*
 
-- [ ] 02-21-PLAN.md - API tokens page
+- [x] 02-21-PLAN.md - API tokens page
 - [ ] 02-23-PLAN.md - Role change, remove, withdraw, leave
 
 **Wave 12** *(blocked on Wave 11 completion)*

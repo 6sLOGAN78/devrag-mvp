@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: milestone
 status: executing
 stopped_at: Completed 02-22-PLAN.md
-last_updated: "2026-10-07T23:19:06.320Z"
+last_updated: "2026-10-07T23:43:26.925Z"
 last_activity: 2026-10-07
 progress:
   total_phases: 8
   completed_phases: 1
   total_plans: 52
-  completed_plans: 47
+  completed_plans: 48
   percent: 13
 ---
 
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-10-05)
 ## Current Position
 
 Phase: 2 (Identity, Tenancy and Authorization) — EXECUTING
-Plan: 24 of 28
+Plan: 25 of 28
 Status: Ready to execute
 Last activity: 2026-10-07
 
-Progress: [█████████░] 90%
+Progress: [█████████░] 92%
 
 ## Performance Metrics
 
@@ -61,6 +61,7 @@ Progress: [█████████░] 90%
 | Phase 02 P16 | one session | 3 tasks | 26 files |
 | Phase 02 P20 | single session | 3 tasks | 25 files |
 | Phase 02 P22 | single session | 3 tasks | 26 files |
+| Phase 02 P21 | single session | 3 tasks | 24 files |
 
 ## Accumulated Context
 
@@ -83,6 +84,7 @@ Recent decisions affecting current work:
 - [Phase 02]: [02-16] R-120: avatar re-encoded on a 256x256 canvas, confirmation field on password change, server Dark theme only without a local choice
 - [Phase 02]: Plan 02-20 (R-121): API token management is owner-session only; cap 50 and 20 creations/hour per tenant; exact BINARY matching; token principals never superuser; route-template request log
 - [Phase 02]: R-123: permission matrix keyed (area, action); invite never membership; one 404 for invisible tenants; owner-only invite rate limited
+- [Phase 02]: R-124: API tokens page - tokens.action.* labels, owner-only forbidden state and home card, own 409/429/403 messages, aria-disabled pending, caption focus after delete
 
 ### Pending Todos
 
@@ -118,6 +120,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-10-07T23:19:06.302Z
+Last session: 2026-10-07T23:43:23.091Z
 Stopped at: Completed 02-22-PLAN.md
 Resume file: None
