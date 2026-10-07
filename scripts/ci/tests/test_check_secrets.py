@@ -79,3 +79,48 @@ def test_ignored_files_are_never_read(tmp_path: Path) -> None:
     put(root, ".gitignore", ".env\n")
     put(root, ".env", f"MYSQL_PASSWORD={DEFAULT_PW}\n")
     assert run(root).returncode == 0
+
+
+@pytest.mark.parametrize(
+    ("rel", "body"),
+    [
+        ("deploy/app.env", "SECRET_KEY=abcdefabcdefabcdefabcdefabcdef12\n"),
+        ("conf/service.yaml", "smtp_password: hunter22222\n"),
+        ("scripts/run.sh", "export API_KEY=abcdefabcdefabcdef1234\n"),
+        ("internal/auth/keys.go", 'secretKey := "abcdefabcdefabcdefabcdef"\n'),
+        ("internal/auth/keys.go", 'const AccessToken = "abcdefabcdefabcdefabcdef"\n'),
+        ("api/conf.py", 'refresh_token = "abcdefabcdefabcdefabcdef"\n'),
+        ("conf/service.yaml", "access_token: abcdefabcdefabcdefabcdef\n"),
+    ],
+)
+def test_wr23_blind_spots_are_flagged(tmp_path: Path, rel: str, body: str) -> None:
+    root = repo(tmp_path)
+    put(root, rel, body)
+    r = run(root)
+    assert r.returncode == 1, r.stdout
+    assert f"{rel}:1" in r.stdout
+
+
+@pytest.mark.parametrize(
+    ("rel", "body"),
+    [
+        ("docker/.env.example", "SECRET_KEY=\n"),
+        ("docker/.env.example", "SECRET_KEY=abcdefabcdefabcdefabcdefabcdef12\n"),
+        ("conf/service.yaml", "smtp_password: ${SMTP_PASSWORD}\n"),
+        ("conf/service.yaml", "smtp_password:\n"),
+        ("conf/service.yaml", "token: true\n"),
+        ("deploy/app.env", "SECRET_KEY=\n"),
+        ("deploy/app.env", "SECRET_KEY=${SECRET_KEY}\n"),
+        ("internal/auth/keys.go", 'tokenType := "Bearer"\n'),
+        ("internal/auth/keys.go", "secretKey := os.Getenv(\"SECRET_KEY\")\n"),
+        ("api/conf.py", "token = request.headers['Authorization']\n"),
+        ("test/fixtures/conf.env", "SECRET_KEY=abcdefabcdefabcdefabcdefabcdef12\n"),
+        ("internal/auth/keys_test.go", 'secretKey := "abcdefabcdefabcdefabcdef"\n'),
+        ("test/unit_test/test_x.py", 'refresh_token = "abcdefabcdefabcdefabcdef"\n'),
+    ],
+)
+def test_wr23_allowed_shapes_pass(tmp_path: Path, rel: str, body: str) -> None:
+    root = repo(tmp_path)
+    put(root, rel, body)
+    r = run(root)
+    assert r.returncode == 0, r.stdout

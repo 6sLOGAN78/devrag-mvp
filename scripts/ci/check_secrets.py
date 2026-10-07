@@ -21,8 +21,39 @@ EXCLUDED_PREFIXES = ("scripts/ci/", ".planning/", ".serena/")
 EXEMPT_SUFFIXES = (".example", ".sample", ".lock", ".png", ".jpg", ".jpeg", ".gif", ".ico", ".woff", ".woff2", ".pdf", ".zip", ".gz")
 DEFAULT_LITERAL = re.compile(r"infini_rag_flow")
 DEFAULT_PASSWORD = re.compile(r"(?:password|passwd|pwd)\w*[\"']?\s*[:=]\s*[\"']?rag_flow\b", re.IGNORECASE)
-LITERAL_ASSIGN = re.compile(r"(?:password|passwd|secret|api_?key)\w*[\"']?\s*[:=]\s*([\"'])([^\"'\n]+)\1", re.IGNORECASE)
+# WR-23: Go ``:=``, token-named keys, and unquoted assignments in config-style files.
+STRONG = r"(?:password|passwd|secret|api[_-]?key)"
+TOKEN = r"token"
+IDENT = r"[A-Za-z0-9_.\-]*"
+ASSIGN = r"[\"']?\s*(?::=|=|:)\s*"
+STRONG_QUOTED = re.compile(IDENT + STRONG + IDENT + ASSIGN + r"([\"'])([^\"'\n]+)\1", re.IGNORECASE)
+TOKEN_QUOTED = re.compile(IDENT + TOKEN + IDENT + ASSIGN + r"([\"'])([^\"'\n]+)\1", re.IGNORECASE)
+STRONG_BARE = re.compile(r"(?:^|[\s;])(?:export\s+)?" + IDENT + STRONG + IDENT + ASSIGN + r"([A-Za-z0-9+/_.=\-]{8,})\s*(?:#.*)?$", re.IGNORECASE)
+TOKEN_BARE = re.compile(r"(?:^|[\s;])(?:export\s+)?" + IDENT + TOKEN + IDENT + ASSIGN + r"([A-Za-z0-9+/_.=\-]{16,})\s*(?:#.*)?$", re.IGNORECASE)
+TOKEN_MIN_LEN = 16
+BARE_SUFFIXES = (".env", ".yaml", ".yml", ".sh", ".ini", ".conf", ".cfg", ".toml", ".properties", ".template", ".tpl")
+BARE_KEYWORDS = {"true", "false", "null", "none", "nil", "required"}
 PLACEHOLDER_START = ("$", "<", "{", "%")
+
+
+def _is_bare_file(relpath: str) -> bool:
+    name = relpath.rsplit("/", 1)[-1]
+    return name.endswith(BARE_SUFFIXES) or name == ".env" or name.startswith(".env.")
+
+
+def _literal_finding(src: str, bare: bool) -> bool:
+    m = STRONG_QUOTED.search(src)
+    if m and not m.group(2).startswith(PLACEHOLDER_START):
+        return True
+    m = TOKEN_QUOTED.search(src)
+    if m and len(m.group(2)) >= TOKEN_MIN_LEN and not m.group(2).startswith(PLACEHOLDER_START) and " " not in m.group(2):
+        return True
+    if bare:
+        for rx in (STRONG_BARE, TOKEN_BARE):
+            m = rx.search(src)
+            if m and not m.group(1).startswith(PLACEHOLDER_START) and m.group(1).lower() not in BARE_KEYWORDS:
+                return True
+    return False
 MAX_BYTES = 1_000_000
 
 
@@ -46,14 +77,14 @@ def scan(root: Path) -> list[str]:
             continue
         text = path.read_bytes().decode("utf-8", "ignore")
         in_test = is_test_path(relpath)
+        bare = _is_bare_file(relpath)
         for idx, src in enumerate(text.split("\n"), 1):
             if DEFAULT_LITERAL.search(src) or DEFAULT_PASSWORD.search(src):
                 findings.append(f"{relpath}:{idx}: known default secret literal")
                 continue
             if in_test:
                 continue
-            m = LITERAL_ASSIGN.search(src)
-            if m and not m.group(2).startswith(PLACEHOLDER_START):
+            if _literal_finding(src, bare):
                 findings.append(f"{relpath}:{idx}: hard-coded secret literal")
     return findings
 
