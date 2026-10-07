@@ -7,11 +7,12 @@ import httpx
 import pytest
 
 from test.conftest import REPO_ROOT
+from test.helpers.accounts import Account
 from test.testcases.conftest import exec_app
 
 pytestmark = pytest.mark.e2e
 
-GO_EXACT = ["/health", "/api/v1/system/ping", "/api/v1/system/config", "/api/v1/system/version", "/api/v1/language"]
+GO_EXACT = ["/health", "/api/v1/system/ping", "/api/v1/system/config", "/api/v1/language"]
 PY_STATUS = ["/system/healthz", "/system/status", "/api/v1/system/healthz", "/api/v1/system/status"]
 
 
@@ -28,9 +29,19 @@ def test_go_routes_answer_from_go(ingress: httpx.Client, path: str) -> None:
     assert resp.json()["code"] == 0
 
 
-def test_version_reports_latest_schema(ingress: httpx.Client) -> None:
-    data = ingress.get("/api/v1/system/version").json()["data"]
-    assert data["schema_version"] == _latest_migration()
+def test_version_requires_authentication(ingress: httpx.Client) -> None:
+    """D-19: the version route lost its public marker in plan 02-10."""
+    resp = ingress.get("/api/v1/system/version")
+    assert resp.status_code == 401
+    assert resp.headers["x-api-source"] == "go"
+    assert resp.json() == {"code": 401, "message": "unauthorized", "data": None}
+
+
+def test_version_reports_latest_schema(ingress: httpx.Client, account: Account) -> None:
+    resp = ingress.get("/api/v1/system/version", headers={"Authorization": f"Bearer {account.token}"})
+    assert resp.status_code == 200
+    assert resp.headers["x-api-source"] == "go"
+    assert resp.json()["data"]["schema_version"] == _latest_migration()
 
 
 @pytest.mark.parametrize("path", PY_STATUS)

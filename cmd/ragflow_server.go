@@ -62,7 +62,11 @@ func runAPI() error {
 
 	svc := service.NewSystem(db, rd, db).WithRegisterEnabled(cfg.Auth.RegisterEnabled)
 	accounts := service.NewAccount(db, service.NewLimiter(rd, "rl"), cfg)
-	engine := router.NewEngine(cfg, logger, handler.NewSystem(svc), router.WithAccount(handler.NewAccount(accounts, cfg.Security.TokenMaxAge)))
+	auth := service.NewAuth(db, cfg.Security.SecretKey, cfg.Security.TokenMaxAge)
+	engine := router.NewEngine(cfg, logger, handler.NewSystem(svc),
+		router.WithAuth(auth),
+		router.WithAccount(handler.NewAccount(accounts, cfg.Security.TokenMaxAge)),
+		router.WithSession(handler.NewUser(auth)))
 	srv := &http.Server{Addr: cfg.Addr(), Handler: engine, ReadHeaderTimeout: readHeaderTimeout}
 
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)

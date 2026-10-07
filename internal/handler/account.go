@@ -111,7 +111,7 @@ func (h *Account) Login(c *gin.Context) {
 	}
 	http.SetCookie(c.Writer, &http.Cookie{
 		Name: AuthCookieName, Value: res.Token, Path: "/", MaxAge: h.cookieMaxAge,
-		HttpOnly: true, SameSite: http.SameSiteLaxMode, Secure: c.Request.TLS != nil || c.GetHeader("X-Forwarded-Proto") == "https",
+		HttpOnly: true, SameSite: http.SameSiteLaxMode, Secure: secureRequest(c.Request),
 	})
 	c.Header("Cache-Control", "no-store")
 	common.OK(c, LoginDTO{Token: res.Token, User: toUserDTO(res.Profile), TenantID: res.Profile.TenantID, Role: res.Role, LLMID: res.LLMID, EmbdID: res.EmbdID, RerankID: res.RerankID})

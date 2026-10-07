@@ -9,6 +9,7 @@ import httpx
 import pytest
 
 from test.conftest import REPO_ROOT, stack_env
+from test.helpers.accounts import Account, AccountRegistry
 from test.helpers.wait import wait_until
 
 ENV = stack_env()
@@ -45,6 +46,16 @@ def ingress() -> Iterator[httpx.Client]:
         except TimeoutError as exc:
             pytest.fail(f"stack is not ready at {BASE_URL}; run `make up` first ({exc})")
         yield client
+
+
+@pytest.fixture(scope="session")
+def account(ingress: httpx.Client) -> Iterator[Account]:
+    """One real registered account for tests that need a valid token; its rows are removed afterwards."""
+    registry = AccountRegistry(BASE_URL)
+    try:
+        yield registry.register(prefix="gate")
+    finally:
+        registry.cleanup()
 
 
 @pytest.fixture(scope="session")

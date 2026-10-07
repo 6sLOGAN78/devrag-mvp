@@ -82,3 +82,19 @@ func (d *DB) SwapAccessToken(ctx context.Context, userID string, old *string, ne
 func (d *DB) TouchLastLogin(ctx context.Context, userID string, at time.Time) error {
 	return d.gorm.WithContext(ctx).Model(&entity.User{}).Where("id = ?", userID).UpdateColumn("last_login_time", at).Error
 }
+
+// FindUserByAccessToken returns the user whose stored access token equals token. MySQL equality is
+// collation-based (case and trailing-space insensitive), so callers must re-compare the stored value.
+func (d *DB) FindUserByAccessToken(ctx context.Context, token string) (*entity.User, error) {
+	var u entity.User
+	err := d.gorm.WithContext(ctx).Where("access_token = ?", token).Take(&u).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, ErrNotFound
+	}
+	return &u, err
+}
+
+// SetAccessToken overwrites user.access_token unconditionally (logout writes an INVALID_ value).
+func (d *DB) SetAccessToken(ctx context.Context, userID, token string) error {
+	return d.gorm.WithContext(ctx).Model(&entity.User{}).Where("id = ?", userID).UpdateColumn("access_token", token).Error
+}

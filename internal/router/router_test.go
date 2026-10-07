@@ -180,7 +180,7 @@ func TestPanicReturnsEnvelopeWithoutPanicText(t *testing.T) {
 	e, logs := build(t, pinger{}, pinger{}, settings{}, nil, WithExtraRoutes(func(e *gin.Engine) {
 		e.GET("/boom", func(*gin.Context) { panic("secret internals 0xdeadbeef") })
 	}))
-	w := do(e, http.MethodGet, "/boom", nil)
+	w := do(e, http.MethodGet, "/boom", authed)
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	assert.Equal(t, `{"code":500,"message":"internal error","data":null}`, w.Body.String())
 	assert.Equal(t, "go", w.Header().Get("X-API-Source"))
@@ -366,7 +366,7 @@ func TestRequestLogNeverContainsCredentials(t *testing.T) {
 func fullEngine(t *testing.T) *gin.Engine {
 	t.Helper()
 	e, _ := build(t, pinger{}, pinger{}, settings{value: "0002"}, nil,
-		WithAccount(handler.NewAccount(nil, time.Hour)), WithSession(handler.NewUser(nil, time.Hour)))
+		WithAccount(handler.NewAccount(nil, time.Hour)), WithSession(handler.NewUser(nil)))
 	return e
 }
 
