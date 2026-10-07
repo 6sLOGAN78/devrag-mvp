@@ -4,14 +4,25 @@ from __future__ import annotations
 import httpx
 import pytest
 
+from test.helpers.accounts import Account
+
 pytestmark = pytest.mark.e2e
 
 FORBIDDEN = ("mysql", "minio", "es01", "redis:", "traceback", "9200", "3306")
 
 
 @pytest.mark.parametrize("path", ["/system/status", "/api/v1/system/status"])
-def test_status_is_public_and_leaks_no_hostnames(ingress: httpx.Client, path: str) -> None:
+def test_status_requires_authentication(ingress: httpx.Client, path: str) -> None:
+    """D-19: the Python status route lost its public marker in plan 02-14 (it was public in Phase 1, R-55)."""
     resp = ingress.get(path)
+    assert resp.status_code == 401
+    assert resp.headers["x-api-source"] == "python"
+    assert resp.json() == {"code": 401, "message": "unauthorized", "data": None}
+
+
+@pytest.mark.parametrize("path", ["/system/status", "/api/v1/system/status"])
+def test_status_leaks_no_hostnames(ingress: httpx.Client, account: Account, path: str) -> None:
+    resp = ingress.get(path, headers={"Authorization": f"Bearer {account.token}"})
     assert resp.status_code == 200
     body = resp.text.lower()
     assert not [w for w in FORBIDDEN if w in body]

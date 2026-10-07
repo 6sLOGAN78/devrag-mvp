@@ -11,6 +11,7 @@ import pytest
 import yaml
 
 from api.apps import create_app
+from test.helpers.accounts import Account
 from test.helpers.app import memory_settings
 from test.testcases._routes import ROUTES_FILE, Probe, load_probes, ownership_mismatches
 
@@ -47,18 +48,30 @@ def test_unmarked_auth_route_is_not_public_through_ingress(ingress: httpx.Client
 
 
 @pytest.mark.parametrize("path", COLLISIONS)
-def test_python_documented_paths_under_go_looking_prefixes(ingress: httpx.Client, path: str) -> None:
-    resp = ingress.get(path)
+def test_python_documented_paths_under_go_looking_prefixes(ingress: httpx.Client, account: Account, path: str) -> None:
+    resp = ingress.get(path, headers={"Authorization": f"Bearer {account.token}"})
     assert resp.headers["x-api-source"] == "python"
     assert resp.status_code == 404
     assert resp.json() == {"code": 404, "message": "not found", "data": None}
 
 
+@pytest.mark.parametrize("path", COLLISIONS)
+def test_python_documented_paths_are_401_without_a_token(ingress: httpx.Client, path: str) -> None:
+    resp = ingress.get(path)
+    assert resp.headers["x-api-source"] == "python"
+    assert resp.status_code == 401
+    assert resp.json() == {"code": 401, "message": "unauthorized", "data": None}
+
+
 @pytest.mark.parametrize("prefix", ["/v1", "/api/v1"])
-def test_both_version_prefixes_reach_python(ingress: httpx.Client, prefix: str) -> None:
-    resp = ingress.get(f"{prefix}/system-probe-{uuid.uuid4().hex}")
+def test_both_version_prefixes_reach_python(ingress: httpx.Client, account: Account, prefix: str) -> None:
+    path = f"{prefix}/system-probe-{uuid.uuid4().hex}"
+    resp = ingress.get(path, headers={"Authorization": f"Bearer {account.token}"})
     assert resp.headers["x-api-source"] == "python"
     assert resp.json()["code"] == 404
+    unauth = ingress.get(path)
+    assert unauth.headers["x-api-source"] == "python"
+    assert unauth.json()["code"] == 401
 
 
 def test_spa_root_is_html_without_source_header(ingress: httpx.Client) -> None:

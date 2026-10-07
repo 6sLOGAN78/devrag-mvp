@@ -65,6 +65,12 @@ def test_blueprint_urls_match_python_exact_routes():
     assert set(HEALTH_PATHS) == expected
 
 
+async def test_unauthenticated_unknown_path_is_401_not_404():
+    resp = await make_test_app(authenticated=False).test_client().get("/nope")
+    assert resp.status_code == 401
+    assert await resp.get_json() == {"code": 401, "message": "unauthorized", "data": None}
+
+
 async def test_openapi_served_with_health_paths():
     resp = await make_test_app().test_client().get("/api/v1/openapi.json")
     assert resp.status_code == 200

@@ -31,8 +31,8 @@ def _find(log: Path, path: str) -> dict[str, Any] | None:
     return None
 
 
-# The Go engine rejects the made-up bearer value (401); Python still answers 404 until plan 02-14 gates it.
-@pytest.mark.parametrize(("prefix", "logfile", "status"), [("/api/v1/logprobe-", "ragflow_server.log", 404), ("/v1/user/logprobe-", "ragflow_go.log", 401)])
+# Both engines reject the made-up bearer value (401): Go since plan 02-10, Python since plan 02-14.
+@pytest.mark.parametrize(("prefix", "logfile", "status"), [("/api/v1/logprobe-", "ragflow_server.log", 401), ("/v1/user/logprobe-", "ragflow_go.log", 401)])
 def test_request_is_logged_without_credentials(ingress: httpx.Client, prefix: str, logfile: str, status: int) -> None:
     token = uuid.uuid4().hex
     path = f"{prefix}{token}"
@@ -55,3 +55,32 @@ def test_authenticated_go_request_is_logged_without_the_token(ingress: httpx.Cli
     assert rec["status"] == 404
     assert account.token not in json.dumps(rec)
     assert account.token not in (LOG_DIR / "ragflow_go.log").read_text(encoding="utf-8", errors="replace")
+
+
+def test_unauthenticated_python_request_is_logged_as_401(ingress: httpx.Client) -> None:
+    path = f"/api/v1/logprobe-{uuid.uuid4().hex}"
+    resp = ingress.get(path)
+    assert resp.status_code == 401
+    rec = wait_until(lambda: _find(LOG_DIR / "ragflow_server.log", path), timeout=30, interval=0.5)
+    assert rec["method"] == "GET" and rec["status"] == 401
+    assert isinstance(rec["duration_ms"], int | float)
+
+
+def test_authenticated_python_request_is_logged_without_the_token(ingress: httpx.Client, account: Account) -> None:
+    path = f"/api/v1/logprobe-{uuid.uuid4().hex}"
+    resp = ingress.get(path, headers={"Authorization": f"Bearer {account.token}", "Cookie": f"ragflow_auth={account.token}"})
+    assert resp.status_code == 404
+    rec = wait_until(lambda: _find(LOG_DIR / "ragflow_server.log", path), timeout=30, interval=0.5)
+    assert rec["status"] == 404
+    assert account.token not in json.dumps(rec)
+    assert account.token not in (LOG_DIR / "ragflow_server.log").read_text(encoding="utf-8", errors="replace")
+
+
+def test_python_cookie_credential_is_ignored_on_api_routes_and_never_logged(ingress: httpx.Client, account: Account) -> None:
+    path = f"/api/v1/logprobe-{uuid.uuid4().hex}"
+    resp = ingress.get(path, headers={"Cookie": f"ragflow_auth={account.token}"})
+    assert resp.status_code == 401, "api routes never read the cookie (D-21)"
+    rec = wait_until(lambda: _find(LOG_DIR / "ragflow_server.log", path), timeout=30, interval=0.5)
+    assert rec["status"] == 401
+    assert account.token not in json.dumps(rec)
+    assert account.token not in (LOG_DIR / "ragflow_server.log").read_text(encoding="utf-8", errors="replace")

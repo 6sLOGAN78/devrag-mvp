@@ -32,7 +32,7 @@ AUTH_JWT = "jwt"
 AUTH_API = "api"
 AUTH_BETA = "beta"
 
-API_KEY_PREFIX = "ragflow-"
+API_CREDENTIAL_PREFIX = "ragflow-"
 MAX_API_TOKEN_LENGTH = 255
 _BETA_SHAPE = re.compile(r"\A[A-Za-z0-9]{32}\Z")
 _ACTIVE = "1"
@@ -96,7 +96,7 @@ def _verified_inner(credential: str, secret: str, now: int | None) -> str | None
 
 
 def _looks_like_api_token(credential: str) -> bool:
-    return credential.startswith(API_KEY_PREFIX) and len(credential) <= MAX_API_TOKEN_LENGTH
+    return credential.startswith(API_CREDENTIAL_PREFIX) and len(credential) <= MAX_API_TOKEN_LENGTH
 
 
 def precheck(credential: str, allowed_types: tuple[str, ...], secret: str, now: int | None = None) -> bool:

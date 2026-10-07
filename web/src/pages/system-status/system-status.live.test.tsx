@@ -1,16 +1,27 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen, within } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
+import { registerLiveAccount } from "@/test/live/account";
 import { waitUntil } from "@/test/wait-until";
+import { removeAuthorization, setAuthorization } from "@/utils/authorization";
 import SystemStatusPage from "./index";
 
 // Runs against the real ingress (LIVE_BASE_URL). Needs the full stack up and healthy.
+// The Python status route requires a signed-in caller since plan 02-14 (D-19), so the test signs in first.
 describe("live System status page", () => {
+  afterEach(() => removeAuthorization());
+
+  it("the Python status route answers 401 without a token", async () => {
+    const response = await fetch(new URL("/api/v1/system/status", window.location.origin));
+    expect(response.status).toBe(401);
+  });
+
   it("shows both engines healthy from the real routes", async () => {
     await waitUntil(async () => (await fetch(new URL("/health", window.location.origin))).ok, {
       describe: "ingress /health",
       timeout: 60_000,
     });
+    setAuthorization(await registerLiveAccount("status"));
     render(
       <QueryClientProvider client={new QueryClient()}>
         <SystemStatusPage />

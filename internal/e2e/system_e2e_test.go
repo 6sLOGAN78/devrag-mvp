@@ -75,6 +75,9 @@ func decode(t *testing.T, body []byte) common.Envelope {
 
 func TestIngressOwnership(t *testing.T) {
 	waitReady(t)
+	cfg := testutil.RequireDB(t)
+	acc := testutil.RegisterAccount(t, baseURL())
+	defer testutil.DeleteAccount(t, cfg.MySQL, acc)
 	cases := map[string]string{
 		"/health":                "go",
 		"/api/v1/system/ping":    "go",
@@ -83,8 +86,25 @@ func TestIngressOwnership(t *testing.T) {
 		"/api/v1/system/healthz": "python",
 		"/api/v1/system/status":  "python",
 	}
+	// The Python status route needs a token since plan 02-14 (D-19): without one it answers the 401 envelope,
+	// with one it answers 200 as before. Every other route here is public.
+	authenticated := map[string]bool{"/api/v1/system/status": true}
 	for path, owner := range cases {
-		resp, body := do(t, http.MethodGet, path)
+		token := ""
+		if authenticated[path] {
+			token = acc.Token
+			resp, body := authed(t, http.MethodGet, path, "", nil)
+			if resp.StatusCode != http.StatusUnauthorized {
+				t.Errorf("%s without a token: status %d, want 401", path, resp.StatusCode)
+			}
+			if got := resp.Header.Get("X-API-Source"); got != owner {
+				t.Errorf("%s without a token: X-API-Source %q, want %q", path, got, owner)
+			}
+			if env := decode(t, body); env.Code != http.StatusUnauthorized || env.Data != nil {
+				t.Errorf("%s without a token: envelope %+v", path, env)
+			}
+		}
+		resp, body := authed(t, http.MethodGet, path, token, nil)
 		if resp.StatusCode != http.StatusOK {
 			t.Errorf("%s: status %d", path, resp.StatusCode)
 		}
@@ -108,7 +128,9 @@ func TestEnvelopeOnErrors(t *testing.T) {
 		source        string
 		authenticated bool
 	}{
-		{http.MethodGet, "/api/v1/e2e-missing-route", http.StatusNotFound, "python", false},
+		// Python default deny (plan 02-14): the same unknown path is 401 without a token and 404 with one.
+		{http.MethodGet, "/api/v1/e2e-missing-route", http.StatusUnauthorized, "python", false},
+		{http.MethodGet, "/api/v1/e2e-missing-route", http.StatusNotFound, "python", true},
 		// Go default deny: an unknown protected path is 401 without a token and 404 with one.
 		{http.MethodGet, "/v1/user/e2e-missing-route", http.StatusUnauthorized, "go", false},
 		{http.MethodGet, "/v1/user/e2e-missing-route", http.StatusNotFound, "go", true},

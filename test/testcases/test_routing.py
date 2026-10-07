@@ -13,7 +13,8 @@ from test.testcases.conftest import exec_app
 pytestmark = pytest.mark.e2e
 
 GO_EXACT = ["/health", "/api/v1/system/ping", "/api/v1/system/config", "/api/v1/language"]
-PY_STATUS = ["/system/healthz", "/system/status", "/api/v1/system/healthz", "/api/v1/system/status"]
+PY_HEALTHZ = ["/system/healthz", "/api/v1/system/healthz"]
+PY_STATUS = ["/system/status", "/api/v1/system/status"]
 
 
 def _latest_migration() -> str:
@@ -45,8 +46,17 @@ def test_version_reports_latest_schema(ingress: httpx.Client, account: Account) 
 
 
 @pytest.mark.parametrize("path", PY_STATUS)
-def test_python_health_status_routes(ingress: httpx.Client, path: str) -> None:
+def test_python_status_routes_require_authentication(ingress: httpx.Client, path: str) -> None:
     resp = ingress.get(path)
+    assert resp.status_code == 401
+    assert resp.headers["x-api-source"] == "python"
+    assert resp.json() == {"code": 401, "message": "unauthorized", "data": None}
+
+
+@pytest.mark.parametrize("path", [*PY_HEALTHZ, *PY_STATUS])
+def test_python_health_status_routes(ingress: httpx.Client, account: Account, path: str) -> None:
+    headers = {"Authorization": f"Bearer {account.token}"} if path in PY_STATUS else {}
+    resp = ingress.get(path, headers=headers)
     assert resp.status_code == 200
     assert resp.headers["x-api-source"] == "python"
     data = resp.json()["data"]
