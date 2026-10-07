@@ -5,9 +5,14 @@
   },
   "nav": {
     "systemStatus": "System status",
-    "groupCaption": "Platform",
+    "groupPlatform": "Platform",
+    "groupAccount": "Account",
     "openMenu": "Open navigation menu",
     "closeMenu": "Close"
+  },
+  "header": {
+    "accountMenu": "Account menu",
+    "signOut": "Sign out"
   },
   "a11y": {
     "skipLink": "Skip to main content",

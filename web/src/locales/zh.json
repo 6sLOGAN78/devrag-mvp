@@ -5,9 +5,14 @@
   },
   "nav": {
     "systemStatus": "系统状态",
-    "groupCaption": "平台",
+    "groupPlatform": "平台",
+    "groupAccount": "账户",
     "openMenu": "打开导航菜单",
     "closeMenu": "关闭"
+  },
+  "header": {
+    "accountMenu": "账户菜单",
+    "signOut": "退出登录"
   },
   "a11y": {
     "skipLink": "跳到主要内容",

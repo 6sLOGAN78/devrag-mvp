@@ -102,6 +102,8 @@ function shouldPurge(config: AxiosRequestConfig | undefined): boolean {
 export interface PurgeOptions {
   /** Show the "Session expired" toast. Sign out and the password-change flow pass false. Default true. */
   toast?: boolean;
+  /** Route to /login through the registered navigator. Default true. Sign out navigates itself and passes false. */
+  navigate?: boolean;
 }
 
 /** Drops the token, the user store and the query cache. Callers that did not expire the session pass `toast: false`. */
@@ -116,7 +118,7 @@ export function purgeSession(options: PurgeOptions = {}): void {
       description: i18n.t("toast.session.description"),
     });
   }
-  if (sessionNavigator) void sessionNavigator.navigate(loginRedirect(sessionNavigator.currentPath()));
+  if (options.navigate !== false && sessionNavigator) void sessionNavigator.navigate(loginRedirect(sessionNavigator.currentPath()));
 }
 
 function toastFor(error: ApiError, silent: boolean): void {

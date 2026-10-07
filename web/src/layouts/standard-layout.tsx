@@ -4,6 +4,7 @@ import { Outlet } from "react-router";
 import { AppSidebar } from "@/components/app-sidebar";
 import { SkipLink } from "@/components/skip-link";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { UserMenu } from "@/components/user-menu";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -38,6 +39,7 @@ export function StandardLayout() {
           </div>
           <div className="flex items-center gap-2">
             <ThemeToggle />
+            <UserMenu />
           </div>
         </header>
         <div data-testid="app-shell" className="flex min-h-0 flex-1">

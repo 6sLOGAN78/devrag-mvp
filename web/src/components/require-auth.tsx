@@ -11,6 +11,7 @@ import { BareLayout } from "@/layouts/bare-layout";
 import { purgeSession } from "@/services/http";
 import { useUserStore } from "@/stores/user-store";
 import { loginRedirect } from "@/utils/safe-next";
+import { isSigningOut } from "@/utils/sign-out-intent";
 
 function SessionError({ onRetry, onSignIn }: { onRetry: () => void; onSignIn: () => void }) {
   const { t } = useTranslation();
@@ -58,6 +59,6 @@ export function RequireAuth() {
   const token = useAuthorization();
   const location = useLocation();
   const path = `${location.pathname}${location.search}`;
-  if (token === null) return <Navigate to={loginRedirect(path)} replace />;
+  if (token === null) return <Navigate to={isSigningOut() ? loginRedirect("/login") : loginRedirect(path)} replace />;
   return <SessionRecovery path={path} />;
 }
