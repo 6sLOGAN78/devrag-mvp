@@ -221,6 +221,7 @@ func DeleteAccount(t *testing.T, src server.MySQLConfig, acc Account) {
 		defer func() { _ = sqlDB.Close() }()
 	}
 	stmts := []struct{ sql, id string }{
+		{"DELETE FROM `api_token` WHERE `tenant_id` = ?", acc.TenantID},
 		{"DELETE FROM `tenant_llm` WHERE `tenant_id` = ?", acc.TenantID},
 		{"DELETE FROM `user_tenant` WHERE `user_id` = ?", acc.UserID},
 		{"DELETE FROM `tenant` WHERE `id` = ?", acc.TenantID},

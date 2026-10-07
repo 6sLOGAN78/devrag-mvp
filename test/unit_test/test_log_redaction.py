@@ -125,3 +125,10 @@ def test_otp_and_reset_ticket_fields_masked():
     assert out["otp"] == "***" and out["reset_ticket"] == "***"
     rendered = json.dumps(out)
     assert "424242" not in rendered and "abcDEF123" not in rendered
+
+
+def test_beta_token_fields_and_fragments_masked():
+    beta = "0123456789abcdef0123456789abcdef"
+    out = emit(f'created {{"beta": "{beta}"}} beta={beta}', beta=beta, api_token="ragflow-test-only-0001")
+    assert out["beta"] == "***" and out["api_token"] == "***"
+    assert beta not in json.dumps(out) and "ragflow-test-only-0001" not in json.dumps(out)

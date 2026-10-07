@@ -23,6 +23,7 @@ import (
 
 	"devrag/internal/common"
 	"devrag/internal/dao"
+	"devrag/internal/entity"
 	"devrag/internal/handler"
 	"devrag/internal/server"
 	"devrag/internal/service"
@@ -367,7 +368,8 @@ func fullEngine(t *testing.T) *gin.Engine {
 	t.Helper()
 	e, _ := build(t, pinger{}, pinger{}, settings{value: "0002"}, nil,
 		WithAccount(handler.NewAccount(nil, time.Hour)), WithSession(handler.NewUser(nil)),
-		WithProfile(handler.NewSettings(nil), handler.NewTenant(nil)), WithPasswordReset(handler.NewPasswordReset(nil)))
+		WithProfile(handler.NewSettings(nil), handler.NewTenant(nil)), WithPasswordReset(handler.NewPasswordReset(nil)),
+		WithTokens(handler.NewToken(nil)))
 	return e
 }
 
@@ -469,4 +471,75 @@ func TestEveryGoFamilyIsDeniedUnlessPublic(t *testing.T) {
 		assert.Equal(t, http.StatusUnauthorized, do(e, http.MethodGet, path, nil).Code, "%s %s", r.Match, r.Path)
 	}
 	assert.GreaterOrEqual(t, checked, 8)
+}
+
+// fakeTokenStore is a unit-tier TokenStore: it holds no rows, so every delete is not-found.
+type fakeTokenStore struct{}
+
+func (fakeTokenStore) CreateAPIToken(context.Context, entity.APIToken, int) error { return nil }
+func (fakeTokenStore) ListAPITokens(context.Context, string, int, int) ([]entity.APIToken, error) {
+	return nil, nil
+}
+func (fakeTokenStore) DeleteAPIToken(context.Context, string, string) (bool, error) {
+	return false, nil
+}
+
+type fakeCounter struct{}
+
+func (fakeCounter) Incr(context.Context, string, time.Duration) (int64, time.Duration, error) {
+	return 1, time.Hour, nil
+}
+func (fakeCounter) Count(context.Context, string) (int64, time.Duration, error) { return 0, 0, nil }
+func (fakeCounter) Delete(context.Context, string) error                        { return nil }
+
+func tokenEngine(t *testing.T) (*gin.Engine, *observer.ObservedLogs) {
+	t.Helper()
+	svc := service.NewToken(fakeTokenStore{}, service.NewLimiter(fakeCounter{}, "t"), service.DefaultTokenLimits())
+	return build(t, pinger{}, pinger{}, settings{}, nil, WithTokens(handler.NewToken(svc)))
+}
+
+func allLogText(logs *observer.ObservedLogs) string {
+	var b strings.Builder
+	for _, entry := range logs.All() {
+		b.WriteString(entry.Message)
+		for k, v := range entry.ContextMap() {
+			b.WriteString(" " + k + "=" + fmt.Sprint(v))
+		}
+		b.WriteString("\n")
+	}
+	return b.String()
+}
+
+func TestTokenDeleteLogsTheRouteTemplateNotTheToken(t *testing.T) {
+	const secret = "ragflow-test-only-path-token-0000000000000000"
+	e, logs := tokenEngine(t)
+	for name, c := range map[string]struct {
+		method string
+		hdr    map[string]string
+		status int
+	}{
+		"authenticated delete":   {http.MethodDelete, authed, http.StatusNotFound},
+		"unauthenticated delete": {http.MethodDelete, nil, http.StatusUnauthorized},
+		"method not allowed":     {http.MethodGet, authed, http.StatusMethodNotAllowed},
+	} {
+		w := do(e, c.method, "/api/v1/system/tokens/"+secret, c.hdr)
+		assert.Equal(t, c.status, w.Code, name)
+	}
+	text := allLogText(logs)
+	assert.NotContains(t, text, secret)
+	assert.NotContains(t, text, "path-token")
+	assert.Contains(t, text, "/api/v1/system/tokens/:token", "the route template is what gets logged")
+	entry := logs.FilterMessage("request").All()[0].ContextMap()
+	assert.Equal(t, "/api/v1/system/tokens/:token", entry["path"])
+}
+
+func TestRequestLogRedactsTokenAndBetaFields(t *testing.T) {
+	core, logs := observer.New(zapcore.DebugLevel)
+	log := zap.New(common.WrapRedacting(core))
+	log.Info("created", zap.String("token", "ragflow-test-only-0001"), zap.String("beta", "0123456789abcdef0123456789abcdef"),
+		zap.String("detail", `body {"token":"ragflow-test-only-0002","beta":"fedcba9876543210fedcba9876543210"} authorization: Bearer ragflow-test-only-0003`))
+	text := allLogText(logs)
+	for _, secret := range []string{"ragflow-test-only-0001", "0123456789abcdef0123456789abcdef", "ragflow-test-only-0002", "fedcba9876543210fedcba9876543210", "ragflow-test-only-0003"} {
+		assert.NotContains(t, text, secret)
+	}
 }

@@ -111,6 +111,7 @@ def delete_accounts(accounts: list[Account]) -> None:
         with conn.cursor() as cur:
             cur.execute(f"USE `{_DB_NAME}`")
             for acc in accounts:
+                cur.execute("DELETE FROM `api_token` WHERE `tenant_id` = %s", (acc.tenant_id,))
                 cur.execute("DELETE FROM `tenant_llm` WHERE `tenant_id` = %s", (acc.tenant_id,))
                 cur.execute("DELETE FROM `user_tenant` WHERE `user_id` = %s", (acc.user_id,))
                 cur.execute("DELETE FROM `tenant` WHERE `id` = %s", (acc.tenant_id,))
