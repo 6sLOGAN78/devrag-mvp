@@ -69,3 +69,34 @@ def test_invalid_status_fails(repo_root, tmp_path):
     out = run_gate(repo_root, root)
     assert out.returncode == 1
     assert "invalid status" in out.stdout
+
+
+PHASE2_CONFIRMED = [33, 36, 91, 95, 98, 100, 101, 102, 103, 104, 105, 106, 108, 109]
+PHASE2_AUTO = [34, 35, 40, 88, 89, 90, 92, 93, 94, 96, 97, 99, 107, 110, 111, 112, 113, 114]
+
+
+def set_status(root: Path, row: int, old: str, new: str) -> None:
+    prefix = f"| R-{row:02d} |" if row < 100 else f"| R-{row} |"
+
+    def change(text: str) -> str:
+        return "\n".join(line.replace(f"| {old} |", f"| {new} |", 1) if line.startswith(prefix) else line for line in text.splitlines())
+
+    mutate(root, change)
+
+
+@pytest.mark.parametrize("row", PHASE2_CONFIRMED)
+def test_phase2_user_decided_row_must_be_user_confirmed(repo_root, tmp_path, row):
+    root = make_root(repo_root, tmp_path)
+    set_status(root, row, "user-confirmed", "accepted (auto, not user-reviewed)")
+    out = run_gate(repo_root, root)
+    assert out.returncode == 1
+    assert f"R-{row}: must be user-confirmed" in out.stdout or f"R-{row:02d}: must be user-confirmed" in out.stdout
+
+
+@pytest.mark.parametrize("row", PHASE2_AUTO)
+def test_phase2_auto_row_must_not_be_user_confirmed(repo_root, tmp_path, row):
+    root = make_root(repo_root, tmp_path)
+    set_status(root, row, "accepted (auto, not user-reviewed)", "user-confirmed")
+    out = run_gate(repo_root, root)
+    assert out.returncode == 1
+    assert "must not be user-confirmed" in out.stdout

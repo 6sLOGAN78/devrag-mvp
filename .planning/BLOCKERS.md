@@ -116,11 +116,13 @@ Each entry has: ID `B-NN`, Title, Status (`open` | `mitigated` | `closed`), Affe
 
 | Finding | Reason deferred | Lands |
 |---|---|---|
-| WR-06 health routes open four fresh backend connections per request | Needs a single-flight cached probe layer on the application pool; no Phase 1 must-have fails | Start of Phase 2 |
-| WR-10 Go schema verify compares type families only | Needs a full comparison against `conf/schema.json`; the claim is narrowed by R-86 meanwhile | First Go DAO consumer, Phase 2 |
-| WR-20 Vite dev proxy misses Go exact paths that carry a query string | Dev server only; no Phase 1 Go exact route is called with a query string; production Nginx is correct | Phase 2, when `GET /api/v1/users?...` is first used |
-| WR-23 `check_secrets` blind spots | Tightening needs false-positive triage across env examples and fixtures; no real secret is committed | Start of Phase 2, before credential handling |
+| WR-06 health routes open four fresh backend connections per request | Needs a single-flight cached probe layer on the application pool; no Phase 1 must-have fails | Closed by plan 02-02 (single-flight cached probes, pool read/write timeouts) |
+| WR-10 Go schema verify compares type families only | Needs a full comparison against `conf/schema.json`; the claim is narrowed by R-86 meanwhile | Plan 02-07 (first Go DAO consumers are plans 02-09 onward) |
+| WR-20 Vite dev proxy misses Go exact paths that carry a query string | Dev server only; no Phase 1 Go exact route is called with a query string; production Nginx is correct | Plan 02-27 (Vite proxy key fix; no Phase 2 Go exact route is called with a query string, but `vite.config.ts` is touched there) |
+| WR-23 `check_secrets` blind spots | Tightening needs false-positive triage across env examples and fixtures; no real secret is committed | Closed by plan 02-02 (unquoted, Go `:=` and token-named secrets now detected) |
 | IN-01..IN-18 | Informational; out of scope for gap closure | Rolling backlog |
+
+Also this phase: WR-16, WR-19, WR-26 (plan 02-02) and CR-02, WR-04, WR-24 (plan 02-01) are closed by their plans; WR-25 is subsumed by plans 02-10 and 02-14 (default-deny gate and route enumeration). B-15 stays open until plan 02-26 marks each item closed.
 
 - Needed from user: nothing now; review when Phase 2 is planned.
 - Workaround in repo: none.

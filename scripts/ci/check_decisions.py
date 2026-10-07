@@ -11,7 +11,13 @@ from pathlib import Path
 ALLOWED = {"user-confirmed", "accepted (auto, not user-reviewed)", "open"}
 # Rows the user decided in person. 3, 17, 18, 48: scope answers on 2026-10-05. 49: docs/apikey llm.md reviewed
 # and released, 2026-10-07. 87: dev web port, 2026-10-07.
-CONFIRMED = {3, 17, 18, 48, 49, 87}
+# 2026-10-07, Phase 2 discuss session and post-research approval (D-01..D-16, D-20..D-23), user's own answers:
+#   33 token format (D-09..D-11), 36 owner-only invites (D-13), 91 cookie fallback (D-21), 95 dev mail catcher (D-05, D-20),
+#   98 en/zh languages (D-23), 100 REGISTER_ENABLED (D-01), 101 password rule (D-02), 102 first superuser (D-03),
+#   103 generic login failure (D-04), 104 reset code policy (D-05..D-08), 105 API/shared tokens (D-10, D-12),
+#   106 invitations and membership (D-14..D-16), 108 default model ids (D-22), 109 approved dependencies (D-20).
+# Rows decided by research, the planner or the orchestrator (D-24..D-31, R-112..R-114) are never listed here.
+CONFIRMED = {3, 17, 18, 48, 49, 87, 33, 36, 91, 95, 98, 100, 101, 102, 103, 104, 105, 106, 108, 109}
 ROW = re.compile(r"^\| R-(\d+) \|")
 
 
