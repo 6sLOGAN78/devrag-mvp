@@ -66,7 +66,10 @@ func runAPI() error {
 	engine := router.NewEngine(cfg, logger, handler.NewSystem(svc),
 		router.WithAuth(auth),
 		router.WithAccount(handler.NewAccount(accounts, cfg.Security.TokenMaxAge)),
-		router.WithSession(handler.NewUser(auth)))
+		router.WithSession(handler.NewUser(auth)),
+		router.WithProfile(
+			handler.NewSettings(service.NewUser(db, service.NewLimiter(rd, "rl"), cfg)),
+			handler.NewTenant(service.NewTenant(db))))
 	srv := &http.Server{Addr: cfg.Addr(), Handler: engine, ReadHeaderTimeout: readHeaderTimeout}
 
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)

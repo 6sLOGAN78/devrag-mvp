@@ -3,7 +3,6 @@ package handler
 import (
 	"errors"
 	"net/http"
-	"time"
 
 	"github.com/gin-gonic/gin"
 
@@ -76,18 +75,85 @@ func (h *User) Logout(c *gin.Context) {
 	common.OK(c, nil)
 }
 
+const (
+	// maxSettingBody leaves room for a 256 KB avatar as a base64 data URL (T-02-70).
+	maxSettingBody = 400 << 10
+	// maxPasswordBody caps a password-change body (T-02-70).
+	maxPasswordBody = 2 << 10
+)
+
 // Settings serves profile settings and password change.
-type Settings struct{}
-
-// NewSettings builds the handler.
-func NewSettings(*service.User, time.Duration) *Settings { return &Settings{} }
-
-// Update is not implemented yet.
-func (*Settings) Update(c *gin.Context) {
-	common.Fail(c, http.StatusNotImplemented, common.CodeServerError, "not implemented")
+type Settings struct {
+	svc *service.User
 }
 
-// ChangePassword is not implemented yet.
-func (*Settings) ChangePassword(c *gin.Context) {
-	common.Fail(c, http.StatusNotImplemented, common.CodeServerError, "not implemented")
+// NewSettings builds the handler.
+func NewSettings(svc *service.User) *Settings { return &Settings{svc: svc} }
+
+// settingRequest lists the only fields a client may set. Unknown JSON fields (id, tenant_id,
+// email, is_superuser, status, password, access_token, ...) are never read.
+type settingRequest struct {
+	Nickname    *string `json:"nickname"`
+	Avatar      *string `json:"avatar"`
+	Language    *string `json:"language"`
+	ColorSchema *string `json:"color_schema"`
+}
+
+// SettingDTO is the POST /v1/user/setting result: the profile fields that can change, without the avatar bytes.
+type SettingDTO struct {
+	ID          string `json:"id"`
+	Nickname    string `json:"nickname"`
+	Language    string `json:"language"`
+	ColorSchema string `json:"color_schema"`
+}
+
+type passwordRequest struct {
+	OldPassword string `json:"old_password"`
+	NewPassword string `json:"new_password"`
+}
+
+// Update answers POST /v1/user/setting for the authenticated caller only.
+func (h *Settings) Update(c *gin.Context) {
+	p, ok := PrincipalFrom(c)
+	if !ok {
+		deny(c)
+		return
+	}
+	var req settingRequest
+	if !bindLimit(c, &req, maxSettingBody) {
+		return
+	}
+	prof, err := h.svc.UpdateSetting(c.Request.Context(), p.UserID, service.SettingInput{
+		Nickname: req.Nickname, Avatar: req.Avatar, Language: req.Language, ColorSchema: req.ColorSchema,
+	})
+	if err != nil {
+		fail(c, err)
+		return
+	}
+	c.Header("Cache-Control", "no-store")
+	common.OK(c, SettingDTO{ID: prof.ID, Nickname: prof.Nickname, Language: prof.Language, ColorSchema: prof.ColorSchema})
+}
+
+// ChangePassword answers POST /v1/user/setting/password. Success signs every device out, so the
+// auth cookie is expired in the same response (D-08).
+func (h *Settings) ChangePassword(c *gin.Context) {
+	p, ok := PrincipalFrom(c)
+	if !ok {
+		deny(c)
+		return
+	}
+	var req passwordRequest
+	if !bindLimit(c, &req, maxPasswordBody) {
+		return
+	}
+	if err := h.svc.ChangePassword(c.Request.Context(), p.UserID, service.ChangePasswordInput{Current: req.OldPassword, New: req.NewPassword}); err != nil {
+		fail(c, err)
+		return
+	}
+	http.SetCookie(c.Writer, &http.Cookie{
+		Name: AuthCookieName, Value: "", Path: "/", MaxAge: -1,
+		HttpOnly: true, SameSite: http.SameSiteLaxMode, Secure: secureRequest(c.Request),
+	})
+	c.Header("Cache-Control", "no-store")
+	common.OK(c, nil)
 }

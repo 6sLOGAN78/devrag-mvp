@@ -69,9 +69,12 @@ func toUserDTO(p service.Profile) UserDTO {
 	return UserDTO{ID: p.ID, Email: p.Email, Nickname: p.Nickname, Avatar: p.Avatar, Language: p.Language, ColorSchema: p.ColorSchema, TenantID: p.TenantID}
 }
 
-// bind reads a size-capped JSON body into dst. It writes the error envelope and returns false on failure.
-func bind(c *gin.Context, dst any) bool {
-	c.Request.Body = http.MaxBytesReader(c.Writer, c.Request.Body, maxAccountBody)
+// bind reads a JSON body of at most maxAccountBody bytes into dst.
+func bind(c *gin.Context, dst any) bool { return bindLimit(c, dst, maxAccountBody) }
+
+// bindLimit reads a size-capped JSON body into dst. It writes the error envelope and returns false on failure.
+func bindLimit(c *gin.Context, dst any, limit int64) bool {
+	c.Request.Body = http.MaxBytesReader(c.Writer, c.Request.Body, limit)
 	if err := json.NewDecoder(c.Request.Body).Decode(dst); err != nil {
 		var tooBig *http.MaxBytesError
 		if errors.As(err, &tooBig) {
@@ -134,6 +137,12 @@ func fail(c *gin.Context, err error) {
 		common.Fail(c, http.StatusForbidden, common.CodeForbidden, "registration is disabled")
 	case errors.Is(err, service.ErrEmailTaken):
 		common.Fail(c, http.StatusConflict, common.CodeConflict, "email already registered")
+	case errors.Is(err, service.ErrCurrentPasswordIncorrect):
+		common.Fail(c, http.StatusBadRequest, common.CodeArgumentError, service.ErrCurrentPasswordIncorrect.Error())
+	case errors.Is(err, service.ErrNoTenant):
+		common.Fail(c, http.StatusNotFound, common.CodeNotFound, "workspace not found")
+	case errors.Is(err, service.ErrUnauthenticated):
+		deny(c)
 	case errors.Is(err, service.ErrInvalidCredentials):
 		common.Fail(c, http.StatusUnauthorized, common.CodeUnauthorized, service.ErrInvalidCredentials.Error())
 	case errors.Is(err, service.ErrUnavailable):
