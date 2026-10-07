@@ -8,6 +8,7 @@ import (
 	"regexp"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -22,11 +23,36 @@ var sensitiveKeys = []string{"password", "passwd", "pwd", "secret", "api_key", "
 const redactedMarker = "***unserialisable***"
 
 // fragmentPattern matches key=value, key: value and "key": "value" forms for sensitive keys.
-// Groups: 1 key (with optional quotes), 2 separator, 3 value (optional auth scheme + quoted or bare run).
-var fragmentPattern = regexp.MustCompile(`(?i)(["']?[\w-]*(?:password|passwd|pwd|secret|api[_-]?key|token|authorization|cookie)[\w-]*["']?)(\s*[=:]\s*)((?:(?:Bearer|Basic|Digest|Token)\s+)?(?:"[^"]*"|'[^']*'|[^\s,;&}]+))`)
+// Groups: 1 key (with optional quotes), 2 separator, 3 value (AWS4 signature line, or optional auth
+// scheme + quoted run with escaped quotes or bare run). RE2 guarantees linear-time matching.
+var fragmentPattern = regexp.MustCompile(`(?i)(["']?[\w-]*(?:password|passwd|pwd|secret|api[_-]?key|token|authorization)[\w-]*["']?)([ \t]*[=:][ \t]*)(AWS4-HMAC-SHA256[ \t]+[^\n]+|(?:(?:Bearer|Basic|Digest|Token|ApiKey|Api-Key|Negotiate)[ \t]+)?(?:"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|[^\s,;&}]+))`)
 
-// urlUserinfoPattern matches scheme://user:password@ and keeps everything but the password.
-var urlUserinfoPattern = regexp.MustCompile(`(?i)(\b[a-z][a-z0-9+.-]*://[^\s:/@]+:)[^\s@/]+(@)`)
+// cookiePattern masks cookie and set-cookie values: a quoted value, otherwise everything to end of line.
+var cookiePattern = regexp.MustCompile(`(?i)(["']?[\w-]*cookie[\w-]*["']?)([ \t]*[=:][ \t]*)("(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|[^\n]+)`)
+
+// urlUserinfoPattern matches scheme://user:password@ (user may be empty, the password may contain @,
+// the greedy class stops at the last @ of the authority) and keeps everything but the password.
+var urlUserinfoPattern = regexp.MustCompile(`(?i)([a-z][a-z0-9+.-]*://[^\s:/@?#]*:)[^\s/?#]*(@)`)
+
+const (
+	// maxRedactInput bounds the text inspected by RedactString (parity with the Python engine).
+	maxRedactInput = 64 * 1024
+	// MaxLogField bounds untrusted fields such as request paths at the log site.
+	MaxLogField     = 512
+	truncatedMarker = "[truncated]"
+)
+
+// TruncateField bounds an untrusted, client-controlled value at the log site without splitting a rune.
+func TruncateField(s string, limit int) string {
+	if len(s) <= limit {
+		return s
+	}
+	cut := limit
+	for cut > 0 && !utf8.RuneStart(s[cut]) {
+		cut--
+	}
+	return s[:cut] + truncatedMarker
+}
 
 // IsSensitiveKey reports whether a log field key must have its value masked.
 func IsSensitiveKey(key string) bool {
@@ -39,11 +65,19 @@ func IsSensitiveKey(key string) bool {
 	return false
 }
 
-// RedactString masks credentials (key=value fragments, bearer tokens, URL userinfo) inside free text.
+// RedactString masks credentials (key=value fragments, auth headers, cookies, URL userinfo) inside free text.
 func RedactString(s string) string {
+	if len(s) > maxRedactInput {
+		return RedactString(TruncateField(s, maxRedactInput-len(truncatedMarker)))
+	}
 	s = urlUserinfoPattern.ReplaceAllString(s, "${1}"+RedactedValue+"${2}")
-	return fragmentPattern.ReplaceAllStringFunc(s, func(m string) string {
-		sub := fragmentPattern.FindStringSubmatch(m)
+	s = redactWith(cookiePattern, s)
+	return redactWith(fragmentPattern, s)
+}
+
+func redactWith(re *regexp.Regexp, s string) string {
+	return re.ReplaceAllStringFunc(s, func(m string) string {
+		sub := re.FindStringSubmatch(m)
 		val := sub[3]
 		quote := ""
 		if val != "" && (val[len(val)-1] == '"' || val[len(val)-1] == '\'') {

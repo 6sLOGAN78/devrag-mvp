@@ -5,7 +5,10 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
+	"time"
+	"unicode/utf8"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -134,4 +137,26 @@ func TestJSONTaggedPasswordNotSerialised(t *testing.T) {
 	l, logs := observed()
 	l.Info("cfg", zap.Reflect("cfg", secretHolder{User: "app", Password: "hunter2-fake"}))
 	assert.NotContains(t, fmt.Sprintf("%v", logs.All()[0].ContextMap()), "hunter2-fake")
+}
+
+func TestHostileInputRedactsLinearly(t *testing.T) {
+	for name, in := range map[string]string{
+		"a_run":        strings.Repeat("a", 100000),
+		"token_repeat": strings.Repeat("token", 20000),
+		"pw_equals":    strings.Repeat("password=", 12000),
+		"scheme":       strings.Repeat("a://", 25000),
+	} {
+		t.Run(name, func(t *testing.T) {
+			started := time.Now()
+			RedactString(in)
+			assert.Less(t, time.Since(started), 2*time.Second)
+		})
+	}
+}
+
+func TestTruncateFieldKeepsRunesIntact(t *testing.T) {
+	out := TruncateField(strings.Repeat("é", 400), 511)
+	assert.True(t, utf8.ValidString(out))
+	assert.True(t, strings.HasSuffix(out, "[truncated]"))
+	assert.Equal(t, "/health", TruncateField("/health", MaxLogField))
 }

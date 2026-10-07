@@ -172,6 +172,17 @@ func TestRequestLogFields(t *testing.T) {
 	assert.Contains(t, entry, "duration_ms")
 }
 
+func TestRequestLogTruncatesLongPath(t *testing.T) {
+	e, logs := build(t, pinger{}, pinger{}, settings{}, nil)
+	w := do(e, http.MethodGet, "/"+strings.Repeat("a", 8192), nil)
+	assert.Equal(t, http.StatusNotFound, w.Code)
+	entry := logs.FilterMessage("request").All()[0].ContextMap()
+	path, ok := entry["path"].(string)
+	require.True(t, ok)
+	assert.True(t, strings.HasSuffix(path, "[truncated]"))
+	assert.Equal(t, common.MaxLogField+len("[truncated]"), len(path))
+}
+
 func TestCORSAllowedOriginEchoed(t *testing.T) {
 	e, _ := build(t, pinger{}, pinger{}, settings{}, []string{"http://ok.test"})
 	w := do(e, http.MethodGet, "/api/v1/system/ping", map[string]string{"Origin": "http://ok.test"})

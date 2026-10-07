@@ -27,7 +27,7 @@ func requestLogger(logger *zap.Logger) gin.HandlerFunc {
 		c.Next()
 		logger.Info("request",
 			zap.String("method", c.Request.Method),
-			zap.String("path", c.Request.URL.Path),
+			zap.String("path", common.TruncateField(c.Request.URL.Path, common.MaxLogField)),
 			zap.Int("status", c.Writer.Status()),
 			zap.Float64("duration_ms", float64(time.Since(started).Microseconds())/1000.0),
 		)
@@ -37,7 +37,7 @@ func requestLogger(logger *zap.Logger) gin.HandlerFunc {
 // recovery turns a panic into the 500 envelope. The panic value never reaches the client.
 func recovery(logger *zap.Logger) gin.HandlerFunc {
 	return gin.CustomRecovery(func(c *gin.Context, recovered any) {
-		logger.Error("panic recovered", zap.String("path", c.Request.URL.Path), zap.String("panic", fmt.Sprint(recovered)))
+		logger.Error("panic recovered", zap.String("path", common.TruncateField(c.Request.URL.Path, common.MaxLogField)), zap.String("panic", fmt.Sprint(recovered)))
 		common.Fail(c, http.StatusInternalServerError, common.CodeServerError, "internal error")
 		c.Abort()
 	})
