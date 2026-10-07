@@ -12,12 +12,12 @@ Requirements for initial release. Each maps to exactly one roadmap phase.
 ### AUTH — Authentication, sessions, tokens, API keys
 
 - [ ] **AUTH-01**: User can register with email, password, nickname via `POST /api/v1/users`; email format, nickname, and email uniqueness are validated
-- [ ] **AUTH-02**: Passwords are stored only as salted hashes and verified on login
+- [x] **AUTH-02**: Passwords are stored only as salted hashes and verified on login
 - [ ] **AUTH-03**: Registration atomically provisions a `tenant` row and a `user_tenant` link with `role='owner'`; failure rolls back all three inserts
 - [x] **AUTH-04**: Registration initializes the tenant's default model configuration (`tenant_llm`)
 - [ ] **AUTH-05**: User can log in with email and password via `POST /api/v1/auth/login` and receives `access_token` plus user object; only users with valid status may log in
 - [ ] **AUTH-06**: Login resolves the user's tenant id, role, and tenant default models (chat, embedding, rerank)
-- [ ] **AUTH-07**: Protected routes on both servers accept `Authorization: Bearer <token>` and populate request user context (`g.user` / `c.Set("user")`)
+- [x] **AUTH-07**: Protected routes on both servers accept `Authorization: Bearer <token>` and populate request user context (`g.user` / `c.Set("user")`)
 - [x] **AUTH-08**: Token validation rejects empty/whitespace tokens, tokens shorter than 32 chars, and tokens beginning `INVALID_`
 - [ ] **AUTH-09**: User can log out; logout rewrites `user.access_token` to `INVALID_<hex>` so the old token returns 401 thereafter
 - [ ] **AUTH-10**: Requests without an `Authorization` header fall back to a Redis-backed server session cookie (`_user_id`)
@@ -682,12 +682,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | AUTH-01 | Phase 2 | Pending |
-| AUTH-02 | Phase 2 | Pending |
+| AUTH-02 | Phase 2 | Complete |
 | AUTH-03 | Phase 2 | Pending |
 | AUTH-04 | Phase 2 | Complete |
 | AUTH-05 | Phase 2 | Pending |
 | AUTH-06 | Phase 2 | Pending |
-| AUTH-07 | Phase 2 | Pending |
+| AUTH-07 | Phase 2 | Complete |
 | AUTH-08 | Phase 2 | Complete |
 | AUTH-09 | Phase 2 | Pending |
 | AUTH-10 | Phase 2 | Pending |
