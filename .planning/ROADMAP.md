@@ -125,7 +125,7 @@ Plans:
 **Wave 1**
 
 - [x] 02-01-PLAN.md - CR-02 linear log redactor, WR-04/WR-24 vectors, truncated log fields
-- [ ] 02-02-PLAN.md - Hardening: WR-16, WR-19, WR-23, WR-26, WR-06
+- [x] 02-02-PLAN.md - Hardening: WR-16, WR-19, WR-23, WR-26, WR-06
 - [ ] 02-03-PLAN.md - DECISIONS rows R-88..R-114, CONFIRMED set, B-15 landing points
 
 **Wave 2** *(blocked on Wave 1 completion)*
