@@ -1,0 +1,23 @@
+{
+  "_comment": "Hand-written oracle of docs/16-auth/permissions.md (Level 2 matrix), shared by the Go and Python table tests. Independent of conf/permissions.yaml on purpose: a wrong table fails against it.",
+  "subjects": ["owner", "admin", "normal", "beta_token", "api_token"],
+  "rows": [
+    {"area": "datasets", "action": "manage_dataset", "allowed": ["owner", "admin", "normal", "api_token"]},
+    {"area": "datasets", "action": "manage_document", "allowed": ["owner", "admin", "normal", "api_token"]},
+    {"area": "datasets", "action": "retrieval_test", "allowed": ["owner", "admin", "normal", "beta_token", "api_token"]},
+    {"area": "agent_canvas", "action": "manage_flow", "allowed": ["owner", "admin", "normal", "api_token"]},
+    {"area": "agent_canvas", "action": "stream_completion", "allowed": ["owner", "admin", "normal", "beta_token", "api_token"]},
+    {"area": "search_bots", "action": "ask", "allowed": ["owner", "admin", "normal", "beta_token", "api_token"]},
+    {"area": "mcp_server", "action": "tool_call", "allowed": ["owner", "admin", "normal", "beta_token", "api_token"]},
+    {"area": "tenant_settings", "action": "update_llm_keys", "allowed": ["owner", "admin"]},
+    {"area": "team_admin", "action": "manage_members", "allowed": ["owner"]},
+    {"area": "enterprise_admin", "action": "view_health", "allowed": ["owner", "admin"]}
+  ],
+  "never_allowed_subjects": ["invite", "", "superuser", "OWNER", "owner ", "root"],
+  "unknown_pairs": [
+    ["team_admin", "view_health"],
+    ["datasets", "manage_members"],
+    ["no_such_area", "manage_members"],
+    ["", ""]
+  ]
+}

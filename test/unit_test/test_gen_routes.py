@@ -91,6 +91,7 @@ def run_gen(*args: str, root: Path | None = None) -> subprocess.CompletedProcess
 def make_root(tmp_path: Path) -> Path:
     (tmp_path / "conf").mkdir()
     shutil.copy(REPO_ROOT / "conf/routes.yaml", tmp_path / "conf/routes.yaml")
+    shutil.copy(REPO_ROOT / "conf/permissions.yaml", tmp_path / "conf/permissions.yaml")
     assert run_gen(root=tmp_path).returncode == 0
     return tmp_path
 

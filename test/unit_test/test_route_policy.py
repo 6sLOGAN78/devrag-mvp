@@ -101,6 +101,7 @@ def test_registry_marks_logout_and_user_info_implemented() -> None:
 def _copy_root(tmp_path: Path) -> Path:
     (tmp_path / "conf").mkdir()
     shutil.copy(ROUTES, tmp_path / "conf/routes.yaml")
+    shutil.copy(REPO_ROOT / "conf" / "permissions.yaml", tmp_path / "conf/permissions.yaml")
     return tmp_path
 
 

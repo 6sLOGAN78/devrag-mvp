@@ -200,6 +200,24 @@ func InsertPendingInvite(t *testing.T, src server.MySQLConfig, userID, tenantID,
 	}
 }
 
+// SetMemberRole sets the role of one existing user_tenant row, the way the role-change endpoint of
+// plan 02-23 will. Until that endpoint exists it is how tests create admin members. It touches only
+// the row of (tenantID, userID).
+func SetMemberRole(t *testing.T, src server.MySQLConfig, tenantID, userID, role string) {
+	t.Helper()
+	db := rootDB(t, src, "SetMemberRole")
+	if sqlDB, err := db.DB(); err == nil {
+		defer func() { _ = sqlDB.Close() }()
+	}
+	res := db.Exec("UPDATE `user_tenant` SET `role` = ? WHERE `tenant_id` = ? AND `user_id` = ?", role, tenantID, userID)
+	if res.Error != nil {
+		t.Fatalf("SetMemberRole: %v", res.Error)
+	}
+	if res.RowsAffected != 1 {
+		t.Fatalf("SetMemberRole: expected one row, changed %d", res.RowsAffected)
+	}
+}
+
 // DeleteAccount removes exactly the rows of one fixture account by recorded id, using the
 // administrative account (MYSQL_ROOT_PASSWORD). It never deletes by pattern.
 func DeleteAccount(t *testing.T, src server.MySQLConfig, acc Account) {
@@ -224,6 +242,7 @@ func DeleteAccount(t *testing.T, src server.MySQLConfig, acc Account) {
 		{"DELETE FROM `api_token` WHERE `tenant_id` = ?", acc.TenantID},
 		{"DELETE FROM `tenant_llm` WHERE `tenant_id` = ?", acc.TenantID},
 		{"DELETE FROM `user_tenant` WHERE `user_id` = ?", acc.UserID},
+		{"DELETE FROM `user_tenant` WHERE `tenant_id` = ?", acc.TenantID},
 		{"DELETE FROM `tenant` WHERE `id` = ?", acc.TenantID},
 		{"DELETE FROM `user` WHERE `id` = ?", acc.UserID},
 	}

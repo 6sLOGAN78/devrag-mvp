@@ -1,0 +1,24 @@
+# Permission matrix of docs/16-auth/permissions.md (Level 2), one entry per row of that table (D-13, D-26).
+# Source of internal/common/permissions_gen.go and api/apps/permissions_gen.py:
+#   uv run python scripts/gen_routes.py          # regenerate
+#   uv run python scripts/gen_routes.py --check  # CI drift gate (scripts/ci/check_generated.py)
+#
+# subjects: the three workspace roles plus the two credential classes of the docs table.
+#   `invite` (a pending invitation) is deliberately NOT a subject: it is never membership (D-26).
+# allow: the subjects that may perform the action. Anything absent, and every (area, action) pair that is
+#   not listed, is denied.
+# enforced_in: the plan or phase whose routes call Allowed() for the row. Rows are recorded now and
+#   enforced as their routes land; Team Admin is owner-only (D-13, resolves R-36).
+subjects: [owner, admin, normal, beta_token, api_token]
+
+permissions:
+  - {area: datasets, action: manage_dataset, description: Create / Edit / Delete Dataset, allow: [owner, admin, normal, api_token], enforced_in: phase-3}
+  - {area: datasets, action: manage_document, description: Upload / Chunk / Delete Document, allow: [owner, admin, normal, api_token], enforced_in: phase-3}
+  - {area: datasets, action: retrieval_test, description: Run Retrieval Testing, allow: [owner, admin, normal, beta_token, api_token], enforced_in: phase-5}
+  - {area: agent_canvas, action: manage_flow, description: Create / Save / Delete Flow, allow: [owner, admin, normal, api_token], enforced_in: phase-7}
+  - {area: agent_canvas, action: stream_completion, description: Stream Agent Completion, allow: [owner, admin, normal, beta_token, api_token], enforced_in: phase-7}
+  - {area: search_bots, action: ask, description: Ask Search Bot (/searchbots/ask), allow: [owner, admin, normal, beta_token, api_token], enforced_in: phase-8}
+  - {area: mcp_server, action: tool_call, description: Handle MCP Tool Calls (/mcp), allow: [owner, admin, normal, beta_token, api_token], enforced_in: phase-8}
+  - {area: tenant_settings, action: update_llm_keys, description: Update LLM Provider Keys, allow: [owner, admin], enforced_in: phase-3}
+  - {area: team_admin, action: manage_members, description: Invite Member / Change Role, allow: [owner], enforced_in: "02-22"}
+  - {area: enterprise_admin, action: view_health, description: View System Health Metrics, allow: [owner, admin], enforced_in: phase-8}
