@@ -1,13 +1,24 @@
 {
-  "app": { "wordmark": "devRag", "titleSuffix": "devRag" },
+  "app": {
+    "wordmark": "devRag",
+    "titleSuffix": "devRag"
+  },
   "nav": {
     "systemStatus": "系统状态",
     "groupCaption": "平台",
     "openMenu": "打开导航菜单",
     "closeMenu": "关闭"
   },
-  "a11y": { "skipLink": "跳到主要内容", "primaryNav": "主导航" },
-  "theme": { "label": "切换主题", "light": "浅色", "dark": "深色", "system": "跟随系统" },
+  "a11y": {
+    "skipLink": "跳到主要内容",
+    "primaryNav": "主导航"
+  },
+  "theme": {
+    "label": "切换主题",
+    "light": "浅色",
+    "dark": "深色",
+    "system": "跟随系统"
+  },
   "errorState": {
     "headingFor": "无法加载{{noun}}",
     "defaultNoun": "数据",
@@ -15,5 +26,65 @@
     "action": "重试",
     "codeLabel": "错误码"
   },
-  "emptyState": { "fallbackHeading": "这里还没有内容", "headingFor": "还没有{{noun}}" }
+  "emptyState": {
+    "fallbackHeading": "这里还没有内容",
+    "headingFor": "还没有{{noun}}"
+  },
+  "notFound": {
+    "display": "404",
+    "heading": "页面不存在",
+    "pageTitle": "页面不存在 - devRag",
+    "body": "此页面不存在,或在当前版本中不可用。返回系统状态。",
+    "action": "前往系统状态"
+  },
+  "renderError": {
+    "heading": "出了点问题",
+    "body": "此页面加载失败。请重新加载后重试。",
+    "action": "重新加载页面"
+  },
+  "status": {
+    "title": "系统状态",
+    "pageTitle": "系统状态 - devRag",
+    "refresh": "刷新状态",
+    "loading": "正在检查服务",
+    "updated": "更新于 {{time}}",
+    "elapsedMs": "{{ms}} 毫秒",
+    "sourceLabel": "X-API-Source",
+    "healthy": "正常",
+    "degraded": "降级",
+    "unreachable": "无法连接",
+    "down": "故障",
+    "ok": "正常",
+    "goApi": "Go API",
+    "pythonApi": "Python API",
+    "errorNoun": "服务状态",
+    "dependencies": {
+      "database": "数据库",
+      "redis": "Redis",
+      "storage": "存储",
+      "doc_store": "文档库"
+    }
+  },
+  "toast": {
+    "apiError": {
+      "title": "请求失败",
+      "fallback": "服务器拒绝了该请求。请重试。"
+    },
+    "serverError": {
+      "title": "服务器错误",
+      "description": "服务器出现问题。请稍后重试。"
+    },
+    "network": {
+      "title": "无法连接到服务器",
+      "description": "请检查网络连接后重试。"
+    },
+    "timeout": {
+      "title": "请求超时",
+      "description": "服务器响应时间过长。请重试。"
+    },
+    "session": {
+      "title": "会话已过期",
+      "description": "您的会话已结束。请重新加载页面以继续。"
+    }
+  }
 }

@@ -6,7 +6,6 @@ import { beforeAll, describe, expect, it, vi } from "vitest";
 import { EmptyState } from "@/components/empty-state";
 import { ErrorState } from "@/components/error-state";
 import { RouteSkeleton } from "@/components/route-skeleton";
-import { copy } from "@/constants/copy";
 import i18n from "@/i18n";
 import { navEntries, routes, type RouteEntry } from "@/constants/routes";
 import { waitUntil } from "@/test/wait-until";
@@ -48,7 +47,7 @@ describe("StandardLayout", () => {
     renderIn(StandardLayout);
     expect(screen.getByTestId("layout-standard")).toBeInTheDocument();
     expect(screen.getByTestId("app-shell")).toBeInTheDocument();
-    expect(screen.getByRole("banner")).toHaveTextContent(copy.app.wordmark);
+    expect(screen.getByRole("banner")).toHaveTextContent(i18n.t("app.wordmark"));
     expect(screen.getByRole("navigation", { name: "Primary" })).toBeInTheDocument();
     const main = screen.getByRole("main");
     expect(main).toHaveAttribute("id", "main");
@@ -120,7 +119,7 @@ describe("StandardLayout", () => {
   it("opens the mobile sheet, traps focus inside and closes on Escape", async () => {
     renderIn(StandardLayout);
     expect(screen.queryByRole("dialog")).toBeNull();
-    await userEvent.click(screen.getByRole("button", { name: copy.nav.openMenu }));
+    await userEvent.click(screen.getByRole("button", { name: i18n.t("nav.openMenu") }));
     const dialog = await screen.findByRole("dialog");
     expect(within(dialog).getByRole("link", { name: "System status" })).toBeInTheDocument();
     for (let i = 0; i < 6; i += 1) {

@@ -5,7 +5,7 @@ import type { AxiosAdapter, AxiosRequestConfig, AxiosResponse } from "axios";
 import { AxiosError, AxiosHeaders } from "axios";
 import { beforeEach, describe, expect, it } from "vitest";
 import { Toaster } from "@/components/ui/sonner";
-import { copy } from "@/constants/copy";
+import i18n from "@/i18n";
 import { useUserStore } from "@/stores/user-store";
 import { getAuthorization, setAuthorization } from "@/utils/authorization";
 import { ApiError, http, registerQueryClient, request, requestWithMeta } from "./http";
@@ -69,7 +69,7 @@ describe("unit http client", () => {
     const error = await request({ url: "/x" }).catch((e: unknown) => e);
     expect(error).toBeInstanceOf(ApiError);
     expect(error).toMatchObject({ code: 101, status: 200, message });
-    expect(await screen.findByText(copy.toast.apiError.title)).toBeInTheDocument();
+    expect(await screen.findByText(i18n.t("toast.apiError.title"))).toBeInTheDocument();
     expect(await screen.findByText(message)).toBeInTheDocument();
     expect(await screen.findByText("Code 101")).toBeInTheDocument();
   });
@@ -94,7 +94,7 @@ describe("unit http client", () => {
     render(createElement(Toaster));
     reply = { data: { code: 101, message: "x".repeat(161), data: null } };
     await request({ url: "/x" }).catch(() => undefined);
-    expect(await screen.findByText(copy.toast.apiError.fallback)).toBeInTheDocument();
+    expect(await screen.findByText(i18n.t("toast.apiError.fallback"))).toBeInTheDocument();
     expect(screen.queryByText("x".repeat(161))).toBeNull();
   });
 
@@ -120,7 +120,7 @@ describe("unit http client", () => {
     expect(getAuthorization()).toBeNull();
     expect(useUserStore.getState().userId).toBeNull();
     expect(qc.getQueryData(["k"])).toBeUndefined();
-    expect(await screen.findAllByText(copy.toast.session.description)).toHaveLength(1);
+    expect(await screen.findAllByText(i18n.t("toast.session.description"))).toHaveLength(1);
     expect(screen.getByText("Your session ended. Reload the page to continue.")).toBeInTheDocument();
   });
 
@@ -129,7 +129,7 @@ describe("unit http client", () => {
     reply = { status: 502, data: "<html>bad gateway</html>" };
     const error = (await request({ url: "/x" }).catch((e: unknown) => e)) as ApiError;
     expect(error).toMatchObject({ code: -1, status: 502 });
-    expect(await screen.findByText(copy.toast.serverError.title)).toBeInTheDocument();
+    expect(await screen.findByText(i18n.t("toast.serverError.title"))).toBeInTheDocument();
     expect(screen.queryByText(/bad gateway/)).toBeNull();
   });
 
@@ -138,7 +138,7 @@ describe("unit http client", () => {
     reply = { fail: "network" };
     const error = (await request({ url: "/x" }).catch((e: unknown) => e)) as ApiError;
     expect(error).toMatchObject({ status: 0 });
-    expect(await screen.findByText(copy.toast.network.title)).toBeInTheDocument();
+    expect(await screen.findByText(i18n.t("toast.network.title"))).toBeInTheDocument();
   });
 
   it("maps a timeout to the timeout copy and uses a 10 s default", async () => {
@@ -147,7 +147,7 @@ describe("unit http client", () => {
     reply = { fail: "timeout" };
     const error = (await request({ url: "/x" }).catch((e: unknown) => e)) as ApiError;
     expect(error).toMatchObject({ status: 0 });
-    expect(await screen.findByText(copy.toast.timeout.title)).toBeInTheDocument();
+    expect(await screen.findByText(i18n.t("toast.timeout.title"))).toBeInTheDocument();
   });
 
   it("injects the bearer header only when a token exists", async () => {
@@ -228,7 +228,7 @@ describe("unit http client token handling", () => {
     expect(useUserStore.getState().userId).toBe("u1");
     expect(qc.getQueryData(["k"])).toBe(1);
     expect(await screen.findByText(message)).toBeInTheDocument();
-    expect(screen.queryByText(copy.toast.session.description)).toBeNull();
+    expect(screen.queryByText(i18n.t("toast.session.description"))).toBeNull();
   });
 
   it.each([

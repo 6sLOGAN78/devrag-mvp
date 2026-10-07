@@ -1,13 +1,13 @@
 import type { UseQueryResult } from "@tanstack/react-query";
 import { Loader2, RefreshCw } from "lucide-react";
 import { useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { ErrorState } from "@/components/error-state";
 import { PageHeader } from "@/components/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { copy } from "@/constants/copy";
 import { useSystemStatusRequest } from "@/hooks/use-system-status-request";
 import { ApiError } from "@/services/http";
 import { dependencyOrder, type ServiceHealth } from "@/interfaces/health";
@@ -22,7 +22,8 @@ function overallOf(query: UseQueryResult<ServiceHealth>): OverallKind | "loading
 }
 
 function StatusBadge({ kind, testId }: { kind: OverallKind; testId?: string }) {
-  const label = copy.status[kind === "healthy" ? "healthy" : kind];
+  const { t } = useTranslation();
+  const label = t(`status.${kind}`);
   const dot = kind === "healthy" ? "bg-success" : "bg-destructive";
   return (
     <Badge variant={kind === "healthy" ? "success" : kind === "degraded" ? "degraded" : "destructive"} data-testid={testId}>
@@ -33,6 +34,7 @@ function StatusBadge({ kind, testId }: { kind: OverallKind; testId?: string }) {
 }
 
 function DependencyRows({ data }: { data: ServiceHealth["data"] }) {
+  const { t } = useTranslation();
   return (
     <ul className="flex flex-col gap-2">
       {dependencyOrder.map((name) => {
@@ -41,12 +43,12 @@ function DependencyRows({ data }: { data: ServiceHealth["data"] }) {
         const up = probe.status === "ok";
         return (
           <li key={name} data-testid={`status-dependency-${name}`} className="flex items-center justify-between gap-4">
-            <span className="text-sm font-normal">{copy.status.dependencies[name]}</span>
+            <span className="text-sm font-normal">{t(`status.dependencies.${name}`)}</span>
             <span className="flex items-center gap-2">
-              <span className="font-mono text-xs tabular-nums text-muted-foreground">{probe.elapsed_ms} ms</span>
+              <span className="font-mono text-xs tabular-nums text-muted-foreground">{t("status.elapsedMs", { ms: probe.elapsed_ms })}</span>
               <Badge variant={up ? "success" : "destructive"}>
                 <span className={cn("size-2 rounded-full", up ? "bg-success" : "bg-destructive")} aria-hidden="true" />
-                {up ? copy.status.ok : copy.status.down}
+                {up ? t("status.ok") : t("status.down")}
               </Badge>
             </span>
           </li>
@@ -64,6 +66,7 @@ interface EngineCardProps {
 }
 
 function EngineCard({ testId, title, query, onRetry }: EngineCardProps) {
+  const { t } = useTranslation();
   const overall = overallOf(query);
   const updated = query.dataUpdatedAt > 0 ? new Date(query.dataUpdatedAt).toLocaleTimeString() : null;
   return (
@@ -80,11 +83,11 @@ function EngineCard({ testId, title, query, onRetry }: EngineCardProps) {
           <div className="flex flex-col gap-2" role="status">
             <Skeleton className="h-6 w-full" />
             <Skeleton className="h-6 w-full" />
-            <p className="text-xs font-semibold text-muted-foreground">{copy.status.loading}</p>
+            <p className="text-xs font-semibold text-muted-foreground">{t("status.loading")}</p>
           </div>
         ) : overall === "unreachable" ? (
           <ErrorState
-            noun={copy.status.errorNoun}
+            noun={t("status.errorNoun")}
             onAction={onRetry}
             code={query.error instanceof ApiError && query.error.code !== -1 ? query.error.code : undefined}
           />
@@ -93,12 +96,12 @@ function EngineCard({ testId, title, query, onRetry }: EngineCardProps) {
             <DependencyRows data={query.data.data} />
             <div className="flex flex-col gap-1 text-xs text-muted-foreground">
               <p>
-                {copy.status.sourceLabel}:{" "}
+                {t("status.sourceLabel")}:{" "}
                 <span data-testid={`${testId}-source`} className="font-mono">
                   {query.data.source ?? query.data.data.engine}
                 </span>
               </p>
-              {updated ? <p>{copy.status.updated(updated)}</p> : null}
+              {updated ? <p>{t("status.updated", { time: updated })}</p> : null}
             </div>
           </>
         ) : null}
@@ -108,24 +111,25 @@ function EngineCard({ testId, title, query, onRetry }: EngineCardProps) {
 }
 
 export default function SystemStatusPage() {
+  const { t, i18n } = useTranslation();
   const { go, python, isFetching, refetch } = useSystemStatusRequest();
   useEffect(() => {
-    document.title = copy.status.pageTitle;
-  }, []);
+    document.title = t("status.pageTitle");
+  }, [t, i18n.language]);
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
-        title={copy.status.title}
+        title={t("status.title")}
         actions={
           <Button variant="secondary" onClick={() => void refetch()} aria-busy={isFetching}>
             {isFetching ? <Loader2 className="animate-spin" /> : <RefreshCw />}
-            {copy.status.refresh}
+            {t("status.refresh")}
           </Button>
         }
       />
       <div className="grid gap-6 lg:grid-cols-2">
-        <EngineCard testId="status-card-go" title={copy.status.goApi} query={go} onRetry={() => void go.refetch()} />
-        <EngineCard testId="status-card-python" title={copy.status.pythonApi} query={python} onRetry={() => void python.refetch()} />
+        <EngineCard testId="status-card-go" title={t("status.goApi")} query={go} onRetry={() => void go.refetch()} />
+        <EngineCard testId="status-card-python" title={t("status.pythonApi")} query={python} onRetry={() => void python.refetch()} />
       </div>
     </div>
   );

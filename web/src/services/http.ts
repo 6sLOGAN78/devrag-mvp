@@ -5,9 +5,9 @@ import axios, {
   type InternalAxiosRequestConfig,
 } from "axios";
 import type { QueryClient } from "@tanstack/react-query";
-import { copy } from "@/constants/copy";
 import { RetCode } from "@/constants/retcode";
 import type { Envelope } from "@/interfaces/envelope";
+import i18n from "@/i18n";
 import { useUserStore } from "@/stores/user-store";
 import { getAuthorization, removeAuthorization } from "@/utils/authorization";
 import { notifyError } from "./notify";
@@ -91,8 +91,8 @@ function purgeSession(): void {
   queryClient?.clear();
   notifyError({
     id: SESSION_TOAST_ID,
-    title: copy.toast.session.title,
-    description: copy.toast.session.description,
+    title: i18n.t("toast.session.title"),
+    description: i18n.t("toast.session.description"),
   });
 }
 
@@ -101,16 +101,16 @@ function toastFor(error: ApiError, silent: boolean): void {
   const { status, code, message } = error;
   const id = `${status}:${code}:${message}`;
   if (status === 0) {
-    const timedOut = message === copy.toast.timeout.title;
-    const entry = timedOut ? copy.toast.timeout : copy.toast.network;
-    notifyError({ id, title: entry.title, description: entry.description });
+    const timedOut = message === i18n.t("toast.timeout.title");
+    const scope = timedOut ? "toast.timeout" : "toast.network";
+    notifyError({ id, title: i18n.t(`${scope}.title`), description: i18n.t(`${scope}.description`) });
   } else if (status >= 500 && code === -1) {
-    notifyError({ id, title: copy.toast.serverError.title, description: copy.toast.serverError.description });
+    notifyError({ id, title: i18n.t("toast.serverError.title"), description: i18n.t("toast.serverError.description") });
   } else {
     notifyError({
       id,
-      title: copy.toast.apiError.title,
-      description: safeMessage(message, copy.toast.apiError.fallback),
+      title: i18n.t("toast.apiError.title"),
+      description: safeMessage(message, i18n.t("toast.apiError.fallback")),
       code,
     });
   }
@@ -155,7 +155,7 @@ http.interceptors.response.use(
       error = new ApiError({
         code: -1,
         status: 0,
-        message: timedOut ? copy.toast.timeout.title : copy.toast.network.title,
+        message: timedOut ? i18n.t("toast.timeout.title") : i18n.t("toast.network.title"),
       });
     } else {
       const body: unknown = response.data;

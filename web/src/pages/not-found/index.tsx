@@ -1,22 +1,23 @@
+import { useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
 import { EmptyState } from "@/components/empty-state";
 import { Button } from "@/components/ui/button";
-import { copy } from "@/constants/copy";
-import { useEffect } from "react";
 
 export default function NotFoundPage() {
+  const { t, i18n } = useTranslation();
   useEffect(() => {
-    document.title = `${copy.notFound.heading} - ${copy.app.titleSuffix}`;
-  }, []);
+    document.title = t("notFound.pageTitle");
+  }, [t, i18n.language]);
   return (
     <div className="pt-16">
       <EmptyState
-        display={copy.notFound.display}
-        heading={copy.notFound.heading}
-        body={copy.notFound.body}
+        display={t("notFound.display")}
+        heading={t("notFound.heading")}
+        body={t("notFound.body")}
         action={
           <Button asChild>
-            <Link to="/">{copy.notFound.action}</Link>
+            <Link to="/">{t("notFound.action")}</Link>
           </Button>
         }
       />

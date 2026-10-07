@@ -1,14 +1,15 @@
 import { ErrorState } from "@/components/error-state";
-import { copy } from "@/constants/copy";
+import { useTranslation } from "react-i18next";
 import { BareLayout } from "@/layouts/bare-layout";
 
 function RenderError() {
+  const { t } = useTranslation();
   return (
     <ErrorState
       level="h1"
-      heading={copy.renderError.heading}
-      body={copy.renderError.body}
-      actionLabel={copy.renderError.action}
+      heading={t("renderError.heading")}
+      body={t("renderError.body")}
+      actionLabel={t("renderError.action")}
       onAction={() => window.location.reload()}
     />
   );

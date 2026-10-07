@@ -1,13 +1,24 @@
 {
-  "app": { "wordmark": "devRag", "titleSuffix": "devRag" },
+  "app": {
+    "wordmark": "devRag",
+    "titleSuffix": "devRag"
+  },
   "nav": {
     "systemStatus": "System status",
     "groupCaption": "Platform",
     "openMenu": "Open navigation menu",
     "closeMenu": "Close"
   },
-  "a11y": { "skipLink": "Skip to main content", "primaryNav": "Primary" },
-  "theme": { "label": "Change theme", "light": "Light", "dark": "Dark", "system": "System" },
+  "a11y": {
+    "skipLink": "Skip to main content",
+    "primaryNav": "Primary"
+  },
+  "theme": {
+    "label": "Change theme",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
+  },
   "errorState": {
     "headingFor": "Couldn't load {{noun}}",
     "defaultNoun": "data",
@@ -15,5 +26,65 @@
     "action": "Try again",
     "codeLabel": "Code"
   },
-  "emptyState": { "fallbackHeading": "Nothing here yet", "headingFor": "No {{noun}} yet" }
+  "emptyState": {
+    "fallbackHeading": "Nothing here yet",
+    "headingFor": "No {{noun}} yet"
+  },
+  "notFound": {
+    "display": "404",
+    "heading": "Page not found",
+    "pageTitle": "Page not found - devRag",
+    "body": "This page doesn't exist or isn't available in this version. Go back to System status.",
+    "action": "Go to System status"
+  },
+  "renderError": {
+    "heading": "Something went wrong",
+    "body": "This page failed to load. Reload to try again.",
+    "action": "Reload page"
+  },
+  "status": {
+    "title": "System status",
+    "pageTitle": "System status - devRag",
+    "refresh": "Refresh status",
+    "loading": "Checking services",
+    "updated": "Updated {{time}}",
+    "elapsedMs": "{{ms}} ms",
+    "sourceLabel": "X-API-Source",
+    "healthy": "Healthy",
+    "degraded": "Degraded",
+    "unreachable": "Unreachable",
+    "down": "Down",
+    "ok": "OK",
+    "goApi": "Go API",
+    "pythonApi": "Python API",
+    "errorNoun": "service status",
+    "dependencies": {
+      "database": "Database",
+      "redis": "Redis",
+      "storage": "Storage",
+      "doc_store": "Doc store"
+    }
+  },
+  "toast": {
+    "apiError": {
+      "title": "Request failed",
+      "fallback": "The server rejected the request. Try again."
+    },
+    "serverError": {
+      "title": "Server error",
+      "description": "The server hit a problem. Try again in a moment."
+    },
+    "network": {
+      "title": "Can't reach the server",
+      "description": "Check your connection and try again."
+    },
+    "timeout": {
+      "title": "Request timed out",
+      "description": "The server took too long to respond. Try again."
+    },
+    "session": {
+      "title": "Session expired",
+      "description": "Your session ended. Reload the page to continue."
+    }
+  }
 }
