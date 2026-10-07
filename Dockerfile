@@ -15,6 +15,7 @@ COPY go.mod go.sum ./
 RUN go mod download
 COPY cmd ./cmd
 COPY internal ./internal
+COPY conf/embed.go conf/schema.json ./conf/
 RUN CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /out/ragflow_server ./cmd
 
 FROM python:3.13-slim AS runtime

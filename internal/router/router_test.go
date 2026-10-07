@@ -82,7 +82,7 @@ func TestFiveRoutesReturnEnvelopeWithSource(t *testing.T) {
 	cases := map[string]string{
 		"/health":                `{"status":"ok","engine":"go","checks":{"database":{"status":"ok","elapsed_ms":0},"redis":{"status":"ok","elapsed_ms":0}}}`,
 		"/api/v1/system/ping":    `"pong"`,
-		"/api/v1/system/config":  `{"engine":"go","api_version":"v1","service":"ragflow_server"}`,
+		"/api/v1/system/config":  `{"engine":"go","api_version":"v1","service":"ragflow_server","register_enabled":true}`,
 		"/api/v1/system/version": `{"version":"` + common.AppVersion + `","schema_version":"0002"}`,
 		"/api/v1/language":       `{"engine":"go"}`,
 	}

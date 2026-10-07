@@ -87,8 +87,8 @@ endpoints:
      note: R-113 requires authentication; frontend types come from the offline scripts/export_openapi.py}
 
   # --- Phase 2, Go-owned, handlers not built yet ---
-  - {method: POST, path: /api/v1/users, owner: go, auth: none, roles: [], scope: none, implemented: false}
-  - {method: POST, path: /api/v1/auth/login, owner: go, auth: none, roles: [], scope: none, implemented: false}
+  - {method: POST, path: /api/v1/users, owner: go, auth: none, roles: [], scope: none, implemented: true}
+  - {method: POST, path: /api/v1/auth/login, owner: go, auth: none, roles: [], scope: none, implemented: true}
   - {method: POST, path: /api/v1/auth/logout, owner: go, auth: jwt, roles: [], scope: none, implemented: false}
   - {method: POST, path: /api/v1/auth/password/forgot/otp, owner: go, auth: none, roles: [], scope: none, implemented: false,
      note: rate limited}

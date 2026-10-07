@@ -60,8 +60,9 @@ func runAPI() error {
 	rd := dao.OpenRedis(cfg.Redis)
 	defer func() { _ = rd.Close() }()
 
-	svc := service.NewSystem(db, rd, db)
-	engine := router.NewEngine(cfg, logger, handler.NewSystem(svc))
+	svc := service.NewSystem(db, rd, db).WithRegisterEnabled(cfg.Auth.RegisterEnabled)
+	accounts := service.NewAccount(db, service.NewLimiter(rd, "rl"), cfg)
+	engine := router.NewEngine(cfg, logger, handler.NewSystem(svc), router.WithAccount(handler.NewAccount(accounts, cfg.Security.TokenMaxAge)))
 	srv := &http.Server{Addr: cfg.Addr(), Handler: engine, ReadHeaderTimeout: readHeaderTimeout}
 
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)

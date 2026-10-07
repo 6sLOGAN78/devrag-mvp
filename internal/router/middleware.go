@@ -25,6 +25,9 @@ func requestLogger(logger *zap.Logger) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		started := time.Now()
 		c.Next()
+		for _, err := range c.Errors {
+			logger.Error("handler error", zap.String("path", common.TruncateField(c.Request.URL.Path, common.MaxLogField)), zap.String("error", common.TruncateField(err.Error(), common.MaxLogField)))
+		}
 		logger.Info("request",
 			zap.String("method", c.Request.Method),
 			zap.String("path", common.TruncateField(c.Request.URL.Path, common.MaxLogField)),

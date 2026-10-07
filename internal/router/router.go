@@ -20,6 +20,14 @@ func WithExtraRoutes(register func(*gin.Engine)) Option {
 	return func(e *gin.Engine) { register(e) }
 }
 
+// WithAccount registers the register and login routes.
+func WithAccount(h *handler.Account) Option {
+	return func(e *gin.Engine) {
+		e.POST("/api/v1/users", h.Register)
+		e.POST("/api/v1/auth/login", h.Login)
+	}
+}
+
 // NewEngine builds the engine. Only exact routes owned by Go in conf/routes.yaml are registered here;
 // Go never proxies to Python (D-05, D-06).
 func NewEngine(cfg server.Config, logger *zap.Logger, sys *handler.System, opts ...Option) *gin.Engine {
