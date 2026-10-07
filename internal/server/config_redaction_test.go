@@ -2,6 +2,7 @@ package server
 
 import (
 	"encoding/json"
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -33,4 +34,25 @@ func TestConfigPasswordsNeverSerialised(t *testing.T) {
 	}
 	assert.NotContains(t, dumped, "mysql-pw-not-real")
 	assert.NotContains(t, dumped, "redis-pw-not-real")
+}
+
+func TestPhase2SecretsNeverDumped(t *testing.T) {
+	cfg := Config{
+		Security: SecurityConfig{SecretKey: "fake-sec-key-redaction-0123456789abcdef", PasswordIterations: 600000},
+		Auth:     AuthConfig{SuperuserEmail: "root@example.test", SuperuserPassword: "fake-su-pw-redaction"},
+		Mail:     MailConfig{Host: "mailpit", Password: "fake-smtp-pw-redaction"},
+	}
+	secrets := []string{"fake-sec-key-redaction", "fake-su-pw-redaction", "fake-smtp-pw-redaction"}
+	raw, err := json.Marshal(cfg)
+	require.NoError(t, err)
+	dumps := []string{
+		string(raw), cfg.String(), fmt.Sprintf("%+v", cfg), fmt.Sprintf("%v", cfg), fmt.Sprintf("%#v", cfg.Security),
+		fmt.Sprintf("%+v", cfg.Security), fmt.Sprintf("%+v", cfg.Auth), fmt.Sprintf("%+v", cfg.Mail), fmt.Sprintf("%v", &cfg),
+	}
+	for _, d := range dumps {
+		for _, secret := range secrets {
+			assert.NotContains(t, d, secret)
+		}
+	}
+	assert.Contains(t, cfg.String(), common.RedactedValue)
 }

@@ -19,6 +19,7 @@ from common.settings import (
     MinioSettings,
     MySQLSettings,
     RedisSettings,
+    SecuritySettings,
     ServerSettings,
     Settings,
 )
@@ -38,6 +39,7 @@ def memory_settings(allowed_origins: tuple[str, ...] = (), **sections: Any) -> S
         es=EsSettings("http://127.0.0.1:1", "u", "p"),
         cors=CorsSettings(allowed_origins=allowed_origins),
         logging=LoggingSettings("", "INFO"),
+        security=SecuritySettings(secret_key="fake-test-secret-key-0123456789abcdef-ZZ"),
     )
     return dataclasses.replace(base, **sections)
 
