@@ -7,9 +7,10 @@ from __future__ import annotations
 import json
 from collections.abc import Iterator
 
+import httpx
 import pytest
 
-from test.helpers.accounts import Account, AccountRegistry
+from test.helpers.accounts import Account, AccountRegistry, delete_accounts, unique_email, unique_name
 from test.helpers.chrome_cdp import ChromeSession, chrome_path
 from test.testcases.conftest import BASE_URL, HTTP_PORT
 
@@ -120,3 +121,53 @@ def test_rejected_token_is_purged_and_redirects_without_a_reload(stack_ready: ob
     assert browser.evaluate("location.search") == "?next=%2Fsystem-status"
     assert browser.evaluate(f"localStorage.getItem({json.dumps(TOKEN_KEY)})") is None
     assert browser.evaluate("document.querySelector('[data-testid=\"status-card-go\"]') === null") is True
+
+
+def _type_into(browser: ChromeSession, test_id: str, text: str) -> None:
+    """Focus the field and insert the text the way the browser's own input method does (fires real input events)."""
+    browser.evaluate(f"document.querySelector('[data-testid=\"{test_id}\"]').focus()")
+    browser.call("Input.insertText", {"text": text})
+
+
+def test_register_land_on_home_reload_and_guard_in_real_browser(stack_ready: object, browser: ChromeSession) -> None:
+    """Success criterion 1 in a real Chrome: sign up in the SPA, land on /home, survive a reload, get redirected when signed out."""
+    email, nickname, password = unique_email("webreg"), unique_name("nick"), "test-only-pass-0001"
+    created: list[Account] = []
+    try:
+        browser.navigate(f"{ORIGIN}/login?mode=register")
+        browser.wait_for("document.querySelector('[data-testid=\"register-form\"]') !== null", "the register form (registration enabled)", timeout=60)
+        assert browser.evaluate("document.activeElement && document.activeElement.getAttribute('data-testid')") == "field-nickname"
+        _type_into(browser, "field-nickname", nickname)
+        _type_into(browser, "field-email", email)
+        _type_into(browser, "field-password", password)
+        browser.evaluate("document.querySelector('[data-testid=\"register-submit\"]').click()")
+        browser.wait_for("location.pathname === '/home'", "registration lands on /home", timeout=60)
+        title = f"Welcome, {nickname}"
+        browser.wait_for(f"document.querySelector('h1') && document.querySelector('h1').textContent === {json.dumps(title)}", "the welcome title", timeout=60)
+        assert browser.evaluate("document.querySelector('[data-testid=\"stat-role\"]').textContent.includes('Owner')") is True
+        token = browser.evaluate(f"localStorage.getItem({json.dumps(TOKEN_KEY)})")
+        assert token
+        info = httpx.get(f"{BASE_URL}/v1/user/info", headers={"Authorization": f"Bearer {token}"}, timeout=10.0).json()["data"]
+        created.append(Account(email=email, password=password, nickname=nickname, user_id=info["id"], tenant_id=info["tenant_id"], token=token))
+        # The password is nowhere in the page URL or in browser storage.
+        assert password not in browser.evaluate("location.href")
+        assert password not in browser.evaluate("JSON.stringify(Object.entries(localStorage)) + JSON.stringify(Object.entries(sessionStorage))")
+
+        browser.navigate(f"{ORIGIN}/home")  # a reload: new page load, same storage
+        browser.wait_for(f"document.querySelector('h1') && document.querySelector('h1').textContent === {json.dumps(title)}", "welcome title after reload", timeout=60)
+        assert browser.evaluate("location.pathname") == "/home"
+
+        browser.evaluate("localStorage.clear()")
+        browser.navigate(f"{ORIGIN}/home")
+        browser.wait_for("location.pathname === '/login'", "guard redirect after clearing storage", timeout=60)
+        assert browser.evaluate("location.search") == "?next=%2Fhome"
+        browser.wait_for("document.querySelector('[data-testid=\"login-form\"]') !== null", "sign-in form")
+        _type_into(browser, "field-email", email)
+        _type_into(browser, "field-password", "not-the-password")
+        browser.evaluate("document.querySelector('[data-testid=\"login-submit\"]').click()")
+        browser.wait_for("document.querySelector('[data-testid=\"login-error\"]') !== null", "inline sign-in error", timeout=60)
+        assert browser.evaluate("document.querySelector('[data-testid=\"login-error\"]').textContent") == "Email or password is incorrect"
+        assert browser.evaluate("document.querySelector('[data-sonner-toast]') === null") is True
+        assert browser.evaluate("location.pathname") == "/login"
+    finally:
+        delete_accounts(created)
