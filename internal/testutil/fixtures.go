@@ -163,6 +163,43 @@ func firstNonEmpty(vs ...string) string {
 	return ""
 }
 
+// rootDB opens the administrative connection used by fixture helpers (MYSQL_ROOT_PASSWORD).
+func rootDB(t *testing.T, src server.MySQLConfig, what string) *gorm.DB {
+	t.Helper()
+	rootPass := os.Getenv("MYSQL_ROOT_PASSWORD")
+	if rootPass == "" {
+		t.Fatalf("%s needs MYSQL_ROOT_PASSWORD", what)
+	}
+	rootUser := os.Getenv("MYSQL_ROOT_USER")
+	if rootUser == "" {
+		rootUser = "root"
+	}
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&timeout=5s", rootUser, rootPass, src.Host, src.Port, src.Name)
+	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{Logger: logger.Discard})
+	if err != nil {
+		t.Fatalf("%s: connect failed (%T)", what, err)
+	}
+	return db
+}
+
+// InsertPendingInvite writes one pending-invitation row (role invite) for userID in tenantID, the
+// way the invite endpoint of plan 02-22 will. It is the only way tests create invitations before that
+// endpoint exists. DeleteAccount removes the row when the invitee account is deleted.
+func InsertPendingInvite(t *testing.T, src server.MySQLConfig, userID, tenantID, invitedBy string) {
+	t.Helper()
+	db := rootDB(t, src, "InsertPendingInvite")
+	if sqlDB, err := db.DB(); err == nil {
+		defer func() { _ = sqlDB.Close() }()
+	}
+	now := time.Now().UTC()
+	ms := now.UnixMilli()
+	err := db.Exec("INSERT INTO `user_tenant` (`id`,`user_id`,`tenant_id`,`invited_by`,`role`,`status`,`create_time`,`create_date`,`update_time`,`update_date`) VALUES (?,?,?,?,?,?,?,?,?,?)",
+		UniqueName("invite"), userID, tenantID, invitedBy, "invite", "1", ms, now, ms, now).Error
+	if err != nil {
+		t.Fatalf("InsertPendingInvite: %v", err)
+	}
+}
+
 // DeleteAccount removes exactly the rows of one fixture account by recorded id, using the
 // administrative account (MYSQL_ROOT_PASSWORD). It never deletes by pattern.
 func DeleteAccount(t *testing.T, src server.MySQLConfig, acc Account) {

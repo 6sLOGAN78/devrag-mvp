@@ -18,3 +18,18 @@ func (d *DB) FindOwnMembership(ctx context.Context, userID string) (*entity.User
 	}
 	return &m, err
 }
+
+// MembershipRow is one membership of a user joined with its tenant and the tenant owner.
+type MembershipRow struct {
+	TenantID      string
+	TenantName    *string
+	OwnerNickname *string
+	OwnerAvatar   *string
+	Role          string
+	CreateTime    *int64
+}
+
+// ListMemberships is not implemented yet.
+func (d *DB) ListMemberships(context.Context, string) ([]MembershipRow, error) {
+	return nil, errors.New("not implemented")
+}

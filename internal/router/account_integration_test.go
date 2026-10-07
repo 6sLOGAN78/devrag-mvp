@@ -63,8 +63,10 @@ func newAccountRig(t *testing.T, mutate func(*server.Config), redisDown bool) *a
 	sys := service.NewSystem(db, rd, db).WithRegisterEnabled(cfg.Auth.RegisterEnabled)
 	acct := service.NewAccount(db, service.NewLimiter(rd, "test-"+testutil.UniqueName("http")), cfg)
 	auth := service.NewAuth(db, cfg.Security.SecretKey, cfg.Security.TokenMaxAge)
+	limiter := service.NewLimiter(rd, "test-"+testutil.UniqueName("prof"))
 	e := NewEngine(cfg, zap.New(common.WrapRedacting(core)), handler.NewSystem(sys),
-		WithAuth(auth), WithAccount(handler.NewAccount(acct, cfg.Security.TokenMaxAge)), WithSession(handler.NewUser(auth)))
+		WithAuth(auth), WithAccount(handler.NewAccount(acct, cfg.Security.TokenMaxAge)), WithSession(handler.NewUser(auth)),
+		WithProfile(handler.NewSettings(service.NewUser(db, limiter, cfg), cfg.Security.TokenMaxAge), handler.NewTenant(service.NewTenant(db))))
 	rig := &accountRig{engine: e, cfg: cfg, logs: logs, raw: raw, db: db}
 	t.Cleanup(func() {
 		for _, em := range rig.emails {

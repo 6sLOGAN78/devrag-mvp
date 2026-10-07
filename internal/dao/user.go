@@ -98,3 +98,18 @@ func (d *DB) FindUserByAccessToken(ctx context.Context, token string) (*entity.U
 func (d *DB) SetAccessToken(ctx context.Context, userID, token string) error {
 	return d.gorm.WithContext(ctx).Model(&entity.User{}).Where("id = ?", userID).UpdateColumn("access_token", token).Error
 }
+
+// ProfileUpdate lists the profile columns a user may change; nil leaves a column untouched.
+type ProfileUpdate struct {
+	Nickname, Language, ColorSchema, Avatar *string
+}
+
+// UpdateProfile is not implemented yet.
+func (d *DB) UpdateProfile(context.Context, string, ProfileUpdate) error {
+	return errors.New("not implemented")
+}
+
+// ReplacePassword is not implemented yet.
+func (d *DB) ReplacePassword(context.Context, string, string, string, string) (bool, error) {
+	return false, errors.New("not implemented")
+}

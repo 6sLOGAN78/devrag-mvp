@@ -3,6 +3,7 @@ package handler
 import (
 	"errors"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 
@@ -73,4 +74,20 @@ func (h *User) Logout(c *gin.Context) {
 	})
 	c.Header("Cache-Control", "no-store")
 	common.OK(c, nil)
+}
+
+// Settings serves profile settings and password change.
+type Settings struct{}
+
+// NewSettings builds the handler.
+func NewSettings(*service.User, time.Duration) *Settings { return &Settings{} }
+
+// Update is not implemented yet.
+func (*Settings) Update(c *gin.Context) {
+	common.Fail(c, http.StatusNotImplemented, common.CodeServerError, "not implemented")
+}
+
+// ChangePassword is not implemented yet.
+func (*Settings) ChangePassword(c *gin.Context) {
+	common.Fail(c, http.StatusNotImplemented, common.CodeServerError, "not implemented")
 }

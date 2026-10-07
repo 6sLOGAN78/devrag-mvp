@@ -82,3 +82,13 @@ func NewEngine(cfg server.Config, logger *zap.Logger, sys *handler.System, opts 
 	}
 	return e
 }
+
+// WithProfile registers profile settings, password change, tenant info and the membership list.
+func WithProfile(s *handler.Settings, t *handler.Tenant) Option {
+	return WithExtraRoutes(func(e *gin.Engine) {
+		e.POST("/v1/user/setting", s.Update)
+		e.POST("/v1/user/setting/password", s.ChangePassword)
+		e.GET("/v1/user/tenant_info", t.Info)
+		e.GET("/v1/tenant/list", t.List)
+	})
+}
