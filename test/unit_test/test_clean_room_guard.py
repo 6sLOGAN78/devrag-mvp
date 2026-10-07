@@ -66,6 +66,10 @@ def _checkout(tmp_path: Path) -> Path:
         target = root / "scripts" / name
         target.write_text((SCRIPTS_SRC / name).read_text())
         target.chmod(0o755)
+    (root / "scripts" / "lib").mkdir()
+    helper = SCRIPTS_SRC / "lib" / "compose_project.sh"
+    if helper.exists():
+        (root / "scripts" / "lib" / helper.name).write_text(helper.read_text())
     return root
 
 
@@ -131,3 +135,66 @@ def test_go_race_step_is_uncached_and_guard_precedes_volume_removal() -> None:
     assert text.count("down -v") == 1
     assert text.index("down -v") > text.index("project-guard") > text.index("exit 3")
     assert "project-only" in text
+
+
+# --- WR-16: one resolver for clean_room.sh and preflight.sh --------------------------------------------------------
+
+# (docker/.env line or None, COMPOSE_PROJECT_NAME in the environment or None, expected resolved name)
+RESOLVE_CASES = [
+    ("COMPOSE_PROJECT_NAME=fromfile", None, "fromfile"),
+    ('COMPOSE_PROJECT_NAME="quoted"  # note', None, "quoted"),
+    ("# COMPOSE_PROJECT_NAME=commented", None, "devrag-stack"),
+    (None, "fromenv", "fromenv"),
+    (None, None, "devrag-stack"),
+    ("COMPOSE_PROJECT_NAME=fromfile", "fromenv", "fromenv"),
+]
+
+
+def _resolve_env(tmp_path: Path, dotenv: str | None, envval: str | None) -> tuple[Path, dict[str, str], Path]:
+    root = _checkout(tmp_path)
+    (root / "docker").mkdir()
+    if dotenv is not None:
+        (root / "docker" / ".env").write_text(dotenv + "\n")
+    log = tmp_path / "calls.log"
+    fake = tmp_path / "bin"
+    fake.mkdir()
+    docker = fake / "docker"
+    docker.write_text(FAKE_DOCKER)
+    docker.chmod(0o755)
+    env = {key: value for key, value in os.environ.items() if not key.startswith(("PREFLIGHT_", "COMPOSE_"))}
+    env.update(PATH=f"{fake}:{os.environ['PATH']}", FAKE_DOCKER_LOG=str(log), FAKE_IDS="", FAKE_LABELS="")
+    if envval is not None:
+        env["COMPOSE_PROJECT_NAME"] = envval
+    return root, env, log
+
+
+@pytest.mark.parametrize(("dotenv", "envval", "expected"), RESOLVE_CASES)
+def test_helper_resolves_project_name(tmp_path: Path, dotenv: str | None, envval: str | None, expected: str) -> None:
+    root, env, _ = _resolve_env(tmp_path, dotenv, envval)
+    result = subprocess.run(
+        ["bash", "-c", f'. "{root}/scripts/lib/compose_project.sh"; resolve_compose_project "{root}"'],
+        capture_output=True, text=True, env=env, check=False,
+    )
+    assert result.returncode == 0, result.stderr
+    assert result.stdout.strip() == expected
+
+
+@pytest.mark.parametrize(("dotenv", "envval", "expected"), RESOLVE_CASES)
+def test_preflight_and_clean_room_resolve_the_same_project(tmp_path: Path, dotenv: str | None, envval: str | None, expected: str) -> None:
+    root, env, _ = _resolve_env(tmp_path, dotenv, envval)
+    pre = subprocess.run([str(root / "scripts" / "preflight.sh"), "--project-only"], capture_output=True, text=True, env=env, check=False, cwd=root)
+    assert f"'{expected}'" in pre.stdout, pre.stdout
+    clean = subprocess.run([str(root / "scripts" / "clean_room.sh"), "--runs", "1"], capture_output=True, text=True, env=env, check=False, cwd=root)
+    if expected == "devrag-stack":
+        assert "REFUSED" not in clean.stderr
+    else:
+        assert clean.returncode == 3
+        assert f"got '{expected}'" in clean.stderr
+
+
+def test_guard_inspects_the_project_that_is_torn_down(tmp_path: Path) -> None:
+    root, env, log = _resolve_env(tmp_path, "COMPOSE_PROJECT_NAME=myfork", None)
+    result = subprocess.run([str(root / "scripts" / "clean_room.sh"), "--runs", "1"], capture_output=True, text=True, env=env, check=False, cwd=root)
+    assert result.returncode == 3
+    assert "down -v" not in "\n".join(_calls(log))
+    assert not any("-p devrag-stack" in call for call in _calls(log))

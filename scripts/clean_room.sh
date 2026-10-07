@@ -8,7 +8,9 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-PROJECT="${COMPOSE_PROJECT_NAME:-devrag-stack}"
+# shellcheck source=lib/compose_project.sh
+. "$ROOT/scripts/lib/compose_project.sh"
+PROJECT="$(resolve_compose_project "$ROOT")"
 ALLOWED_PROJECT="devrag-stack"
 
 if [ "$PROJECT" != "$ALLOWED_PROJECT" ]; then
@@ -61,7 +63,7 @@ for run in $(seq 1 "$RUNS"); do
   start="$(date +%s)"
   # Refuse before anything is stopped or removed when any container of this project name belongs to another
   # checkout (B-05): strict mode turns the preflight warning into a failure.
-  step project-guard env PREFLIGHT_STRICT_PROJECT=1 scripts/preflight.sh --project-only
+  step project-guard env PREFLIGHT_STRICT_PROJECT=1 COMPOSE_PROJECT_NAME="$PROJECT" scripts/preflight.sh --project-only
   # Stop this project's own containers first: preflight checks free ports and available RAM, and a
   # running devrag-stack would fail both against itself. Non-destructive (no volumes removed here).
   step stop "${COMPOSE[@]}" stop

@@ -93,7 +93,7 @@ def test_quoted_context_detected_mid_line_template():
     assert yaml.safe_load(out) == {"h": "http://o'k:1"}
 
 
-@pytest.mark.parametrize("bad", ["a\nb: injected", "a\rb", "a\x00b", "a\x1bb"])
+@pytest.mark.parametrize("bad", ["a\nb: injected", "a\rb", "a\x00b", "a\x1bb", "a\x85b: injected", "a\u2028b: injected", "a\u2029b: injected"])
 def test_control_characters_rejected_without_echo(bad):
     with pytest.raises(InvalidValue) as err:
         render("pw: '${SECRET_X}'", {"SECRET_X": bad})

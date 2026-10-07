@@ -41,7 +41,8 @@ class InvalidValue(RenderError):
 
 
 def _has_control_char(value: str) -> bool:
-    return any(ord(ch) < 32 and ch != "\t" or ord(ch) == 127 for ch in value)
+    # C0/DEL plus the Unicode line breaks YAML 1.1 loaders treat as newlines (NEL, LS, PS).
+    return any(ord(ch) < 32 and ch != "\t" or ord(ch) == 127 or ch in "\u0085\u2028\u2029" for ch in value)
 
 
 def _in_single_quotes(template: str, pos: int) -> bool:

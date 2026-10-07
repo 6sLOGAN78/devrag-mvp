@@ -19,7 +19,9 @@ env_value() { # env_value KEY DEFAULT
 MIN_DISK_GB="${PREFLIGHT_MIN_DISK_GB:-3}"
 MIN_MAP_COUNT="${PREFLIGHT_MIN_MAP_COUNT:-262144}"
 MIN_RAM_MB="${PREFLIGHT_MIN_RAM_MB:-4096}"
-PROJECT="${COMPOSE_PROJECT_NAME:-$(env_value COMPOSE_PROJECT_NAME devrag-stack)}"
+# shellcheck source=lib/compose_project.sh
+. "$ROOT/scripts/lib/compose_project.sh"
+PROJECT="$(resolve_compose_project "$ROOT")"
 PORTS="${PREFLIGHT_PORTS-$(env_value SVR_WEB_HTTP_PORT 8080) $(env_value MYSQL_PORT 3306) $(env_value REDIS_PORT 6380) $(env_value MINIO_PORT 9000) $(env_value MINIO_CONSOLE_PORT 9001) $(env_value ES_PORT 9200) 9380 9381 9382 9383 9384}"
 OVERRIDE_LOG="$ROOT/ragflow-logs/preflight-overrides.log"
 
