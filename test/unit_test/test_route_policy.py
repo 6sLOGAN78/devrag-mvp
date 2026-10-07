@@ -51,8 +51,6 @@ def test_registry_has_phase2_endpoints_unimplemented() -> None:
     data = yaml.safe_load(ROUTES.read_text(encoding="utf-8"))
     rows = {(e["method"], e["path"]): e for e in data["endpoints"]}
     for key in [
-        ("POST", "/api/v1/users"),
-        ("POST", "/api/v1/auth/login"),
         ("POST", "/api/v1/auth/logout"),
         ("GET", "/v1/user/info"),
         ("GET", "/v1/tenant/list"),
@@ -64,6 +62,14 @@ def test_registry_has_phase2_endpoints_unimplemented() -> None:
         assert key in rows, key
         assert rows[key]["owner"] == "go"
         assert rows[key]["implemented"] is False, key
+
+
+def test_registry_marks_register_and_login_implemented() -> None:
+    """Plan 02-09 landed both handlers."""
+    data = yaml.safe_load(ROUTES.read_text(encoding="utf-8"))
+    rows = {(e["method"], e["path"]): e for e in data["endpoints"]}
+    for key in [("POST", "/api/v1/users"), ("POST", "/api/v1/auth/login")]:
+        assert rows[key]["owner"] == "go" and rows[key]["implemented"] is True, key
 
 
 def _copy_root(tmp_path: Path) -> Path:
