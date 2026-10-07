@@ -14,9 +14,9 @@ from test.testcases._routes import ROUTES_FILE, load_probes
 pytestmark = pytest.mark.unit
 
 # Adding a public auth route needs a conscious edit here plus a DECISIONS row.
-# /api/v1/system/version left this set in plan 02-10 (D-19: the Go gate now authenticates it).
-# /api/v1/system/status stays until plan 02-14 gates the Python engine.
-EXPECTED_MARKED = {"/api/v1/system/status"}
+# /api/v1/system/version left this set in plan 02-10 (D-19: the Go gate now authenticates it) and
+# /api/v1/system/status in plan 02-14 (the Python gate authenticates it). The set is empty from here on.
+EXPECTED_MARKED: set[str] = set()
 
 
 def marker_violations(path: Path = ROUTES_FILE) -> list[str]:
@@ -46,13 +46,24 @@ def test_marker_rules_hold_for_routes_yaml() -> None:
     assert marker_violations() == []
 
 
-def test_marker_removal_is_detected(tmp_path: Path) -> None:
+def test_the_marker_set_is_empty() -> None:
+    """D-19, WR-25: no route is public by marker any more; the gate on both stacks denies by default."""
+    assert EXPECTED_MARKED == set()
+    entries = yaml.safe_load(ROUTES_FILE.read_text(encoding="utf-8"))["routes"]
+    assert [e["path"] for e in entries if "public_until_phase" in e] == []
+    assert "public_until_phase:" not in "\n".join(
+        line for line in ROUTES_FILE.read_text(encoding="utf-8").splitlines() if not line.lstrip().startswith("#")
+    )
+
+
+def test_status_marker_must_not_return(tmp_path: Path) -> None:
     data = yaml.safe_load(ROUTES_FILE.read_text(encoding="utf-8"))
     entry = next(e for e in data["routes"] if e["path"] == "/api/v1/system/status")
-    entry.pop("public_until_phase", None)
+    entry["public_until_phase"] = 2
+    entry["note"] = "regression"
     copy = tmp_path / "routes.yaml"
     copy.write_text(yaml.safe_dump(data), encoding="utf-8")
-    assert any("/api/v1/system/status" in v for v in marker_violations(copy))
+    assert any("/api/v1/system/status" in v and "unexpected" in v for v in marker_violations(copy))
 
 
 def test_version_marker_must_not_return(tmp_path: Path) -> None:
@@ -84,3 +95,15 @@ async def test_python_unmarked_auth_routes_do_not_answer_200_unauthenticated() -
         if resp.status_code == 200:
             bad.append(p.id)
     assert bad == []
+
+
+async def test_python_auth_routes_answer_401_unauthenticated_and_nothing_is_marked() -> None:
+    client = create_app(memory_settings()).test_client()
+    probes = [p for p in load_probes() if p.owner == "python" and p.auth != "none"]
+    assert {p.path for p in probes} >= {"/api/v1/system/status", "/system/status", "/api/", "/v1/"}
+    wrong = []
+    for p in probes:
+        resp = await client.get(p.request_path())
+        if resp.status_code != 401:
+            wrong.append(f"{p.id}: {resp.status_code}")
+    assert wrong == []
