@@ -55,7 +55,7 @@ def test_cli_missing_secret_exits_1_and_names_it(tmp_path):
 
 
 def test_cli_renders_full_template(tmp_path):
-    env = {"PATH": "/usr/bin:/bin", "MYSQL_PASSWORD": "m", "REDIS_PASSWORD": "r", "MINIO_PASSWORD": "n", "ELASTIC_PASSWORD": "e"}
+    env = {"PATH": "/usr/bin:/bin", "MYSQL_PASSWORD": "m", "REDIS_PASSWORD": "r", "MINIO_PASSWORD": "n", "ELASTIC_PASSWORD": "e", "SECRET_KEY": "fake-test-secret-key-0123456789abcdef-ZZ"}
     out = tmp_path / "x.yaml"
     res = subprocess.run(
         [sys.executable, "scripts/render_conf.py", "--template", "conf/service_conf.yaml.template", "--out", str(out)],
@@ -167,3 +167,54 @@ def test_render_conf_source_has_no_chmod_after_write():
     src = (REPO_ROOT / "scripts" / "render_conf.py").read_text()
     assert "chmod" not in src
     assert "0o600" in src
+
+
+# --- Phase 2 sections: security, auth, mail, models, ratelimit (02-04, R-94, R-96); fake values only ---
+BASE_ENV = {"MYSQL_PASSWORD": "fake-m", "REDIS_PASSWORD": "fake-r", "MINIO_PASSWORD": "fake-n", "ELASTIC_PASSWORD": "fake-e"}
+FAKE_KEY = "fake-test-secret-key-0123456789abcdef-ZZ"
+
+
+def _render_cli(tmp_path, extra):
+    out = tmp_path / "x.yaml"
+    res = subprocess.run(
+        [sys.executable, "scripts/render_conf.py", "--template", "conf/service_conf.yaml.template", "--out", str(out)],
+        capture_output=True, text=True, env={"PATH": "/usr/bin:/bin", **BASE_ENV, **extra}, cwd=REPO_ROOT, check=False,
+    )
+    return res, out
+
+
+def test_cli_renders_phase2_sections(tmp_path):
+    res, out = _render_cli(tmp_path, {"SECRET_KEY": FAKE_KEY, "SUPERUSER_EMAIL": "root@example.test", "SMTP_PASSWORD": "fake-smtp"})
+    assert res.returncode == 0, res.stderr
+    conf = yaml.safe_load(out.read_text())
+    assert conf["security"]["secret_key"] == FAKE_KEY
+    assert str(conf["auth"]["register_enabled"]) == "1"
+    assert conf["auth"]["superuser_email"] == "root@example.test"
+    assert conf["auth"]["superuser_password"] in ("", None)
+    assert int(conf["auth"]["otp_ttl_seconds"]) == 600
+    assert conf["mail"]["host"] == "mailpit" and int(conf["mail"]["port"]) == 1025
+    assert conf["mail"]["security"] == "none" and conf["mail"]["password"] == "fake-smtp"
+    assert conf["mail"]["from"] == "no-reply@devrag.local"
+    assert {"default_chat_model", "default_embedding_model", "default_rerank_model", "default_factory", "default_base_url"} <= set(conf["models"])
+    assert conf["ratelimit"] == {
+        "register_per_ip": 10, "register_window_seconds": 3600, "login_failures_per_email": 5, "login_per_ip": 30,
+        "login_window_seconds": 900, "otp_email_interval_seconds": 60, "otp_per_email_per_hour": 5,
+        "otp_per_ip_per_hour": 20, "otp_window_seconds": 3600,
+    }
+
+
+def test_cli_missing_secret_key_exits_1_naming_only_the_key(tmp_path):
+    res, out = _render_cli(tmp_path, {})
+    assert res.returncode == 1
+    assert "SECRET_KEY" in res.stderr
+    assert not out.exists()
+
+
+def test_cli_short_secret_key_exits_1_without_echoing_value(tmp_path):
+    short = "fake-short-key-31-chars-abcdefg"
+    assert len(short) < 32
+    res, out = _render_cli(tmp_path, {"SECRET_KEY": short})
+    assert res.returncode == 1
+    assert "SECRET_KEY" in res.stderr
+    assert short not in res.stderr + res.stdout
+    assert not out.exists()

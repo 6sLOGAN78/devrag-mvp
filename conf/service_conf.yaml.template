@@ -36,3 +36,34 @@ cors:
 logging:
   dir: '${LOG_DIR:-}'
   level: '${LOG_LEVEL:-INFO}'
+security:
+  secret_key: '${SECRET_KEY:?SECRET_KEY is required, at least 32 characters (run make init-env)}'
+auth:
+  register_enabled: '${REGISTER_ENABLED:-1}'
+  superuser_email: '${SUPERUSER_EMAIL:-}'
+  superuser_password: '${SUPERUSER_PASSWORD:-}'
+  otp_ttl_seconds: ${OTP_TTL_SECONDS:-600}
+mail:
+  host: '${SMTP_HOST:-mailpit}'
+  port: ${SMTP_PORT:-1025}
+  security: '${SMTP_SECURITY:-none}'
+  username: '${SMTP_USERNAME:-}'
+  password: '${SMTP_PASSWORD:-}'
+  from: '${SMTP_FROM:-no-reply@devrag.local}'
+models:
+  default_chat_model: '${DEFAULT_CHAT_MODEL:-}'
+  default_embedding_model: '${DEFAULT_EMBEDDING_MODEL:-}'
+  default_rerank_model: '${DEFAULT_RERANK_MODEL:-}'
+  default_factory: '${DEFAULT_MODEL_FACTORY:-}'
+  default_base_url: '${DEFAULT_MODEL_BASE_URL:-}'
+# Defaults are the R-94 production numbers (D-29). Only docker-compose.dev.yml raises per-IP values.
+ratelimit:
+  register_per_ip: ${RATE_LIMIT_REGISTER_PER_IP:-10}
+  register_window_seconds: ${RATE_LIMIT_REGISTER_WINDOW_SECONDS:-3600}
+  login_failures_per_email: ${RATE_LIMIT_LOGIN_FAILURES_PER_EMAIL:-5}
+  login_per_ip: ${RATE_LIMIT_LOGIN_PER_IP:-30}
+  login_window_seconds: ${RATE_LIMIT_LOGIN_WINDOW_SECONDS:-900}
+  otp_email_interval_seconds: ${RATE_LIMIT_OTP_EMAIL_INTERVAL_SECONDS:-60}
+  otp_per_email_per_hour: ${RATE_LIMIT_OTP_PER_EMAIL_PER_HOUR:-5}
+  otp_per_ip_per_hour: ${RATE_LIMIT_OTP_PER_IP_PER_HOUR:-20}
+  otp_window_seconds: ${RATE_LIMIT_OTP_WINDOW_SECONDS:-3600}

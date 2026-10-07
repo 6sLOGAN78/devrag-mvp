@@ -18,6 +18,7 @@ import yaml
 
 DEFAULT_TEMPLATE = "conf/service_conf.yaml.template"
 DEFAULT_OUT = "conf/service_conf.yaml"
+MIN_SECRET_KEY_LENGTH = 32
 
 _TOKEN = re.compile(r"\$\$|\$\{(?P<name>[A-Za-z_][A-Za-z0-9_]*)(?::(?P<op>[-?])(?P<arg>[^}]*))?\}")
 
@@ -96,9 +97,13 @@ def main(argv: list[str] | None = None) -> int:
         print(f"render_conf: unsafe value for variable {exc}", file=sys.stderr)
         return 1
     try:
-        yaml.safe_load(rendered)
+        parsed = yaml.safe_load(rendered)
     except yaml.YAMLError:
         print("render_conf: rendered output is not valid YAML (stage: post-render validation); nothing written", file=sys.stderr)
+        return 1
+    secret_key = (parsed.get("security") or {}).get("secret_key") if isinstance(parsed, dict) else None
+    if secret_key is not None and len(str(secret_key)) < MIN_SECRET_KEY_LENGTH:
+        print(f"render_conf: SECRET_KEY must be at least {MIN_SECRET_KEY_LENGTH} characters (run make init-env); nothing written", file=sys.stderr)
         return 1
     out = Path(args.out)
     out.parent.mkdir(parents=True, exist_ok=True)
