@@ -8,7 +8,7 @@ import { Toaster } from "@/components/ui/sonner";
 import i18n from "@/i18n";
 import { useUserStore } from "@/stores/user-store";
 import { getAuthorization, setAuthorization } from "@/utils/authorization";
-import { ApiError, http, registerQueryClient, request, requestWithMeta } from "./http";
+import { ApiError, http, purgeSession, registerQueryClient, request, requestWithMeta } from "./http";
 
 interface Reply {
   status?: number;
@@ -274,5 +274,67 @@ describe("unit http client token handling", () => {
     await request({ url: "/x" }, { silent: true }).catch(() => undefined);
     await request({ url: "/x" }).catch(() => undefined);
     expect(await screen.findAllByText(message)).toHaveLength(1);
+  });
+});
+
+describe("unit http purgeSession and infrastructure errors", () => {
+  beforeEach(() => {
+    seen = [];
+    reply = {};
+    localStorage.clear();
+    useUserStore.getState().reset();
+    http.defaults.adapter = adapter;
+  });
+
+  function seedSession(): QueryClient {
+    const qc = new QueryClient();
+    qc.setQueryData(["k"], 1);
+    registerQueryClient(qc);
+    setAuthorization("fake-token-aaa");
+    useUserStore.getState().setUserId("u1");
+    return qc;
+  }
+
+  it("purgeSession() clears token, user store and query cache and toasts once", async () => {
+    render(createElement(Toaster));
+    const qc = seedSession();
+    purgeSession();
+    purgeSession();
+    expect(getAuthorization()).toBeNull();
+    expect(useUserStore.getState().userId).toBeNull();
+    expect(qc.getQueryData(["k"])).toBeUndefined();
+    expect(await screen.findAllByText(i18n.t("toast.session.title"))).toHaveLength(1);
+  });
+
+  it("purgeSession({ toast: false }) clears everything and shows no toast", async () => {
+    render(createElement(Toaster));
+    const qc = seedSession();
+    purgeSession({ toast: false });
+    expect(getAuthorization()).toBeNull();
+    expect(useUserStore.getState().userId).toBeNull();
+    expect(qc.getQueryData(["k"])).toBeUndefined();
+    // A probe toast proves the toaster has processed events after the silent purge.
+    const message = uniqueMessage("probe");
+    reply = { data: { code: 101, message, data: null } };
+    await request({ url: "/x" }).catch(() => undefined);
+    expect(await screen.findByText(message)).toBeInTheDocument();
+    expect(screen.queryByText(i18n.t("toast.session.title"))).toBeNull();
+  });
+
+  it.each([
+    ["503 with an envelope", { status: 503, data: { code: 503, message: "db down", data: null } }],
+    ["503 without an envelope", { status: 503, data: "<html>unavailable</html>" }],
+    ["500", { status: 500, data: { code: 500, message: "boom", data: null } }],
+    ["502 bad gateway", { status: 502, data: "bad gateway" }],
+    ["network failure", { fail: "network" as const }],
+    ["timeout", { fail: "timeout" as const }],
+  ])("never purges the session on %s even with the stored token", async (_name, failure) => {
+    const qc = seedSession();
+    reply = failure;
+    const error = (await request({ url: "/x" }, { silent: true }).catch((e: unknown) => e)) as ApiError;
+    expect(error).toBeInstanceOf(ApiError);
+    expect(getAuthorization()).toBe("fake-token-aaa");
+    expect(useUserStore.getState().userId).toBe("u1");
+    expect(qc.getQueryData(["k"])).toBe(1);
   });
 });

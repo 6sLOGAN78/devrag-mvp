@@ -85,10 +85,17 @@ function shouldPurge(config: AxiosRequestConfig | undefined): boolean {
   return typeof sent === "string" && sent.length > 0 && sent === getAuthorization();
 }
 
-function purgeSession(): void {
+export interface PurgeOptions {
+  /** Show the "Session expired" toast. Sign out and the password-change flow pass false. Default true. */
+  toast?: boolean;
+}
+
+/** Drops the token, the user store and the query cache. Callers that did not expire the session pass `toast: false`. */
+export function purgeSession(options: PurgeOptions = {}): void {
   removeAuthorization();
   useUserStore.getState().reset();
   queryClient?.clear();
+  if (options.toast === false) return;
   notifyError({
     id: SESSION_TOAST_ID,
     title: i18n.t("toast.session.title"),
