@@ -2,9 +2,7 @@ package service
 
 import (
 	"context"
-	"crypto/rand"
 	"crypto/subtle"
-	"encoding/hex"
 	"errors"
 	"slices"
 	"time"
@@ -92,11 +90,11 @@ func (a *Auth) ResolvePrincipal(ctx context.Context, credential string, allowed 
 // Logout rewrites the stored token to INVALID_<random hex>, which signs the user out of every
 // device because all devices share one token (D-10).
 func (a *Auth) Logout(ctx context.Context, userID string) error {
-	var b [16]byte
-	if _, err := rand.Read(b[:]); err != nil {
+	token, err := newInvalidToken()
+	if err != nil {
 		return err
 	}
-	return a.store.SetAccessToken(ctx, userID, "INVALID_"+hex.EncodeToString(b[:]))
+	return a.store.SetAccessToken(ctx, userID, token)
 }
 
 // UserInfo is the session payload of GET /v1/user/info.
@@ -114,14 +112,8 @@ func (a *Auth) UserInfo(ctx context.Context, p Principal) (UserInfo, error) {
 	if err != nil {
 		return UserInfo{}, err
 	}
-	deref := func(s *string) string {
-		if s == nil {
-			return ""
-		}
-		return *s
-	}
 	info := UserInfo{
-		ID: u.ID, Nickname: u.Nickname, Email: u.Email, Avatar: deref(u.Avatar), Language: deref(u.Language),
+		ID: u.ID, Nickname: u.Nickname, Email: u.Email, Avatar: deref(u.Avatar), Language: NormaliseLanguage(deref(u.Language)),
 		ColorSchema: deref(u.ColorSchema), TenantID: p.TenantID, Role: p.Role, IsSuperuser: p.IsSuperuser,
 	}
 	if p.TenantID != "" {

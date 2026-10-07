@@ -104,12 +104,33 @@ type ProfileUpdate struct {
 	Nickname, Language, ColorSchema, Avatar *string
 }
 
-// UpdateProfile is not implemented yet.
-func (d *DB) UpdateProfile(context.Context, string, ProfileUpdate) error {
-	return errors.New("not implemented")
+// UpdateProfile writes the supplied profile columns of one user in a single statement.
+func (d *DB) UpdateProfile(ctx context.Context, userID string, u ProfileUpdate) error {
+	cols := map[string]any{}
+	for col, v := range map[string]*string{"nickname": u.Nickname, "language": u.Language, "color_schema": u.ColorSchema, "avatar": u.Avatar} {
+		if v != nil {
+			cols[col] = *v
+		}
+	}
+	if len(cols) == 0 {
+		return nil
+	}
+	now := time.Now().UTC()
+	cols["update_time"] = now.UnixMilli()
+	cols["update_date"] = now
+	return d.gorm.WithContext(ctx).Model(&entity.User{}).Where("id = ?", userID).UpdateColumns(cols).Error
 }
 
-// ReplacePassword is not implemented yet.
-func (d *DB) ReplacePassword(context.Context, string, string, string, string) (bool, error) {
-	return false, errors.New("not implemented")
+// ReplacePassword stores newHash and the replacement access token in one transaction, but only
+// while the stored hash still equals oldHash. It reports whether the row was changed.
+func (d *DB) ReplacePassword(ctx context.Context, userID, oldHash, newHash, token string) (bool, error) {
+	swapped := false
+	now := time.Now().UTC()
+	err := Transaction(ctx, d, func(tx *gorm.DB) error {
+		res := tx.Model(&entity.User{}).Where("id = ? AND password = ?", userID, oldHash).
+			UpdateColumns(map[string]any{"password": newHash, "access_token": token, "update_time": now.UnixMilli(), "update_date": now})
+		swapped = res.RowsAffected == 1
+		return res.Error
+	})
+	return swapped && err == nil, err
 }

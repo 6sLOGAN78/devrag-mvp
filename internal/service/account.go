@@ -9,7 +9,6 @@ import (
 	"net/mail"
 	"strings"
 	"time"
-	"unicode/utf8"
 
 	"devrag/internal/common"
 	"devrag/internal/dao"
@@ -135,12 +134,12 @@ func (a *Account) Register(ctx context.Context, in RegisterInput) (Profile, erro
 		return Profile{}, err
 	}
 	email := normaliseEmail(in.Email)
-	nickname := strings.TrimSpace(in.Nickname)
-	switch {
-	case !validEmail(email):
+	if !validEmail(email) {
 		return Profile{}, &ValidationError{Msg: "email is not valid"}
-	case utf8.RuneCountInString(nickname) < 1 || utf8.RuneCountInString(nickname) > maxNicknameLength:
-		return Profile{}, &ValidationError{Msg: "nickname must be 1 to 64 characters"}
+	}
+	nickname, err := validNickname(in.Nickname)
+	if err != nil {
+		return Profile{}, err
 	}
 	if err := common.ValidatePasswordLength(in.Password); err != nil {
 		return Profile{}, &ValidationError{Msg: err.Error()}
@@ -265,15 +264,9 @@ func (a *Account) complete(ctx context.Context, user *entity.User) (LoginResult,
 	if err := a.store.TouchLastLogin(ctx, user.ID, a.now().UTC()); err != nil {
 		return LoginResult{}, err
 	}
-	deref := func(s *string) string {
-		if s == nil {
-			return ""
-		}
-		return *s
-	}
 	return LoginResult{
 		Token: token, Role: m.Role, LLMID: t.LLMID, EmbdID: t.EmbdID, RerankID: t.RerankID,
-		Profile: Profile{ID: user.ID, Email: user.Email, Nickname: user.Nickname, Avatar: deref(user.Avatar), Language: deref(user.Language), ColorSchema: deref(user.ColorSchema), TenantID: t.ID},
+		Profile: Profile{ID: user.ID, Email: user.Email, Nickname: user.Nickname, Avatar: deref(user.Avatar), Language: NormaliseLanguage(deref(user.Language)), ColorSchema: deref(user.ColorSchema), TenantID: t.ID},
 	}, nil
 }
 
