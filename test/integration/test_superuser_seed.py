@@ -37,8 +37,7 @@ def scratch() -> Iterator[str]:
 
 
 def _seed(email: str = EMAIL, password: str = FAKE_SECRET) -> bool:
-    with DB.connection_context():
-        return ensure_superuser(email, password)
+    return ensure_superuser(email, password)
 
 
 def _counts() -> tuple[int, int, int]:

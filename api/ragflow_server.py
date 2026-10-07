@@ -3,8 +3,8 @@
 Boot order: logger, database verify (no DDL), then on the serving event loop (``before_serving``)
 startup hooks and serve; hooks therefore share the loop that handles requests, so tasks they
 create stay alive. Schema creation and
-migrations belong to ``python -m api.db.init_db``. Superuser init (Phase 2), plugin loading
-(Phase 7) and the update_progress daemon (Phase 4) are not part of Phase 1; see B-08.
+migrations belong to ``python -m api.db.init_db``. The first-superuser seed (D-03) runs as a startup
+hook; plugin loading (Phase 7) and the update_progress daemon (Phase 4) are still absent; see B-08.
 """
 from __future__ import annotations
 
@@ -24,6 +24,7 @@ from quart import Quart
 from api.apps import create_app
 from api.db.database import DB, init_database
 from api.db.migrations.runner import current_version
+from common.bootstrap import ensure_superuser
 from common.constants import SERVICE_NAME
 from common.log_utils import init_root_logger
 from common.settings import ConfigError, Settings, get_settings
@@ -40,7 +41,14 @@ class BootError(Exception):
 
 
 def register_startup_hook(name: str, hook: StartupHook) -> None:
+    """Register ``hook`` under ``name``; registering the same name again replaces it (boot may run twice)."""
+    _HOOKS[:] = [(n, h) for n, h in _HOOKS if n != name]
     _HOOKS.append((name, hook))
+
+
+def install_superuser_hook(settings: Settings) -> None:
+    """Seed the first superuser from settings after the database is verified (D-03, B-08)."""
+    register_startup_hook("ensure_superuser", lambda: ensure_superuser.run(settings))
 
 
 def _step(step: str) -> None:
@@ -93,6 +101,7 @@ def boot(settings: Settings | None = None, init_logging: bool = True) -> Quart:
     _step("logger")
     verify_database(settings)
     _step("database")
+    install_superuser_hook(settings)
     app = create_app(settings)
     install_startup_hooks(app)
     return app
