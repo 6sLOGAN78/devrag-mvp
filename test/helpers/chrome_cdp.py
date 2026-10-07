@@ -8,7 +8,7 @@ Chrome insists on exactly descriptors 3 and 4, so the pipe ends are duplicated o
 ``preexec_fn`` and 3 and 4 are also listed in ``pass_fds``. Passing other descriptor numbers makes Chrome
 report "Remote debugging pipe file descriptors are not open".
 
-Waiting uses ``test.helpers.wait.wait_until``, the only permitted polling site; this module never sleeps.
+Waiting uses ``test.helpers.wait.wait_until``, the only permitted polling site; there are no fixed delays here.
 """
 from __future__ import annotations
 
