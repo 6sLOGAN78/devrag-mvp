@@ -57,6 +57,12 @@ export const routes: readonly RouteEntry[] = [
     component: () => import("@/pages/login"),
   },
   {
+    path: "/forgot-password",
+    layout: "bare",
+    auth: "none",
+    component: () => import("@/pages/forgot-password"),
+  },
+  {
     path: "/home",
     layout: "standard",
     auth: "required",

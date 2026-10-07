@@ -81,15 +81,21 @@ describe("auth guard in the route table (UI-02, UI-07)", () => {
     expect(screen.queryByTestId("layout-standard")).toBeNull();
   });
 
-  it("keeps /forgot-password and unknown paths public: Not Found renders without a token", async () => {
-    for (const path of ["/forgot-password", "/nope"]) {
-      const { router, unmount } = renderAt(path);
-      expect(await screen.findByRole("heading", { name: "Page not found" })).toBeInTheDocument();
-      expect(router.state.location.pathname).toBe(path);
-      expect(screen.getByTestId("layout-bare")).toBeInTheDocument();
-      expect(screen.queryByTestId("layout-standard")).toBeNull();
-      unmount();
-    }
+  it("keeps /forgot-password public: the reset page renders in the bare layout without a token and is not sent to /login", async () => {
+    const { router } = renderAt("/forgot-password");
+    expect(await screen.findByTestId("forgot-page")).toBeInTheDocument();
+    expect(router.state.location.pathname).toBe("/forgot-password");
+    expect(screen.getByTestId("layout-bare")).toBeInTheDocument();
+    expect(screen.getByTestId("language-switch")).toBeInTheDocument();
+    expect(screen.queryByTestId("layout-standard")).toBeNull();
+  });
+
+  it("keeps unknown paths public: Not Found renders without a token", async () => {
+    const { router } = renderAt("/nope");
+    expect(await screen.findByRole("heading", { name: "Page not found" })).toBeInTheDocument();
+    expect(router.state.location.pathname).toBe("/nope");
+    expect(screen.getByTestId("layout-bare")).toBeInTheDocument();
+    expect(screen.queryByTestId("layout-standard")).toBeNull();
   });
 
   it("renders Not Found inside the standard layout once signed in", async () => {

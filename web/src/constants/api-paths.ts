@@ -30,3 +30,6 @@ export const userPasswordPath = resolveUnder("go", "/v1/user/", "setting/passwor
 export const loginPath = resolveUnder("go", "/api/v1/auth/", "login");
 export const registerPath = resolve("go", "/api/v1/users");
 export const systemConfigPath = resolve("go", "/api/v1/system/config");
+export const forgotOtpPath = resolveUnder("go", "/api/v1/auth/", "password/forgot/otp");
+export const forgotOtpVerifyPath = resolveUnder("go", "/api/v1/auth/", "password/forgot/otp/verify");
+export const passwordResetPath = resolveUnder("go", "/api/v1/auth/", "password/reset");

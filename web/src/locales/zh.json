@@ -139,6 +139,37 @@
     "passwordChanged": {
       "title": "密码已修改",
       "body": "请使用新密码登录。"
+    },
+    "forgot": {
+      "pageTitle": "重置密码 - devRag",
+      "pending": "请稍候",
+      "step": "第 {{current}} 步,共 3 步",
+      "step1": {
+        "title": "重置你的密码",
+        "body": "输入你的账户邮箱,我们会发送一个 6 位验证码。",
+        "submit": "发送验证码"
+      },
+      "step2": {
+        "title": "输入验证码",
+        "body": "如果 {{email}} 对应的账户存在,6 位验证码已在发送途中。验证码 10 分钟后失效。",
+        "submit": "验证"
+      },
+      "code": "6 位验证码",
+      "codePlaceholder": "123456",
+      "resend": "重新发送验证码",
+      "resendIn": "{{seconds}} 秒后可重新发送",
+      "resent": "新的验证码已在发送途中。",
+      "codeFallback": "验证码不正确或已过期。",
+      "sessionFallback": "此重置会话无效或已过期。请重新获取验证码。",
+      "step3": {
+        "title": "设置新密码",
+        "body": "你将在所有设备上退出登录。",
+        "field": "新密码",
+        "submit": "重置密码"
+      },
+      "back": "返回登录",
+      "doneTitle": "密码已重置",
+      "doneBody": "请使用新密码登录。"
     }
   },
   "errors": {
@@ -160,6 +191,9 @@
       "type": "请选择 PNG、JPEG 或 WebP 图片。",
       "decode": "无法将该文件作为图片读取。请选择其他 PNG、JPEG 或 WebP 文件。",
       "size": "图片调整大小后仍超过 256 KB。请选择更小的图片。"
+    },
+    "code": {
+      "invalid": "请输入 6 位验证码。"
     }
   },
   "home": {

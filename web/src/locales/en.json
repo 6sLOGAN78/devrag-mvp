@@ -139,6 +139,37 @@
     "passwordChanged": {
       "title": "Password changed",
       "body": "Sign in with your new password."
+    },
+    "forgot": {
+      "pageTitle": "Reset password - devRag",
+      "pending": "Please wait",
+      "step": "Step {{current}} of 3",
+      "step1": {
+        "title": "Reset your password",
+        "body": "Enter your account email. We'll send a 6-digit code.",
+        "submit": "Send code"
+      },
+      "step2": {
+        "title": "Enter the code",
+        "body": "If an account exists for {{email}}, a 6-digit code is on its way. It expires in 10 minutes.",
+        "submit": "Verify code"
+      },
+      "code": "6-digit code",
+      "codePlaceholder": "123456",
+      "resend": "Send a new code",
+      "resendIn": "Send a new code in {{seconds}}s",
+      "resent": "A new code is on its way.",
+      "codeFallback": "That code is incorrect or has expired.",
+      "sessionFallback": "This reset session is invalid or has expired. Request a new code.",
+      "step3": {
+        "title": "Choose a new password",
+        "body": "You'll be signed out on every device.",
+        "field": "New password",
+        "submit": "Reset password"
+      },
+      "back": "Back to sign in",
+      "doneTitle": "Password reset",
+      "doneBody": "Sign in with your new password."
     }
   },
   "errors": {
@@ -160,6 +191,9 @@
       "type": "Choose a PNG, JPEG or WebP image.",
       "decode": "That file couldn't be read as an image. Choose a different PNG, JPEG or WebP file.",
       "size": "That image is still over 256 KB after resizing. Choose a smaller one."
+    },
+    "code": {
+      "invalid": "Enter the 6-digit code."
     }
   },
   "home": {

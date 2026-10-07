@@ -181,8 +181,8 @@ describe("FullBleedLayout and BareLayout", () => {
 });
 
 describe("registry", () => {
-  it("contains exactly the entries /, /login, /home, /system-status, /user-setting/profile and *", () => {
-    expect(routes.map((r) => r.path)).toEqual(["/", "/login", "/home", "/system-status", "/user-setting/profile", "*"]);
+  it("contains exactly the entries /, /login, /forgot-password, /home, /system-status, /user-setting/profile and *", () => {
+    expect(routes.map((r) => r.path)).toEqual(["/", "/login", "/forgot-password", "/home", "/system-status", "/user-setting/profile", "*"]);
     expect(navEntries().map((r) => i18n.t(r.nav?.labelKey ?? ""))).toEqual(["Home", "System status", "Profile"]);
   });
 

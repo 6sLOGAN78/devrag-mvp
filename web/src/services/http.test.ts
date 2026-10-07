@@ -8,7 +8,7 @@ import { Toaster } from "@/components/ui/sonner";
 import i18n from "@/i18n";
 import { useUserStore } from "@/stores/user-store";
 import { getAuthorization, setAuthorization } from "@/utils/authorization";
-import { ApiError, http, purgeSession, registerNavigate, registerQueryClient, request, requestWithMeta } from "./http";
+import { ApiError, http, parseRetryAfter, purgeSession, registerNavigate, registerQueryClient, request, requestWithMeta } from "./http";
 
 interface Reply {
   status?: number;
@@ -424,5 +424,41 @@ describe("unit http 401 navigation", () => {
     reply = { status: 401, data: { code: 401, message: "expired", data: null } };
     await request({ url: "/x" }, { silent: true }).catch(() => undefined);
     expect(window.location.href).toBe(before);
+  });
+});
+
+describe("unit http Retry-After (plan 02-18)", () => {
+  beforeEach(() => {
+    seen = [];
+    reply = {};
+    http.defaults.adapter = adapter;
+  });
+
+  it("exposes a numeric Retry-After on a rejected response", async () => {
+    reply = { status: 429, data: { code: 429, message: "too many requests", data: null }, headers: { "Retry-After": "42" } };
+    const error = await request({ url: "/x" }, { silent: true }).catch((e: unknown) => e);
+    expect(error).toBeInstanceOf(ApiError);
+    expect((error as ApiError).retryAfter).toBe(42);
+  });
+
+  it("leaves retryAfter undefined when the header is missing", async () => {
+    reply = { status: 429, data: { code: 429, message: "too many requests", data: null } };
+    const error = await request({ url: "/x" }, { silent: true }).catch((e: unknown) => e);
+    expect((error as ApiError).retryAfter).toBeUndefined();
+  });
+
+  it.each([
+    ["30", 30],
+    [" 7 ", 7],
+    ["0", 0],
+    ["-1", undefined],
+    ["1.5", undefined],
+    ["soon", undefined],
+    ["Wed, 21 Oct 2026 07:28:00 GMT", undefined],
+    ["", undefined],
+    ["12345678901", undefined],
+    [undefined, undefined],
+  ])("parseRetryAfter(%j) is %j", (value, expected) => {
+    expect(parseRetryAfter(value)).toBe(expected);
   });
 });

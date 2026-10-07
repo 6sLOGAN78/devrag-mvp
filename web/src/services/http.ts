@@ -33,15 +33,24 @@ export class ApiError<T = unknown> extends Error {
   readonly status: number;
   readonly requestId?: string;
   readonly data?: T;
+  /** Whole seconds from a numeric `Retry-After` header; absent when the header is missing or not a plain number. */
+  readonly retryAfter?: number;
 
-  constructor(init: { code: number; message: string; status: number; requestId?: string; data?: T }) {
+  constructor(init: { code: number; message: string; status: number; requestId?: string; data?: T; retryAfter?: number }) {
     super(init.message);
     this.name = "ApiError";
     this.code = init.code;
     this.status = init.status;
     this.requestId = init.requestId;
     this.data = init.data;
+    this.retryAfter = init.retryAfter;
   }
+}
+
+/** Seconds from a `Retry-After` value; only plain non-negative integers count (HTTP dates and junk are ignored). */
+export function parseRetryAfter(value: string | undefined): number | undefined {
+  if (value === undefined || !/^\d{1,9}$/.test(value.trim())) return undefined;
+  return Number(value.trim());
 }
 
 function isEnvelope(value: unknown): value is Envelope<unknown> {
@@ -193,6 +202,7 @@ http.interceptors.response.use(
         status: response.status,
         requestId: headerValue(response.headers, "x-request-id"),
         data: envelope?.data,
+        retryAfter: parseRetryAfter(headerValue(response.headers, "retry-after")),
       });
     }
     if ((error.status === 401 || error.code === RetCode.UNAUTHORIZED) && shouldPurge(failure.config)) purgeSession();

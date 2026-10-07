@@ -407,7 +407,7 @@ describe("resend countdown (fake timers)", () => {
     ["a negative value", "-5", 60],
     ["zero", "0", 1],
     ["a huge value", "99999", 600],
-  ])("treats Retry-After of %s as %s seconds at most", async (_name, header, expected) => {
+  ])("restarts the countdown from the clamped value for Retry-After of %s", async (_name, header, expected) => {
     const user = userEvent.setup();
     renderPage();
     await toStep2(user);
