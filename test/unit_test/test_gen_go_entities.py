@@ -96,7 +96,7 @@ def test_check_generated_fails_when_schema_json_column_edited(tmp_path: Path) ->
     shutil.copytree(REPO_ROOT / "scripts", root / "scripts", ignore=shutil.ignore_patterns("__pycache__"))
     shutil.copytree(REPO_ROOT / "internal/entity", root / "internal/entity")
     for rel in ("docker/nginx/ragflow.conf", "docker/nginx/ragflow.https.conf", "web/src/constants/api-routes.generated.json",
-                "internal/common/route_policy_gen.go"):  # api/ is symlinked below, so the Python policy file is already present
+                "internal/common/route_policy_gen.go", "internal/common/permissions_gen.go"):  # api/ is symlinked below, so the Python policy file is already present
         (root / rel).parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(REPO_ROOT / rel, root / rel)
     for pkg in ("api", "common"):  # export_schema.py imports the Peewee models relative to its own repo root
