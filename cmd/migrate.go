@@ -7,14 +7,14 @@ import (
 	"os"
 	"time"
 
+	"devrag/conf"
 	"devrag/internal/dao"
-	"devrag/internal/entity"
 	"devrag/internal/server"
 )
 
 const migrateTimeout = 15 * time.Second
 
-// runMigrate verifies that the database schema matches the generated entities. Peewee owns the
+// runMigrate verifies that the database schema matches conf/schema.json (full column definitions, primary keys and indexes). Peewee owns the
 // schema (D-10): this mode only reads, and exits non-zero on any drift.
 func runMigrate() error {
 	cfg, err := server.LoadConfig(confPath())
@@ -39,7 +39,11 @@ func verifyAndReport(ctx context.Context, db interface {
 	SchemaProvider() dao.SchemaProvider
 	settingReader
 }, out *os.File) error {
-	rep, err := dao.VerifySchema(ctx, db.SchemaProvider(), entity.All())
+	def, err := dao.LoadSchemaDef(conf.SchemaJSON)
+	if err != nil {
+		return err
+	}
+	rep, err := dao.VerifySchema(ctx, db.SchemaProvider(), def)
 	if err != nil {
 		return err
 	}
