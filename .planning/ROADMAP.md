@@ -130,7 +130,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 02-04-PLAN.md - SECRET_KEY, auth, mail, models and configurable rate-limit plumbing (R-94 defaults, dev overlay for per-IP values)
+- [x] 02-04-PLAN.md - SECRET_KEY, auth, mail, models and configurable rate-limit plumbing (R-94 defaults, dev overlay for per-IP values)
 - [ ] 02-06-PLAN.md - Token and password contract in Go and Python with shared vectors
 - [ ] 02-08-PLAN.md - Endpoint registry and generated policy for both stacks
 

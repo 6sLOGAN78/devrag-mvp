@@ -14,7 +14,7 @@ Requirements for initial release. Each maps to exactly one roadmap phase.
 - [ ] **AUTH-01**: User can register with email, password, nickname via `POST /api/v1/users`; email format, nickname, and email uniqueness are validated
 - [ ] **AUTH-02**: Passwords are stored only as salted hashes and verified on login
 - [ ] **AUTH-03**: Registration atomically provisions a `tenant` row and a `user_tenant` link with `role='owner'`; failure rolls back all three inserts
-- [ ] **AUTH-04**: Registration initializes the tenant's default model configuration (`tenant_llm`)
+- [x] **AUTH-04**: Registration initializes the tenant's default model configuration (`tenant_llm`)
 - [ ] **AUTH-05**: User can log in with email and password via `POST /api/v1/auth/login` and receives `access_token` plus user object; only users with valid status may log in
 - [ ] **AUTH-06**: Login resolves the user's tenant id, role, and tenant default models (chat, embedding, rerank)
 - [ ] **AUTH-07**: Protected routes on both servers accept `Authorization: Bearer <token>` and populate request user context (`g.user` / `c.Set("user")`)
@@ -684,7 +684,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | AUTH-01 | Phase 2 | Pending |
 | AUTH-02 | Phase 2 | Pending |
 | AUTH-03 | Phase 2 | Pending |
-| AUTH-04 | Phase 2 | Pending |
+| AUTH-04 | Phase 2 | Complete |
 | AUTH-05 | Phase 2 | Pending |
 | AUTH-06 | Phase 2 | Pending |
 | AUTH-07 | Phase 2 | Pending |
