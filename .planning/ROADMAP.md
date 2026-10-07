@@ -142,7 +142,7 @@ Plans:
 **Wave 4** *(blocked on Wave 3 completion)*
 
 - [x] 02-09-PLAN.md - Go register and login with rate limits, proven through Nginx
-- [ ] 02-11-PLAN.md - i18n runtime (en, zh), key-parity test, shared shell copy migration
+- [x] 02-11-PLAN.md - i18n runtime (en, zh), key-parity test, shared shell copy migration
 
 **Wave 5** *(blocked on Wave 4 completion)*
 
