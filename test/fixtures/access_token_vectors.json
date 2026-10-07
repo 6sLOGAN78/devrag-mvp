@@ -1,0 +1,167 @@
+{
+  "_comment": "Shared access-token vectors for Go and Python. Obviously fake test secret.",
+  "secret": "test-secret-key-0123456789abcdef0123456789abcdef",
+  "inner": "0123456789abcdef0123456789abcdef",
+  "max_age": 2592000,
+  "signed_at": 1700000000,
+  "vectors": [
+    {
+      "id": "valid_fresh",
+      "token": ".eJxTMjA0MjYxNTO3sExMSk5JTUPnKwEAkmIJCQ.ZVPxAA.2hzReVQugqcZwv9Chnimhl5Rv90",
+      "now": 1700000060,
+      "expect": "ok",
+      "inner": "0123456789abcdef0123456789abcdef",
+      "inner_valid": true
+    },
+    {
+      "id": "valid_day29",
+      "token": ".eJxTMjA0MjYxNTO3sExMSk5JTUPnKwEAkmIJCQ.ZVPxAA.2hzReVQugqcZwv9Chnimhl5Rv90",
+      "now": 1702505600,
+      "expect": "ok",
+      "inner": "0123456789abcdef0123456789abcdef",
+      "inner_valid": true
+    },
+    {
+      "id": "valid_at_max_age",
+      "token": ".eJxTMjA0MjYxNTO3sExMSk5JTUPnKwEAkmIJCQ.ZVPxAA.2hzReVQugqcZwv9Chnimhl5Rv90",
+      "now": 1702592000,
+      "expect": "ok",
+      "inner": "0123456789abcdef0123456789abcdef",
+      "inner_valid": true
+    },
+    {
+      "id": "expired_by_one_second",
+      "token": ".eJxTMjA0MjYxNTO3sExMSk5JTUPnKwEAkmIJCQ.ZVPxAA.2hzReVQugqcZwv9Chnimhl5Rv90",
+      "now": 1702592001,
+      "expect": "rejected"
+    },
+    {
+      "id": "future_timestamp",
+      "token": ".eJxTMjA0MjYxNTO3sExMSk5JTUPnKwEAkmIJCQ.ZVPxAA.2hzReVQugqcZwv9Chnimhl5Rv90",
+      "now": 1699999999,
+      "expect": "rejected"
+    },
+    {
+      "id": "tampered_payload",
+      "token": ".eJxUMjA0MjYxNTO3sExMSk5JTUPnKwEAkmIJCQ.ZVPxAA.2hzReVQugqcZwv9Chnimhl5Rv90",
+      "now": 1700000001,
+      "expect": "rejected"
+    },
+    {
+      "id": "tampered_signature",
+      "token": ".eJxTMjA0MjYxNTO3sExMSk5JTUPnKwEAkmIJCQ.ZVPxAA.2hzReVQugqcZwv9Chnimhl5RvAA",
+      "now": 1700000001,
+      "expect": "rejected"
+    },
+    {
+      "id": "tampered_timestamp",
+      "token": ".eJxTMjA0MjYxNTO3sExMSk5JTUPnKwEAkmIJCQ.ZVPxAQ.2hzReVQugqcZwv9Chnimhl5Rv90",
+      "now": 1700000001,
+      "expect": "rejected"
+    },
+    {
+      "id": "wrong_secret",
+      "token": ".eJxTMjA0MjYxNTO3sExMSk5JTUPnKwEAkmIJCQ.ZVPxAA.kDPeT7xwsC4YN9EmPHTz-aQW1s8",
+      "now": 1700000001,
+      "expect": "rejected"
+    },
+    {
+      "id": "no_signature",
+      "token": ".eJxTMjA0MjYxNTO3sExMSk5JTUPnKwEAkmIJCQ.ZVPxAA",
+      "now": 1700000001,
+      "expect": "rejected"
+    },
+    {
+      "id": "empty",
+      "token": "",
+      "now": 1700000001,
+      "expect": "rejected"
+    },
+    {
+      "id": "garbage",
+      "token": "not-a-token",
+      "now": 1700000001,
+      "expect": "rejected"
+    },
+    {
+      "id": "invalid_prefix_token",
+      "token": "INVALID_.eJxTMjA0MjYxNTO3sExMSk5JTUPnKwEAkmIJCQ.ZVPxAA.2hzReVQugqcZwv9Chnimhl5Rv90",
+      "now": 1700000001,
+      "expect": "rejected"
+    },
+    {
+      "id": "too_long",
+      "token": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.ZVPxAA.bbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "now": 1700000001,
+      "expect": "rejected"
+    },
+    {
+      "id": "valid_uncompressed_payload",
+      "token": "IjAxMjM0NTY3ODlhYmNkZWYwMTIzNDU2Nzg5YWJjZGVmIg.ZVPxAA.KQBuYfEuoM7E9yJZUEDr74kI6Vg",
+      "now": 1700000001,
+      "expect": "ok",
+      "inner": "0123456789abcdef0123456789abcdef",
+      "inner_valid": true
+    },
+    {
+      "id": "signed_non_string_payload_number",
+      "token": "MTIzNDU.ZVPxAA.3YgR0UEV3o5MjXgkz5ulNeOOG2c",
+      "now": 1700000001,
+      "expect": "rejected"
+    },
+    {
+      "id": "signed_bad_zlib",
+      "token": ".bm90emxpYg.ZVPxAA.wOY1Shu3ADakSjgQpkbqo8-EJv8",
+      "now": 1700000001,
+      "expect": "rejected"
+    },
+    {
+      "id": "signed_invalid_prefix_value",
+      "token": ".eJxT8vQLc_TxdIlPJACUADPqDss.ZVPxAA.e__5fbcRsgJLKjUCKXDVwqDCpi0",
+      "now": 1700000001,
+      "expect": "ok",
+      "inner": "INVALID_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "inner_valid": false
+    },
+    {
+      "id": "signed_short_value",
+      "token": ".eJxTSsQPlADMVAwE.ZVPxAA.diMlI5IBP8nLQtQX1YfDmq9BSQw",
+      "now": 1700000001,
+      "expect": "ok",
+      "inner": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "inner_valid": false
+    },
+    {
+      "id": "signed_whitespace_value",
+      "token": "IiAgICI.ZVPxAA.tB6z0cHRCIS0zQfXrJpTlQhSFGw",
+      "now": 1700000001,
+      "expect": "ok",
+      "inner": "   ",
+      "inner_valid": false
+    },
+    {
+      "id": "valid_ffff_t1700000000",
+      "token": ".eJxTSiMAlADj6A0F.ZVPxAA.H5QVTFWWL0v9X34v4q5XqaMP0Co",
+      "now": 1700000001,
+      "expect": "ok",
+      "inner": "ffffffffffffffffffffffffffffffff",
+      "inner_valid": true
+    },
+    {
+      "id": "valid_ffff_t1760000000",
+      "token": ".eJxTSiMAlADj6A0F.aOd4AA.cMspKyn2jrfoKdAuCn2P3zxg_IE",
+      "now": 1760000001,
+      "expect": "ok",
+      "inner": "ffffffffffffffffffffffffffffffff",
+      "inner_valid": true
+    },
+    {
+      "id": "valid_inner_t1760000000",
+      "token": ".eJxTMjA0MjYxNTO3sExMSk5JTUPnKwEAkmIJCQ.aOd4AA.DDF0MzrUF4gGxxQWbhuMDPM9Af4",
+      "now": 1760000001,
+      "expect": "ok",
+      "inner": "0123456789abcdef0123456789abcdef",
+      "inner_valid": true
+    }
+  ]
+}
