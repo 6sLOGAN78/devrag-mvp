@@ -218,6 +218,7 @@ describe("UserMenu", () => {
 describe("UserMenu sign out (T-02-53B)", () => {
   async function signOut() {
     const view = renderGuarded();
+    view.client.setQueryData(["other"], 1);
     await userEvent.click(await screen.findByTestId("user-menu"));
     await userEvent.click(await screen.findByTestId("user-menu-signout"));
     return view;
@@ -225,7 +226,6 @@ describe("UserMenu sign out (T-02-53B)", () => {
 
   it("calls logout with the bearer token, then purges everything and lands on a bare /login with no toast", async () => {
     const view = await signOut();
-    view.client.setQueryData(["other"], 1);
     expect(await screen.findByTestId("login-page")).toHaveTextContent(/^\/login$/);
     const logout = calls.find((c) => c.url === logoutPath);
     expect(logout?.method).toBe("post");
