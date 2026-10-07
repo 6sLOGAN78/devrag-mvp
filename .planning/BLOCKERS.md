@@ -61,10 +61,10 @@ Each entry has: ID `B-NN`, Title, Status (`open` | `mitigated` | `closed`), Affe
 
 ## B-08 Python boot items
 - Status: open
-- Affects: API-13
-- Evidence: superuser init (Phase 2), plugin load (Phase 7), background daemons (Phase 4) are absent.
+- Affects: API-13 (plugin load, background daemons)
+- Evidence: the superuser init part is delivered by plan 02-19 (2026-10-07): `ensure_superuser` startup hook, idempotent and race-safe seed, one transaction for user, tenant and owner row, pbkdf2 hash, nothing created unless SUPERUSER_EMAIL and SUPERUSER_PASSWORD are both set. Observed live: 9 integration tests on MySQL, and the cross-stack e2e (seeded superuser logs in through Go, token accepted by Python). Still absent: plugin load (Phase 7) and background daemons (Phase 4).
 - Needed from user: none.
-- Workaround in repo: boot logger, DB verify (no DDL), hooks and serve are real and tested in order. The missing items are deliberately not stubbed: `register_startup_hook` is the extension point for them. API-13 complete with blocker.
+- Workaround in repo: boot logger, DB verify (no DDL), the superuser hook, hooks and serve are real and tested in order. The two missing items are deliberately not stubbed: `register_startup_hook` is the extension point for them. API-13 complete with blocker.
 
 ## B-09 Real model source for Phase 3+
 - Status: open
