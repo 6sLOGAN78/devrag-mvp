@@ -12,13 +12,13 @@ Requirements for initial release. Each maps to exactly one roadmap phase.
 ### AUTH — Authentication, sessions, tokens, API keys
 
 - [ ] **AUTH-01**: User can register with email, password, nickname via `POST /api/v1/users`; email format, nickname, and email uniqueness are validated
-- [x] **AUTH-02**: Passwords are stored only as salted hashes and verified on login
+- [ ] **AUTH-02**: Passwords are stored only as salted hashes and verified on login
 - [ ] **AUTH-03**: Registration atomically provisions a `tenant` row and a `user_tenant` link with `role='owner'`; failure rolls back all three inserts
-- [x] **AUTH-04**: Registration initializes the tenant's default model configuration (`tenant_llm`)
+- [ ] **AUTH-04**: Registration initializes the tenant's default model configuration (`tenant_llm`)
 - [ ] **AUTH-05**: User can log in with email and password via `POST /api/v1/auth/login` and receives `access_token` plus user object; only users with valid status may log in
 - [ ] **AUTH-06**: Login resolves the user's tenant id, role, and tenant default models (chat, embedding, rerank)
-- [x] **AUTH-07**: Protected routes on both servers accept `Authorization: Bearer <token>` and populate request user context (`g.user` / `c.Set("user")`)
-- [x] **AUTH-08**: Token validation rejects empty/whitespace tokens, tokens shorter than 32 chars, and tokens beginning `INVALID_`
+- [ ] **AUTH-07**: Protected routes on both servers accept `Authorization: Bearer <token>` and populate request user context (`g.user` / `c.Set("user")`)
+- [ ] **AUTH-08**: Token validation rejects empty/whitespace tokens, tokens shorter than 32 chars, and tokens beginning `INVALID_`
 - [ ] **AUTH-09**: User can log out; logout rewrites `user.access_token` to `INVALID_<hex>` so the old token returns 401 thereafter
 - [ ] **AUTH-10**: Requests without an `Authorization` header fall back to a Redis-backed server session cookie (`_user_id`)
 - [ ] **AUTH-11**: Login sets a signed `ragflow_auth` cookie
@@ -26,9 +26,9 @@ Requirements for initial release. Each maps to exactly one roadmap phase.
 - [ ] **AUTH-13**: User can fetch own profile, avatar, tenant id and role via `GET /v1/user/info`
 - [ ] **AUTH-14**: User can update nickname, avatar, and language via `POST /v1/user/setting`
 - [ ] **AUTH-15**: User can change password by supplying old and new password via `POST /v1/user/setting/password`
-- [x] **AUTH-16**: User can request a password-reset OTP via `POST /api/v1/auth/password/forgot/otp`
-- [x] **AUTH-17**: User can verify the OTP via `POST /api/v1/auth/password/forgot/otp/verify`
-- [x] **AUTH-18**: User can reset password with email, OTP, and new password via `POST /api/v1/auth/password/reset`
+- [ ] **AUTH-16**: User can request a password-reset OTP via `POST /api/v1/auth/password/forgot/otp`
+- [ ] **AUTH-17**: User can verify the OTP via `POST /api/v1/auth/password/forgot/otp/verify`
+- [ ] **AUTH-18**: User can reset password with email, OTP, and new password via `POST /api/v1/auth/password/reset`
 - [ ] **AUTH-19**: User can create a programmatic API token via `POST /system/tokens`
 - [ ] **AUTH-20**: User can list API tokens via `GET /system/tokens`
 - [ ] **AUTH-21**: User can delete an API token via `DELETE /system/tokens/<token>`
@@ -587,7 +587,7 @@ Requirements for initial release. Each maps to exactly one roadmap phase.
 
 ### SEC — Security
 
-- [x] **SEC-01**: Every non-public endpoint is behind the auth decorator/middleware
+- [ ] **SEC-01**: Every non-public endpoint is behind the auth decorator/middleware
 - [ ] **SEC-02**: API keys, access tokens, and LLM credentials are masked in API responses
 - [ ] **SEC-03**: LLM provider keys are encrypted at rest
 - [x] **SEC-04**: Secrets come from environment/config, never hard-coded, never logged
@@ -595,7 +595,7 @@ Requirements for initial release. Each maps to exactly one roadmap phase.
 - [ ] **SEC-06**: Upload safety: extension check, sanitized names, UUID object keys, no path traversal
 - [ ] **SEC-07**: Sandboxed code runs as non-root with memory cap, timeout, no-new-privileges, no network, seccomp filter
 - [ ] **SEC-08**: Native document parsing isolated in the `deepdoc` container
-- [x] **SEC-09**: Tokens validated with an HMAC-signed secret key and expiry
+- [ ] **SEC-09**: Tokens validated with an HMAC-signed secret key and expiry
 - [x] **SEC-10**: Input validation prevents SQL and command injection
 - [ ] **SEC-11**: Rate limiting backed by Redis
 
@@ -682,13 +682,13 @@ Which phases cover which requirements. Updated during roadmap creation.
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | AUTH-01 | Phase 2 | Pending |
-| AUTH-02 | Phase 2 | Complete |
+| AUTH-02 | Phase 2 | Pending |
 | AUTH-03 | Phase 2 | Pending |
-| AUTH-04 | Phase 2 | Complete |
+| AUTH-04 | Phase 2 | Pending |
 | AUTH-05 | Phase 2 | Pending |
 | AUTH-06 | Phase 2 | Pending |
-| AUTH-07 | Phase 2 | Complete |
-| AUTH-08 | Phase 2 | Complete |
+| AUTH-07 | Phase 2 | Pending |
+| AUTH-08 | Phase 2 | Pending |
 | AUTH-09 | Phase 2 | Pending |
 | AUTH-10 | Phase 2 | Pending |
 | AUTH-11 | Phase 2 | Pending |
@@ -696,9 +696,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | AUTH-13 | Phase 2 | Pending |
 | AUTH-14 | Phase 2 | Pending |
 | AUTH-15 | Phase 2 | Pending |
-| AUTH-16 | Phase 2 | Complete |
-| AUTH-17 | Phase 2 | Complete |
-| AUTH-18 | Phase 2 | Complete |
+| AUTH-16 | Phase 2 | Pending |
+| AUTH-17 | Phase 2 | Pending |
+| AUTH-18 | Phase 2 | Pending |
 | AUTH-19 | Phase 2 | Pending |
 | AUTH-20 | Phase 2 | Pending |
 | AUTH-21 | Phase 2 | Pending |
@@ -1179,7 +1179,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DEPLOY-19 | Phase 8 | Pending |
 | DEPLOY-20 | Phase 8 | Pending |
 | DEPLOY-21 | Phase 8 | Pending |
-| SEC-01 | Phase 2 | Complete |
+| SEC-01 | Phase 2 | Pending |
 | SEC-02 | Phase 3 | Pending |
 | SEC-03 | Phase 3 | Pending |
 | SEC-04 | Phase 1 | Complete |
@@ -1187,7 +1187,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SEC-06 | Phase 3 | Pending |
 | SEC-07 | Phase 7 | Pending |
 | SEC-08 | Phase 6 | Pending |
-| SEC-09 | Phase 2 | Complete |
+| SEC-09 | Phase 2 | Pending |
 | SEC-10 | Phase 1 | Complete |
 | SEC-11 | Phase 8 | Pending |
 | TEST-01 | Phase 1 | Complete |
