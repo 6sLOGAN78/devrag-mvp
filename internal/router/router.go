@@ -92,3 +92,13 @@ func WithProfile(s *handler.Settings, t *handler.Tenant) Option {
 		e.GET("/v1/tenant/list", t.List)
 	})
 }
+
+// WithPasswordReset registers the public forgot-password routes. They are listed with auth none in
+// conf/routes.yaml, never read or set the auth cookie, and are rate limited in the service.
+func WithPasswordReset(h *handler.PasswordReset) Option {
+	return WithExtraRoutes(func(e *gin.Engine) {
+		e.POST("/api/v1/auth/password/forgot/otp", h.RequestOTP)
+		e.POST("/api/v1/auth/password/forgot/otp/verify", h.VerifyOTP)
+		e.POST("/api/v1/auth/password/reset", h.Reset)
+	})
+}

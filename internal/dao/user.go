@@ -134,3 +134,17 @@ func (d *DB) ReplacePassword(ctx context.Context, userID, oldHash, newHash, toke
 	})
 	return swapped && err == nil, err
 }
+
+// SetPassword stores newHash and the replacement access token in one transaction without comparing
+// the old hash. Only a verified password-reset grant may call it. It reports whether a row changed.
+func (d *DB) SetPassword(ctx context.Context, userID, newHash, token string) (bool, error) {
+	changed := false
+	now := time.Now().UTC()
+	err := Transaction(ctx, d, func(tx *gorm.DB) error {
+		res := tx.Model(&entity.User{}).Where("id = ?", userID).
+			UpdateColumns(map[string]any{"password": newHash, "access_token": token, "update_time": now.UnixMilli(), "update_date": now})
+		changed = res.RowsAffected == 1
+		return res.Error
+	})
+	return changed && err == nil, err
+}

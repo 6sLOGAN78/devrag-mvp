@@ -116,3 +116,12 @@ func AssertNoMailFor(t testing.TB, recipient string) {
 		t.Fatalf("unexpected mail for %s", recipient)
 	}
 }
+
+// DeleteMailFor removes the captured messages addressed to recipient (and nothing else), so a test
+// cleans up exactly what it caused.
+func DeleteMailFor(t testing.TB, recipient string) {
+	t.Helper()
+	if err := mailDo(http.MethodDelete, "/api/v1/search?query="+url.QueryEscape("to:"+recipient), nil); err != nil {
+		t.Errorf("delete mail for %s: %v", recipient, err)
+	}
+}

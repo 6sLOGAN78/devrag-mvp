@@ -118,3 +118,10 @@ def test_oversized_input_is_capped_with_marker():
 
     out = redact_text("x" * 200000)
     assert len(out) < 70000 and out.endswith("[truncated]")
+
+
+def test_otp_and_reset_ticket_fields_masked():
+    out = emit("reset otp=424242 reset_ticket=abcDEF123_-xyz", otp="424242", reset_ticket="abcDEF123_-xyz")
+    assert out["otp"] == "***" and out["reset_ticket"] == "***"
+    rendered = json.dumps(out)
+    assert "424242" not in rendered and "abcDEF123" not in rendered

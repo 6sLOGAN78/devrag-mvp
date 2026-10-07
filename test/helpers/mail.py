@@ -58,3 +58,9 @@ def assert_no_mail_for(recipient: str, timeout: float = 3.0) -> None:
     except TimeoutError:
         return
     raise AssertionError(f"unexpected mail for {recipient}")
+
+
+def delete_mail_for(recipient: str) -> None:
+    """Remove the captured messages addressed to ``recipient`` (and nothing else)."""
+    query = urllib.parse.quote(f"to:{recipient}")
+    _request("DELETE", f"/api/v1/search?query={query}")

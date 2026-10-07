@@ -160,3 +160,14 @@ func TestTruncateFieldKeepsRunesIntact(t *testing.T) {
 	assert.True(t, strings.HasSuffix(out, "[truncated]"))
 	assert.Equal(t, "/health", TruncateField("/health", MaxLogField))
 }
+
+func TestRedactorCoversOTPAndTicketFields(t *testing.T) {
+	for _, in := range []string{`otp=424242`, `{"otp":"424242"}`, `reset_ticket=abcDEF123_-xyz`, `"reset_ticket": "abcDEF123_-xyz"`, `ticket: abcDEF123_-xyz`} {
+		out := RedactString(in)
+		assert.NotContains(t, out, "424242", in)
+		assert.NotContains(t, out, "abcDEF123", in)
+		assert.Contains(t, out, RedactedValue)
+	}
+	assert.True(t, IsSensitiveKey("otp"))
+	assert.True(t, IsSensitiveKey("reset_ticket"))
+}
