@@ -71,7 +71,7 @@ describe("pages render in both languages", () => {
       </MemoryRouter>,
     );
     expect(screen.getByRole("heading", { name: "Page not found" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Go to System status" })).toHaveAttribute("href", "/");
+    expect(screen.getByRole("link", { name: "Go to System status" })).toHaveAttribute("href", "/system-status");
     expect(document.title).toBe("Page not found - devRag");
     view.unmount();
     await act(async () => {

@@ -2,6 +2,7 @@ import { render, screen } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AxiosError, AxiosHeaders, type AxiosAdapter } from "axios";
 import { createMemoryRouter, RouterProvider } from "react-router";
+import { Activity } from "lucide-react";
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { routes, type RouteEntry } from "@/constants/routes";
 import { ShellError } from "@/pages/route-error";
@@ -62,11 +63,11 @@ function signIn() {
 }
 
 describe("auth guard in the route table (UI-02, UI-07)", () => {
-  it("redirects a signed-out visitor at / to /login?next=%2F inside the bare layout, never showing the shell", async () => {
-    const { router } = renderAt("/");
+  it("redirects a signed-out visitor at /system-status to /login?next=%2Fsystem-status inside the bare layout, never showing the shell", async () => {
+    const { router } = renderAt("/system-status");
     expect(await screen.findByTestId("layout-bare")).toBeInTheDocument();
     expect(router.state.location.pathname).toBe("/login");
-    expect(router.state.location.search).toBe("?next=%2F");
+    expect(router.state.location.search).toBe("?next=%2Fsystem-status");
     expect(screen.queryByTestId("layout-standard")).toBeNull();
     expect(screen.queryByRole("heading", { name: "System status" })).toBeNull();
   });
@@ -95,7 +96,7 @@ describe("auth guard in the route table (UI-02, UI-07)", () => {
     infoGate = new Promise<void>((resolve) => {
       release = resolve;
     });
-    renderAt("/");
+    renderAt("/system-status");
     await waitUntil(() => screen.queryByTestId("session-skeleton") !== null, { describe: "session skeleton" });
     expect(screen.getByTestId("layout-bare")).toBeInTheDocument();
     expect(screen.queryByTestId("layout-standard")).toBeNull();
@@ -107,11 +108,42 @@ describe("auth guard in the route table (UI-02, UI-07)", () => {
   });
 });
 
+describe("the root entry redirect (UI-02)", () => {
+  it("sends a signed-out visitor at / to /login with no next parameter and never shows the shell", async () => {
+    const { router } = renderAt("/");
+    expect(await screen.findByTestId("layout-bare")).toBeInTheDocument();
+    expect(router.state.location.pathname).toBe("/login");
+    expect(router.state.location.search).toBe("");
+    expect(screen.queryByTestId("layout-standard")).toBeNull();
+  });
+
+  it("sends a signed-in visitor at / to /system-status and renders the page", async () => {
+    signIn();
+    const { router } = renderAt("/");
+    expect(await screen.findByRole("heading", { name: "System status" })).toBeInTheDocument();
+    expect(router.state.location.pathname).toBe("/system-status");
+    expect(screen.getByTestId("layout-standard")).toBeInTheDocument();
+  });
+
+  it("keeps the root redirect public and the status page guarded in the registry", () => {
+    const root = routes.find((r) => r.path === "/");
+    expect(root?.auth).toBe("none");
+    expect(root?.nav).toBeUndefined();
+    expect(root?.redirect?.({ signedIn: true })).toBe("/system-status");
+    expect(root?.redirect?.({ signedIn: false })).toBe("/login");
+    const status = routes.find((r) => r.path === "/system-status");
+    expect(status?.auth).toBe("required");
+    expect(status?.layout).toBe("standard");
+    expect(status?.nav).toMatchObject({ labelKey: "nav.systemStatus", order: 2, group: "platform" });
+    expect(status?.nav?.icon).toBe(Activity);
+  });
+});
+
 describe("route table", () => {
   it("renders every registry route inside its declared layout", async () => {
     signIn();
     expect(routes.length).toBeGreaterThan(0);
-    const status = renderAt("/");
+    const status = renderAt("/system-status");
     expect(await screen.findByTestId("layout-standard")).toBeInTheDocument();
     expect(await screen.findByRole("heading", { name: "System status" })).toBeInTheDocument();
     status.unmount();
@@ -123,7 +155,7 @@ describe("route table", () => {
     renderAt(path);
     expect(await screen.findByRole("heading", { name: "Page not found" })).toBeInTheDocument();
     expect(screen.getByText("404")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Go to System status" })).toHaveAttribute("href", "/");
+    expect(screen.getByRole("link", { name: "Go to System status" })).toHaveAttribute("href", "/system-status");
     expect(screen.queryByText(/coming soon/i)).toBeNull();
   });
 
