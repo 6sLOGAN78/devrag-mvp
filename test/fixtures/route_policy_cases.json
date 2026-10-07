@@ -1,0 +1,23 @@
+{
+  "note": "Shared by test/unit_test/test_route_policy.py and internal/common/route_policy_test.go. Precedence: registry row (method+path), exact family entry, longest prefix family entry, default jwt (deny).",
+  "cases": [
+    {"method": "GET", "path": "/health", "auth": "none", "owner": "go", "scope": "none", "preflight": false},
+    {"method": "POST", "path": "/api/v1/auth/logout", "auth": "jwt", "owner": "go", "scope": "none", "preflight": false},
+    {"method": "POST", "path": "/api/v1/auth/login", "auth": "none", "owner": "go", "scope": "none", "preflight": false},
+    {"method": "POST", "path": "/api/v1/auth/unlisted", "auth": "none", "owner": "go", "scope": "none", "preflight": false},
+    {"method": "DELETE", "path": "/api/v1/system/tokens/abc", "auth": "jwt", "owner": "go", "scope": "tenant", "preflight": false},
+    {"method": "GET", "path": "/api/v1/system/tokens", "auth": "jwt", "owner": "go", "scope": "tenant", "preflight": false},
+    {"method": "GET", "path": "/api/v1/tenants/t1/users", "auth": "jwt", "owner": "go", "scope": "tenant", "preflight": false},
+    {"method": "PATCH", "path": "/api/v1/tenants/t1/users/u1", "auth": "jwt", "owner": "go", "scope": "tenant", "preflight": false},
+    {"method": "GET", "path": "/api/v1/tenants/t1/unlisted", "auth": "jwt", "owner": "go", "scope": "none", "preflight": false},
+    {"method": "GET", "path": "/api/v1/anything/unknown", "auth": "api", "owner": "python", "scope": "none", "preflight": false},
+    {"method": "GET", "path": "/api/v1/openapi.json", "auth": "api", "owner": "python", "scope": "none", "preflight": false},
+    {"method": "POST", "path": "/api/v1/searchbots/x", "auth": "beta", "owner": "go", "scope": "none", "preflight": false},
+    {"method": "GET", "path": "/v1/user/info", "auth": "jwt", "owner": "go", "scope": "none", "preflight": false},
+    {"method": "GET", "path": "/api/v1/system/healthz", "auth": "none", "owner": "python", "scope": "none", "preflight": false},
+    {"method": "GET", "path": "/unknown", "auth": "jwt", "owner": "", "scope": "none", "preflight": false},
+    {"method": "GET", "path": "", "auth": "jwt", "owner": "", "scope": "none", "preflight": false},
+    {"method": "OPTIONS", "path": "/api/v1/datasets", "auth": "api", "owner": "python", "scope": "none", "preflight": true},
+    {"method": "OPTIONS", "path": "/unknown", "auth": "jwt", "owner": "", "scope": "none", "preflight": true}
+  ]
+}
