@@ -10,7 +10,8 @@
     "groupAccount": "账户",
     "openMenu": "打开导航菜单",
     "closeMenu": "关闭",
-    "profile": "个人资料"
+    "profile": "个人资料",
+    "apiTokens": "API 令牌"
   },
   "header": {
     "accountMenu": "账户菜单",
@@ -202,11 +203,15 @@
     "workspace": "工作区:{{name}}",
     "loading": "正在加载你的工作区",
     "stat": {
-      "role": "你的角色"
+      "role": "你的角色",
+      "tokens": "API 令牌",
+      "loadError": "无法加载",
+      "retry": "重试"
     },
     "links": {
       "title": "管理你的账户",
-      "profile": "编辑你的资料"
+      "profile": "编辑你的资料",
+      "tokens": "管理 API 令牌"
     }
   },
   "role": {
@@ -242,5 +247,70 @@
   },
   "dialog": {
     "close": "关闭"
+  },
+  "tokens": {
+    "title": "API 令牌",
+    "pageTitle": "API 令牌 - devRag",
+    "intro": "使用 API 令牌从你自己的代码调用 devRag API。请在 Authorization 请求头中以 Bearer 令牌的形式发送。",
+    "loading": "正在加载 API 令牌",
+    "create": "创建令牌",
+    "col": {
+      "token": "令牌",
+      "created": "创建时间",
+      "actions": "操作"
+    },
+    "action": {
+      "show": "显示尾号为 {{last4}} 的令牌",
+      "hide": "隐藏尾号为 {{last4}} 的令牌",
+      "copy": "复制尾号为 {{last4}} 的令牌",
+      "delete": "删除尾号为 {{last4}} 的令牌"
+    },
+    "copied": "令牌已复制",
+    "copyFailed": {
+      "title": "无法复制",
+      "body": "请选中令牌并手动复制。"
+    },
+    "empty": {
+      "heading": "还没有 API 令牌",
+      "body": "创建一个令牌,即可从你自己的代码调用 devRag API。"
+    },
+    "created": {
+      "title": "API 令牌已创建",
+      "body": "请像对待密码一样对待此令牌。任何持有它的人都可以在此工作区中以你的身份操作。你可以随时在此页面再次查看。",
+      "field": "API 令牌",
+      "copy": "复制令牌",
+      "done": "完成"
+    },
+    "delete": {
+      "title": "删除 API 令牌?",
+      "body": "尾号为 {{last4}} 的令牌将立即失效,任何使用它的程序都会收到认证错误。此操作无法撤销。",
+      "keep": "保留令牌",
+      "confirm": "删除令牌"
+    },
+    "deleted": "令牌已删除",
+    "errorNoun": "API 令牌",
+    "forbidden": {
+      "heading": "只有工作区所有者可以管理 API 令牌",
+      "body": "如需令牌,请联系此工作区的所有者。"
+    },
+    "error": {
+      "limit": {
+        "title": "已达到令牌数量上限",
+        "body": "此工作区已有 {{max}} 个 API 令牌。请删除不再使用的令牌,然后重试。"
+      },
+      "rateLimited": {
+        "title": "创建令牌过于频繁",
+        "body": "最近创建的令牌过多。请稍后再试。"
+      },
+      "create": {
+        "title": "无法创建令牌",
+        "body": "出了点问题,请重试。"
+      },
+      "ownerOnly": "只有工作区所有者可以创建 API 令牌。",
+      "delete": {
+        "title": "无法删除令牌",
+        "body": "出了点问题,令牌未被删除。请重试。"
+      }
+    }
   }
 }

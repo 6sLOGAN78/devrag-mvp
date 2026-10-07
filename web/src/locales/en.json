@@ -10,7 +10,8 @@
     "groupAccount": "Account",
     "openMenu": "Open navigation menu",
     "closeMenu": "Close",
-    "profile": "Profile"
+    "profile": "Profile",
+    "apiTokens": "API tokens"
   },
   "header": {
     "accountMenu": "Account menu",
@@ -202,11 +203,15 @@
     "workspace": "Workspace: {{name}}",
     "loading": "Loading your workspace",
     "stat": {
-      "role": "Your role"
+      "role": "Your role",
+      "tokens": "API tokens",
+      "loadError": "Couldn't load",
+      "retry": "Try again"
     },
     "links": {
       "title": "Manage your account",
-      "profile": "Edit your profile"
+      "profile": "Edit your profile",
+      "tokens": "Manage API tokens"
     }
   },
   "role": {
@@ -242,5 +247,70 @@
   },
   "dialog": {
     "close": "Close"
+  },
+  "tokens": {
+    "title": "API tokens",
+    "pageTitle": "API tokens - devRag",
+    "intro": "Use an API token to call the devRag API from your own code. Send it as a Bearer token in the Authorization header.",
+    "loading": "Loading API tokens",
+    "create": "Create token",
+    "col": {
+      "token": "Token",
+      "created": "Created",
+      "actions": "Actions"
+    },
+    "action": {
+      "show": "Show token ending {{last4}}",
+      "hide": "Hide token ending {{last4}}",
+      "copy": "Copy token ending {{last4}}",
+      "delete": "Delete token ending {{last4}}"
+    },
+    "copied": "Token copied",
+    "copyFailed": {
+      "title": "Couldn't copy",
+      "body": "Select the token and copy it manually."
+    },
+    "empty": {
+      "heading": "No API tokens yet",
+      "body": "Create a token to call the devRag API from your own code."
+    },
+    "created": {
+      "title": "API token created",
+      "body": "Treat this token like a password. Anyone who has it can act as you in this workspace. You can view it again from this page.",
+      "field": "API token",
+      "copy": "Copy token",
+      "done": "Done"
+    },
+    "delete": {
+      "title": "Delete API token?",
+      "body": "The token ending {{last4}} stops working immediately, and anything using it will get an authentication error. This can't be undone.",
+      "keep": "Keep token",
+      "confirm": "Delete token"
+    },
+    "deleted": "Token deleted",
+    "errorNoun": "API tokens",
+    "forbidden": {
+      "heading": "Only the workspace owner can manage API tokens",
+      "body": "Ask the owner of this workspace if you need a token."
+    },
+    "error": {
+      "limit": {
+        "title": "Token limit reached",
+        "body": "This workspace already has {{max}} API tokens. Delete one you no longer use, then try again."
+      },
+      "rateLimited": {
+        "title": "Too many tokens created",
+        "body": "Too many tokens were created recently. Wait a while, then try again."
+      },
+      "create": {
+        "title": "Couldn't create token",
+        "body": "Something went wrong. Try again."
+      },
+      "ownerOnly": "Only the workspace owner can create API tokens.",
+      "delete": {
+        "title": "Couldn't delete token",
+        "body": "Something went wrong. The token was not deleted. Try again."
+      }
+    }
   }
 }

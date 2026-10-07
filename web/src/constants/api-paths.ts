@@ -33,3 +33,10 @@ export const systemConfigPath = resolve("go", "/api/v1/system/config");
 export const forgotOtpPath = resolveUnder("go", "/api/v1/auth/", "password/forgot/otp");
 export const forgotOtpVerifyPath = resolveUnder("go", "/api/v1/auth/", "password/forgot/otp/verify");
 export const passwordResetPath = resolveUnder("go", "/api/v1/auth/", "password/reset");
+
+/** API token management (GET list, POST create) and the per-token DELETE path under it. Owner session only. */
+export const apiTokensPath = resolve("go", "/api/v1/system/tokens");
+/** DELETE path for one token. The value is percent-encoded; it appears in this path only, never in the page URL. */
+export function apiTokenPath(token: string): string {
+  return resolveUnder("go", "/api/v1/system/tokens/", encodeURIComponent(token));
+}

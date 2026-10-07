@@ -89,7 +89,7 @@ function newUser() {
 }
 
 const rows = () => screen.getAllByTestId("token-row");
-const rowFor = (tail: string) => rows().find((r) => within(r).queryByRole("button", { name: new RegExp(`ending ${tail}$`) }) !== null)!;
+const rowFor = (tail: string) => rows().find((r) => within(r).queryAllByRole("button", { name: new RegExp(`ending ${tail}$`) }).length > 0)!;
 
 beforeEach(() => {
   calls = [];
@@ -136,6 +136,7 @@ describe("API tokens page structure (UI-35)", () => {
     renderPage();
     expect(screen.getByTestId("tokens-skeleton")).toBeInTheDocument();
     expect(screen.getByRole("status")).toHaveTextContent("Loading API tokens");
+    await waitFor(() => expect(calls).toHaveLength(1));
     await act(async () => release(null));
     expect(await screen.findByTestId("tokens-table")).toBeInTheDocument();
     expect(screen.queryByTestId("tokens-skeleton")).toBeNull();
