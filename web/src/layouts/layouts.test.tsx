@@ -217,6 +217,14 @@ describe("state components", () => {
     expect(screen.getByRole("heading", { name: "Nothing here yet" })).toBeInTheDocument();
   });
 
+  it("EmptyState renders an h1 by default and an h2 inside a page that has its own header", () => {
+    const { rerender } = render(<EmptyState noun="datasets" />);
+    expect(screen.getByRole("heading", { level: 1, name: "No datasets yet" })).toBeInTheDocument();
+    rerender(<EmptyState noun="datasets" as="h2" />);
+    expect(screen.getByRole("heading", { level: 2, name: "No datasets yet" })).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { level: 1 })).toBeNull();
+  });
+
   it("ErrorState shows heading, body, code and a working Try again action", async () => {
     const onAction = vi.fn();
     render(<ErrorState noun="datasets" code={503} onAction={onAction} />);

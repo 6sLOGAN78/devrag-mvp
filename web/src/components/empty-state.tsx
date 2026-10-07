@@ -11,16 +11,18 @@ interface EmptyStateProps {
   /** Large figure, for the Not Found variant. */
   display?: string;
   action?: ReactNode;
+  /** Heading level: `h2` inside a page that already has a PageHeader. */
+  as?: "h1" | "h2";
 }
 
-export function EmptyState({ icon: Icon, noun, heading, body, display, action }: EmptyStateProps) {
+export function EmptyState({ icon: Icon, noun, heading, body, display, action, as: Heading = "h1" }: EmptyStateProps) {
   const { t } = useTranslation();
   const title = heading ?? (noun ? t("emptyState.headingFor", { noun }) : t("emptyState.fallbackHeading"));
   return (
     <div data-testid="empty-state" className="flex flex-col items-center gap-2 py-12 text-center">
       {display ? <p className="text-display font-semibold leading-tight">{display}</p> : null}
       {Icon ? <Icon className="size-12 text-muted-foreground" aria-hidden="true" /> : null}
-      <h1 className="text-xl font-semibold leading-tight">{title}</h1>
+      <Heading className="text-xl font-semibold leading-tight">{title}</Heading>
       {body ? <p className="max-w-md text-sm text-muted-foreground">{body}</p> : null}
       {action ? <div className="mt-4">{action}</div> : null}
     </div>
