@@ -1,6 +1,6 @@
 import { NavLink } from "react-router";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { copy } from "@/constants/copy";
+import { useTranslation } from "react-i18next";
 import { navEntries, pathSlug } from "@/constants/routes";
 import { cn } from "@/lib/utils";
 
@@ -12,12 +12,13 @@ interface AppSidebarProps {
 
 /** Navigation generated from the route registry: only entries that have `nav`. */
 export function AppSidebar({ forceLabels = false, onNavigate }: AppSidebarProps) {
+  const { t } = useTranslation();
   const entries = navEntries();
   const labelClass = forceLabels ? "inline" : "hidden lg:inline";
   return (
-    <nav aria-label={copy.a11y.primaryNav} className="flex flex-col gap-1">
+    <nav aria-label={t("a11y.primaryNav")} className="flex flex-col gap-1">
       <p className={cn("px-2 pb-1 text-xs font-semibold text-muted-foreground", forceLabels ? "block" : "hidden lg:block")}>
-        {copy.nav.groupCaption}
+        {t("nav.groupCaption")}
       </p>
       {entries.map((entry) => {
         const nav = entry.nav;
@@ -40,7 +41,7 @@ export function AppSidebar({ forceLabels = false, onNavigate }: AppSidebarProps)
               <>
                 {isActive ? <span data-testid="nav-active-indicator" className="absolute inset-y-1 left-0 w-0.5 rounded bg-primary" /> : null}
                 <Icon className={cn("size-4 shrink-0", isActive ? "text-primary" : "text-muted-foreground")} aria-hidden="true" />
-                <span className={labelClass}>{nav.label}</span>
+                <span className={labelClass}>{t(nav.labelKey)}</span>
               </>
             )}
           </NavLink>
@@ -51,7 +52,7 @@ export function AppSidebar({ forceLabels = false, onNavigate }: AppSidebarProps)
           <Tooltip key={entry.path}>
             <TooltipTrigger asChild>{link}</TooltipTrigger>
             <TooltipContent side="right" className="lg:hidden">
-              {nav.label}
+              {t(nav.labelKey)}
             </TooltipContent>
           </Tooltip>
         );

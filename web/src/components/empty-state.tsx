@@ -1,6 +1,6 @@
 import type { LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
-import { copy } from "@/constants/copy";
+import { useTranslation } from "react-i18next";
 
 interface EmptyStateProps {
   icon?: LucideIcon;
@@ -14,7 +14,8 @@ interface EmptyStateProps {
 }
 
 export function EmptyState({ icon: Icon, noun, heading, body, display, action }: EmptyStateProps) {
-  const title = heading ?? (noun ? copy.emptyState.headingFor(noun) : copy.emptyState.fallbackHeading);
+  const { t } = useTranslation();
+  const title = heading ?? (noun ? t("emptyState.headingFor", { noun }) : t("emptyState.fallbackHeading"));
   return (
     <div data-testid="empty-state" className="flex flex-col items-center gap-2 py-12 text-center">
       {display ? <p className="text-display font-semibold leading-tight">{display}</p> : null}

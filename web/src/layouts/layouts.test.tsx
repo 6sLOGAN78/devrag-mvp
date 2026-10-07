@@ -7,6 +7,7 @@ import { EmptyState } from "@/components/empty-state";
 import { ErrorState } from "@/components/error-state";
 import { RouteSkeleton } from "@/components/route-skeleton";
 import { copy } from "@/constants/copy";
+import i18n from "@/i18n";
 import { navEntries, routes, type RouteEntry } from "@/constants/routes";
 import { waitUntil } from "@/test/wait-until";
 import { THEME_KEY } from "@/utils/theme";
@@ -155,7 +156,7 @@ describe("FullBleedLayout and BareLayout", () => {
 describe("registry", () => {
   it("contains exactly the entries / and *", () => {
     expect(routes.map((r) => r.path)).toEqual(["/", "*"]);
-    expect(navEntries().map((r) => r.nav?.label)).toEqual(["System status"]);
+    expect(navEntries().map((r) => i18n.t(r.nav?.labelKey ?? ""))).toEqual(["System status"]);
   });
 
   it("navEntries excludes entries without nav", () => {

@@ -1,6 +1,6 @@
 import { AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { copy } from "@/constants/copy";
+import { useTranslation } from "react-i18next";
 
 interface ErrorStateProps {
   heading?: string;
@@ -14,21 +14,22 @@ interface ErrorStateProps {
 }
 
 export function ErrorState({ heading, noun, body, actionLabel, onAction, code, level = "h3" }: ErrorStateProps) {
+  const { t } = useTranslation();
   const Heading = level;
-  const title = heading ?? copy.errorState.headingFor(noun ?? "data");
+  const title = heading ?? t("errorState.headingFor", { noun: noun ?? t("errorState.defaultNoun") });
   return (
     <div data-testid="error-state" role="alert" className="flex flex-col items-start gap-2">
       <AlertTriangle className="size-6 text-destructive" aria-hidden="true" />
       <Heading className="text-xl font-semibold leading-tight">{title}</Heading>
-      <p className="text-sm text-muted-foreground">{body ?? copy.errorState.body}</p>
+      <p className="text-sm text-muted-foreground">{body ?? t("errorState.body")}</p>
       {code !== undefined ? (
         <p className="font-mono text-xs text-muted-foreground">
-          {copy.errorState.codeLabel} {code}
+          {t("errorState.codeLabel")} {code}
         </p>
       ) : null}
       {onAction ? (
         <Button onClick={onAction} className="mt-2">
-          {actionLabel ?? copy.errorState.action}
+          {actionLabel ?? t("errorState.action")}
         </Button>
       ) : null}
     </div>

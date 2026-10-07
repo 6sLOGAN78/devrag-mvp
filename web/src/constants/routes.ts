@@ -1,4 +1,3 @@
-import { copy } from "@/constants/copy";
 import { Activity, type LucideIcon } from "lucide-react";
 import type { ComponentType } from "react";
 
@@ -12,7 +11,8 @@ import type { ComponentType } from "react";
 export type LayoutKind = "standard" | "fullBleed" | "bare";
 
 export interface RouteNav {
-  label: string;
+  /** i18n key, resolved at render so the label follows the language. */
+  labelKey: string;
   icon: LucideIcon;
   order: number;
 }
@@ -32,7 +32,7 @@ export const routes: readonly RouteEntry[] = [
     layout: "standard",
     auth: "none",
     component: () => import("@/pages/system-status"),
-    nav: { label: copy.nav.systemStatus, icon: Activity, order: 1 },
+    nav: { labelKey: "nav.systemStatus", icon: Activity, order: 1 },
   },
   {
     path: "*",

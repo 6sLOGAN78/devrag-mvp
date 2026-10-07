@@ -1,6 +1,7 @@
 import * as SheetPrimitive from "@radix-ui/react-dialog";
 import { X } from "lucide-react";
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
 
 const Sheet = SheetPrimitive.Root;
@@ -25,7 +26,9 @@ SheetOverlay.displayName = SheetPrimitive.Overlay.displayName;
 const SheetContent = React.forwardRef<
   React.ElementRef<typeof SheetPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof SheetPrimitive.Content>
->(({ className, children, ...props }, ref) => (
+>(({ className, children, ...props }, ref) => {
+  const { t } = useTranslation();
+  return (
   <SheetPrimitive.Portal>
     <SheetOverlay />
     <SheetPrimitive.Content
@@ -39,11 +42,12 @@ const SheetContent = React.forwardRef<
       {children}
       <SheetPrimitive.Close className="absolute right-4 top-4 rounded-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background">
         <X className="size-4" />
-        <span className="sr-only">Close</span>
+        <span className="sr-only">{t("nav.closeMenu")}</span>
       </SheetPrimitive.Close>
     </SheetPrimitive.Content>
   </SheetPrimitive.Portal>
-));
+  );
+});
 SheetContent.displayName = SheetPrimitive.Content.displayName;
 
 const SheetHeader = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (

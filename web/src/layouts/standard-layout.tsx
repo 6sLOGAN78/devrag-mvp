@@ -7,9 +7,10 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { copy } from "@/constants/copy";
+import { useTranslation } from "react-i18next";
 
 export function StandardLayout() {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   return (
     <TooltipProvider delayDuration={200}>
@@ -19,21 +20,21 @@ export function StandardLayout() {
           <div className="flex items-center gap-2">
             <Sheet open={open} onOpenChange={setOpen}>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="md:hidden" aria-label={copy.nav.openMenu}>
+                <Button variant="ghost" size="icon" className="md:hidden" aria-label={t("nav.openMenu")}>
                   <Menu />
                 </Button>
               </SheetTrigger>
               <SheetContent>
                 <SheetHeader>
-                  <SheetTitle>{copy.app.wordmark}</SheetTitle>
-                  <SheetDescription className="sr-only">{copy.a11y.primaryNav}</SheetDescription>
+                  <SheetTitle>{t("app.wordmark")}</SheetTitle>
+                  <SheetDescription className="sr-only">{t("a11y.primaryNav")}</SheetDescription>
                 </SheetHeader>
                 <div className="mt-4">
                   <AppSidebar forceLabels onNavigate={() => setOpen(false)} />
                 </div>
               </SheetContent>
             </Sheet>
-            <span className="text-xl font-semibold leading-tight">{copy.app.wordmark}</span>
+            <span className="text-xl font-semibold leading-tight">{t("app.wordmark")}</span>
           </div>
           <div className="flex items-center gap-2">
             <ThemeToggle />
