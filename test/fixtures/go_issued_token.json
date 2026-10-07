@@ -1,0 +1,8 @@
+{
+  "generated_by": "GO_ISSUED_TOKEN_WRITE=1 go test ./internal/common -run TestGoIssuedTokenFixture (DumpAccessToken)",
+  "inner": "26b21823ecbb4533ab14391dab43b04e",
+  "issued_at": 1760000000,
+  "max_age": 2592000,
+  "secret": "test-secret-key-0123456789abcdef0123456789abcdef",
+  "token": "IjI2YjIxODIzZWNiYjQ1MzNhYjE0MzkxZGFiNDNiMDRlIg.aOd4AA.m-nmWm_ZTCfJ-BXtK4AWsqjwZbg"
+}
