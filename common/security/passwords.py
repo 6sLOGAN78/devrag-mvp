@@ -13,14 +13,14 @@ import re
 
 from werkzeug.security import generate_password_hash
 
-PASSWORD_METHOD = "pbkdf2:sha256:600000"  # noqa: S105 - hash method name, not a credential
+HASH_METHOD = "pbkdf2:sha256:600000"
 MIN_ITERATIONS = 100_000
 MAX_ITERATIONS = 10_000_000
 _HASH_RE = re.compile(r"pbkdf2:sha256:(\d{1,9})\$([A-Za-z0-9]{1,64})\$([0-9a-f]{64})")
 
 
 def hash_password(password: str) -> str:
-    return generate_password_hash(password, method=PASSWORD_METHOD)
+    return generate_password_hash(password, method=HASH_METHOD)
 
 
 def verify_password(password: str, stored: str) -> bool:

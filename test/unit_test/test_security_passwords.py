@@ -40,11 +40,11 @@ def test_hash_is_salted():
 
 
 def test_no_code_path_emits_non_pbkdf2_hash():
-    assert passwords.PASSWORD_METHOD == "pbkdf2:sha256:600000"
+    assert passwords.HASH_METHOD == "pbkdf2:sha256:600000"
     for src in (ROOT / "common" / "security").glob("*.py"):
         text = src.read_text(encoding="utf-8")
         for call in re.findall(r"generate_password_hash\(([^)]*)\)", text):
-            assert "method=PASSWORD_METHOD" in call or 'method="pbkdf2:sha256:600000"' in call
+            assert "method=HASH_METHOD" in call or 'method="pbkdf2:sha256:600000"' in call
         assert "scrypt" not in text.replace("scrypt and other", "") or "reject" in text
 
 
