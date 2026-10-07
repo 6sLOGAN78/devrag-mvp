@@ -149,8 +149,7 @@
     "password": {
       "required": "Enter your password.",
       "min": "Use at least 8 characters.",
-      "max": "Use 128 characters or fewer.",
-      "mismatch": "The passwords don't match."
+      "max": "Use 128 characters or fewer."
     },
     "nickname": {
       "required": "Enter a nickname.",
@@ -202,7 +201,6 @@
       "title": "Password",
       "current": "Current password",
       "new": "New password",
-      "confirm": "Confirm new password",
       "note": "Changing your password signs you out on every device. Signing out on any device also signs you out everywhere.",
       "submit": "Change password",
       "pending": "Changing your password"

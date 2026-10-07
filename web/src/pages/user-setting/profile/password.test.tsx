@@ -89,7 +89,6 @@ function renderPage() {
 const card = () => within(screen.getByTestId("password-form"));
 const current = () => screen.getByLabelText("Current password");
 const fresh = () => screen.getByLabelText("New password", { exact: true });
-const confirm = () => screen.getByLabelText("Confirm new password");
 const submit = () => screen.getByRole("button", { name: "Change password" });
 const changeCalls = () => calls.filter((c) => c.url === userPasswordPath);
 
@@ -98,11 +97,10 @@ async function ready() {
   await screen.findByTestId("password-form");
   return view;
 }
-async function fill(old: string, next: string, again = next) {
+async function fill(old: string, next: string) {
   const user = userEvent.setup();
   if (old !== "") await user.type(current(), old);
   if (next !== "") await user.type(fresh(), next);
-  if (again !== "") await user.type(confirm(), again);
   return user;
 }
 
@@ -126,11 +124,10 @@ describe("password card (D-02, D-08)", () => {
     expect(screen.getByRole("heading", { level: 2, name: "Password" })).toBeInTheDocument();
     expect(current()).toHaveAttribute("autocomplete", "current-password");
     expect(fresh()).toHaveAttribute("autocomplete", "new-password");
-    expect(confirm()).toHaveAttribute("autocomplete", "new-password");
-    for (const field of [current(), fresh(), confirm()]) expect(field).toHaveAttribute("type", "password");
+    for (const field of [current(), fresh()]) expect(field).toHaveAttribute("type", "password");
     expect(card().getByText("At least 8 characters.")).toBeInTheDocument();
     expect(card().getByText("Changing your password signs you out on every device. Signing out on any device also signs you out everywhere.")).toBeInTheDocument();
-    expect(card().getAllByTestId("password-toggle")).toHaveLength(3);
+    expect(card().getAllByTestId("password-toggle")).toHaveLength(2);
     expect(submit()).toHaveAttribute("type", "submit");
     // The profile card keeps its own primary action: two cards, two forms.
     expect(screen.getByTestId("profile-form")).not.toContainElement(submit());
@@ -148,8 +145,6 @@ describe("password card (D-02, D-08)", () => {
     await user.type(current(), OLD);
     await user.click(fresh());
     await user.paste(value);
-    await user.click(confirm());
-    await user.paste(value);
     await user.click(submit());
     if (accepted) {
       await waitUntil(() => changeCalls().length === 1, { describe: "password request" });
@@ -161,20 +156,19 @@ describe("password card (D-02, D-08)", () => {
     }
   });
 
-  it("requires the current password and a matching confirmation, and sends nothing until both are right", async () => {
+  it("requires the current password and sends nothing until it is given", async () => {
     await ready();
-    const user = await fill("", NEW, NEW);
+    const user = await fill("", NEW);
     await user.click(submit());
     expect(await screen.findByText("Enter your password.")).toBeInTheDocument();
     expect(current()).toHaveAttribute("aria-invalid", "true");
-    await user.type(current(), OLD);
-    await user.clear(confirm());
-    await user.type(confirm(), `${NEW}x`);
-    await user.click(submit());
-    expect(await screen.findByText("The passwords don't match.")).toBeInTheDocument();
-    expect(confirm()).toHaveAttribute("aria-invalid", "true");
-    expect(confirm()).toHaveAttribute("aria-describedby");
     expect(changeCalls()).toHaveLength(0);
+  });
+
+  it("has no confirmation field: exactly the current and the new password", async () => {
+    await ready();
+    expect(within(screen.getByTestId("password-form")).queryByLabelText(/confirm/i)).toBeNull();
+    expect(screen.getByTestId("password-form").querySelectorAll("input")).toHaveLength(2);
   });
 
   it("sends exactly old_password and new_password with the bearer token, silently", async () => {
@@ -273,7 +267,7 @@ describe("password card (D-02, D-08)", () => {
     expect(submit()).toHaveAttribute("aria-disabled", "true");
     expect(submit()).toHaveAttribute("aria-busy", "true");
     await user.click(submit());
-    await user.type(confirm(), "{Enter}");
+    await user.type(fresh(), "{Enter}");
     expect(changeCalls()).toHaveLength(1);
     await act(async () => release());
     await screen.findByTestId("login-page");

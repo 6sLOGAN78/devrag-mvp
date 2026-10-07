@@ -13,7 +13,7 @@ import { ApiError } from "@/services/http";
 import { passwordChangeSchema, type PasswordChangeValues } from "./password-schema";
 import { profileErrorMessage } from "./profile-error";
 
-const EMPTY: PasswordChangeValues = { current: "", replacement: "", again: "" };
+const EMPTY: PasswordChangeValues = { current: "", replacement: "" };
 
 /**
  * Password card (D-02, D-08). The three values live only in the form and in the one request body: no mutation
@@ -111,19 +111,6 @@ export function PasswordCard() {
                     <PasswordInput {...field} data-testid="field-new-password" autoComplete="new-password" resetSignal={resetSignal} />
                   </FormControl>
                   <FormDescription>{t("auth.field.passwordHelp")}</FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="again"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t("profile.password.confirm")}</FormLabel>
-                  <FormControl>
-                    <PasswordInput {...field} data-testid="field-confirm-password" autoComplete="new-password" resetSignal={resetSignal} />
-                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}

@@ -245,7 +245,6 @@ describe("live profile, language, theme and password through the ingress", () =>
     // Wrong current password: field error from the server message, still signed in.
     await user.type(form.getByLabelText("Current password"), "not-the-right-one");
     await user.type(form.getByLabelText("New password", { exact: true }), NEW_SECRET);
-    await user.type(form.getByLabelText("Confirm new password"), NEW_SECRET);
     await user.click(form.getByRole("button", { name: "Change password" }));
     const alert = await waitUntil(() => screen.queryByTestId("alert-password-error"), { describe: "the wrong-password alert" });
     expect(alert.textContent?.length).toBeGreaterThan(0);
