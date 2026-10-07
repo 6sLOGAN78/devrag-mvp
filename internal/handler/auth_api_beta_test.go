@@ -277,12 +277,12 @@ func TestCookieIsNeverHonouredForApiOrBetaRoutes(t *testing.T) {
 func TestMalformedCredentialsAreRejectedBeforeAnyTokenLookup(t *testing.T) {
 	r := newTokenRig(t)
 	for name, cred := range map[string]string{
-		"wrong prefix":  "token-" + strings.Repeat("A", 43),
-		"over 255":      "ragflow-" + strings.Repeat("A", 250),
-		"over 1024":     "ragflow-" + strings.Repeat("A", 2000),
-		"empty":         "",
-		"non-alnum 32":  strings.Repeat("-", 32),
-		"percent":       "%" + strings.Repeat("a", 31),
+		"wrong prefix": "token-" + strings.Repeat("A", 43),
+		"over 255":     "ragflow-" + strings.Repeat("A", 250),
+		"over 1024":    "ragflow-" + strings.Repeat("A", 2000),
+		"empty":        "",
+		"non-alnum 32": strings.Repeat("-", 32),
+		"percent":      "%" + strings.Repeat("a", 31),
 	} {
 		for _, path := range []string{"/api/v1/probe-api", "/api/v1/searchbots/probe-beta"} {
 			w := r.do("GET", path, bearer(cred), "", "")

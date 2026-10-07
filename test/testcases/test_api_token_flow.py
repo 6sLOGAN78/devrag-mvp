@@ -109,8 +109,8 @@ def test_api_token_flow_beta_value_is_refused_by_python_api_routes_and_go_beta_r
     # /api/v1/searchbots/ is a Go beta family; no handler exists until Phase 8, so a valid beta gets 404 (gate passed).
     passed = ingress.get(f"/api/v1/searchbots/probe-{uuid.uuid4().hex}", headers=_bearer(created["beta"]))
     assert passed.status_code == 404 and passed.headers["x-api-source"] == "go"
-    for wrong in ("0" * 32, "", "short"):
-        resp = ingress.get("/api/v1/searchbots/probe", headers=_bearer(wrong))
+    for headers in (_bearer("0" * 32), _bearer("short"), {"Authorization": "x"}, {}):  # wrong, malformed, junk, absent
+        resp = ingress.get("/api/v1/searchbots/probe", headers=headers)
         assert resp.status_code == 401 and resp.json() == UNAUTHORIZED
 
 

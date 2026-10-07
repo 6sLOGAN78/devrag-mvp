@@ -12,10 +12,18 @@ import (
 	"devrag/internal/testutil"
 )
 
-const (
-	tokensPath      = "/api/v1/system/tokens"
-	unauthorizedEnv = `{"code":401,"message":"unauthorized","data":null}`
-)
+const tokensPath = "/api/v1/system/tokens"
+
+// isUnauthorized reports whether body is the generic 401 envelope, whatever the JSON spacing (Go and
+// Python serialise it differently).
+func isUnauthorized(body []byte) bool {
+	var env struct {
+		Code    int    `json:"code"`
+		Message string `json:"message"`
+		Data    any    `json:"data"`
+	}
+	return json.Unmarshal(body, &env) == nil && env.Code == 401 && env.Message == "unauthorized" && env.Data == nil
+}
 
 var (
 	e2eAPIToken  = regexp.MustCompile(`^ragflow-[A-Za-z0-9_-]{43}$`)
@@ -60,14 +68,14 @@ func TestAPITokenLifecycleThroughIngress(t *testing.T) {
 	if resp, body := send(t, http.MethodGet, probe, created.Token, nil); resp.StatusCode != http.StatusNotFound || resp.Header.Get("X-API-Source") != "python" {
 		t.Errorf("API token on a Python api route: %d %s (want 404 from python: the gate passed)", resp.StatusCode, body)
 	}
-	if resp, body := send(t, http.MethodGet, probe, "ragflow-"+strings.Repeat("A", 43), nil); resp.StatusCode != http.StatusUnauthorized || string(body) != unauthorizedEnv {
+	if resp, body := send(t, http.MethodGet, probe, "ragflow-"+strings.Repeat("A", 43), nil); resp.StatusCode != http.StatusUnauthorized || !isUnauthorized(body) {
 		t.Errorf("invalid API token: %d %s", resp.StatusCode, body)
 	}
 
 	// management routes accept only the session token
 	for _, cred := range []string{created.Token, created.Beta} {
 		for _, m := range []string{http.MethodGet, http.MethodPost} {
-			if resp, body := send(t, m, tokensPath, cred, nil); resp.StatusCode != http.StatusUnauthorized || string(body) != unauthorizedEnv {
+			if resp, body := send(t, m, tokensPath, cred, nil); resp.StatusCode != http.StatusUnauthorized || !isUnauthorized(body) {
 				t.Errorf("%s %s with an API or beta credential: %d %s", m, tokensPath, resp.StatusCode, body)
 			}
 		}
@@ -87,7 +95,7 @@ func TestAPITokenLifecycleThroughIngress(t *testing.T) {
 	if resp, body := send(t, http.MethodDelete, tokensPath+"/"+created.Token, alice.Token, nil); resp.StatusCode != http.StatusOK {
 		t.Fatalf("owner delete: %d %s", resp.StatusCode, body)
 	}
-	if resp, body := send(t, http.MethodGet, probe, created.Token, nil); resp.StatusCode != http.StatusUnauthorized || string(body) != unauthorizedEnv {
+	if resp, body := send(t, http.MethodGet, probe, created.Token, nil); resp.StatusCode != http.StatusUnauthorized || !isUnauthorized(body) {
 		t.Errorf("deleted token on python: %d %s", resp.StatusCode, body)
 	}
 	if resp, _ := send(t, http.MethodGet, "/api/v1/searchbots/probe-"+testutil.UniqueName("p"), created.Beta, nil); resp.StatusCode != http.StatusUnauthorized {
