@@ -239,5 +239,8 @@
       "submit": "Change password",
       "pending": "Changing your password"
     }
+  },
+  "dialog": {
+    "close": "Close"
   }
 }
