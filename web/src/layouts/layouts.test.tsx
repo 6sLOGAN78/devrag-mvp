@@ -66,11 +66,14 @@ describe("StandardLayout", () => {
     expect(skip).toHaveAttribute("href", "#main");
   });
 
-  it("lists exactly Home then System status, with System status marked current on /system-status", () => {
+  it("lists exactly Home, System status then Profile, with System status marked current on /system-status", () => {
     renderIn(StandardLayout, "/system-status");
     const nav = screen.getByRole("navigation", { name: "Primary" });
     const links = within(nav).getAllByRole("link");
-    expect(links).toHaveLength(2);
+    expect(links).toHaveLength(3);
+    expect(links[2]).toHaveTextContent("Profile");
+    expect(links[2]).not.toHaveAttribute("aria-current");
+    expect(screen.getByTestId("nav-item-user-setting-profile")).toBe(links[2]);
     expect(links[0]).toHaveTextContent("Home");
     expect(links[0]).not.toHaveAttribute("aria-current");
     expect(screen.getByTestId("nav-item-home")).toBe(links[0]);
@@ -178,14 +181,14 @@ describe("FullBleedLayout and BareLayout", () => {
 });
 
 describe("registry", () => {
-  it("contains exactly the entries /, /login, /home, /system-status and *", () => {
-    expect(routes.map((r) => r.path)).toEqual(["/", "/login", "/home", "/system-status", "*"]);
-    expect(navEntries().map((r) => i18n.t(r.nav?.labelKey ?? ""))).toEqual(["Home", "System status"]);
+  it("contains exactly the entries /, /login, /home, /system-status, /user-setting/profile and *", () => {
+    expect(routes.map((r) => r.path)).toEqual(["/", "/login", "/home", "/system-status", "/user-setting/profile", "*"]);
+    expect(navEntries().map((r) => i18n.t(r.nav?.labelKey ?? ""))).toEqual(["Home", "System status", "Profile"]);
   });
 
   it("navEntries excludes entries without nav", () => {
     const extra: RouteEntry = { path: "/x", layout: "bare", auth: "none", component: () => Promise.reject(new Error("unused")) };
-    expect(navEntries([...routes, extra]).map((r) => r.path)).toEqual(["/home", "/system-status"]);
+    expect(navEntries([...routes, extra]).map((r) => r.path)).toEqual(["/home", "/system-status", "/user-setting/profile"]);
   });
 });
 
@@ -208,12 +211,21 @@ describe("AppSidebar nav groups", () => {
   });
 
   it("renders only the groups that have entries, with no separator", () => {
-    const router = createMemoryRouter([{ path: "*", element: <TooltipProvider><AppSidebar /></TooltipProvider> }]);
+    const platformOnly = routes.filter((r) => r.nav?.group !== "account");
+    const router = createMemoryRouter([{ path: "*", element: <TooltipProvider><AppSidebar entries={platformOnly} /></TooltipProvider> }]);
     render(<RouterProvider router={router} />);
     const nav = screen.getByRole("navigation", { name: "Primary" });
     expect(within(nav).getAllByRole("group")).toHaveLength(1);
     expect(within(nav).getByRole("group", { name: "Platform" })).toBeInTheDocument();
     expect(within(nav).queryByRole("separator", { hidden: true })).toBeNull();
+  });
+
+  it("renders the registry as Platform then Account (Profile) with one separator", () => {
+    const router = createMemoryRouter([{ path: "*", element: <TooltipProvider><AppSidebar /></TooltipProvider> }]);
+    render(<RouterProvider router={router} />);
+    const nav = screen.getByRole("navigation", { name: "Primary" });
+    expect(within(nav).getByRole("group", { name: "Account" })).toContainElement(screen.getByTestId("nav-item-user-setting-profile"));
+    expect(within(nav).getAllByRole("separator", { hidden: true })).toHaveLength(1);
   });
 });
 

@@ -1,4 +1,4 @@
-import { logoutPath, userInfoPath } from "@/constants/api-paths";
+import { logoutPath, userInfoPath, userPasswordPath, userSettingPath } from "@/constants/api-paths";
 import type { SessionUser, UserInfoDto } from "@/interfaces/user";
 import { request } from "./http";
 
@@ -25,4 +25,27 @@ export async function getUserInfo(): Promise<SessionUser> {
 /** Invalidates the shared token server-side. Silent so a failed sign out never stacks a toast on the redirect. */
 export async function logout(): Promise<void> {
   await request<null>({ url: logoutPath, method: "POST" }, { silent: true });
+}
+
+/** The only profile fields the browser may set (POST /v1/user/setting). Anything else is never sent. */
+export interface SettingInput {
+  nickname?: string;
+  /** A data URL produced by the avatar helper, or "" to remove the avatar. */
+  avatar?: string;
+  language?: "en" | "zh";
+  color_schema?: "Bright" | "Dark";
+}
+
+/** Silent: callers show their own inline message, or none at all for the best-effort language and theme writes. */
+export async function updateSetting(input: SettingInput): Promise<void> {
+  await request<unknown>({ url: userSettingPath, method: "POST", data: input }, { silent: true });
+}
+
+/**
+ * Changes the signed-in user's password (POST /v1/user/setting/password). The values travel once in the JSON body;
+ * a wrong current password is HTTP 400, never 401, so the session is not purged by a typo. Silent: the form
+ * shows the message inline.
+ */
+export async function changePassword(current: string, replacement: string): Promise<void> {
+  await request<unknown>({ url: userPasswordPath, method: "POST", data: { old_password: current, new_password: replacement } }, { silent: true });
 }

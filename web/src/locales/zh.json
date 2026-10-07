@@ -9,7 +9,8 @@
     "groupPlatform": "平台",
     "groupAccount": "账户",
     "openMenu": "打开导航菜单",
-    "closeMenu": "关闭"
+    "closeMenu": "关闭",
+    "profile": "个人资料"
   },
   "header": {
     "accountMenu": "账户菜单",
@@ -150,6 +151,11 @@
       "required": "请输入昵称。",
       "max": "请使用不超过 64 个字符。",
       "invalid": "昵称包含不允许的字符。"
+    },
+    "avatar": {
+      "type": "请选择 PNG、JPEG 或 WebP 图片。",
+      "decode": "无法将该文件作为图片读取。请选择其他 PNG、JPEG 或 WebP 文件。",
+      "size": "图片调整大小后仍超过 256 KB。请选择更小的图片。"
     }
   },
   "home": {
@@ -165,5 +171,23 @@
     "owner": "所有者",
     "admin": "管理员",
     "member": "成员"
+  },
+  "profile": {
+    "title": "个人资料",
+    "pageTitle": "个人资料 - devRag",
+    "card": {
+      "title": "你的资料"
+    },
+    "avatar": {
+      "change": "更换头像",
+      "remove": "移除头像",
+      "help": "支持 PNG、JPEG 或 WebP。将调整为 256 × 256 像素,最大 256 KB。"
+    },
+    "email": {
+      "help": "邮箱无法修改。"
+    },
+    "save": "保存资料",
+    "saving": "正在保存你的资料",
+    "saved": "资料已保存"
   }
 }

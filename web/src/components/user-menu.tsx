@@ -1,7 +1,7 @@
-import { LogOut } from "lucide-react";
+import { LogOut, UserRound } from "lucide-react";
 import { useRef } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { AvatarInitials } from "@/components/avatar-initials";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,7 +19,7 @@ import { beginSignOut, endSignOut } from "@/utils/sign-out-intent";
 
 /**
  * Account menu for the signed-in shell. Nickname, email and avatar are user-supplied and render as text or as a
- * validated data-URL image only. The Profile link is added by plan 02-16, which registers its route.
+ * validated data-URL image only.
  */
 export function UserMenu() {
   const { t } = useTranslation();
@@ -61,6 +61,12 @@ export function UserMenu() {
           <span className="truncate text-xs font-normal text-muted-foreground">{user.email}</span>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
+        <DropdownMenuItem asChild>
+          <Link to="/user-setting/profile" data-testid="user-menu-profile">
+            <UserRound aria-hidden="true" />
+            {t("nav.profile")}
+          </Link>
+        </DropdownMenuItem>
         <DropdownMenuItem data-testid="user-menu-signout" onSelect={() => void signOut()}>
           <LogOut aria-hidden="true" />
           {t("header.signOut")}

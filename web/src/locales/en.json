@@ -9,7 +9,8 @@
     "groupPlatform": "Platform",
     "groupAccount": "Account",
     "openMenu": "Open navigation menu",
-    "closeMenu": "Close"
+    "closeMenu": "Close",
+    "profile": "Profile"
   },
   "header": {
     "accountMenu": "Account menu",
@@ -150,6 +151,11 @@
       "required": "Enter a nickname.",
       "max": "Use 64 characters or fewer.",
       "invalid": "This nickname contains characters that are not allowed."
+    },
+    "avatar": {
+      "type": "Choose a PNG, JPEG or WebP image.",
+      "decode": "That file couldn't be read as an image. Choose a different PNG, JPEG or WebP file.",
+      "size": "That image is still over 256 KB after resizing. Choose a smaller one."
     }
   },
   "home": {
@@ -165,5 +171,23 @@
     "owner": "Owner",
     "admin": "Admin",
     "member": "Member"
+  },
+  "profile": {
+    "title": "Profile",
+    "pageTitle": "Profile - devRag",
+    "card": {
+      "title": "Your profile"
+    },
+    "avatar": {
+      "change": "Change avatar",
+      "remove": "Remove avatar",
+      "help": "PNG, JPEG or WebP. Resized to 256 by 256 pixels, up to 256 KB."
+    },
+    "email": {
+      "help": "Your email can't be changed."
+    },
+    "save": "Save profile",
+    "saving": "Saving your profile",
+    "saved": "Profile saved"
   }
 }

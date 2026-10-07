@@ -170,9 +170,10 @@ describe("UserMenu", () => {
     expect(within(menu).getByText("Ada Lovelace")).toBeInTheDocument();
     expect(within(menu).getByText("ada@example.test")).toBeInTheDocument();
     expect(within(menu).getByRole("menuitem", { name: "Sign out" })).toHaveAttribute("data-testid", "user-menu-signout");
-    expect(within(menu).getAllByRole("menuitem")).toHaveLength(1);
-    expect(within(menu).queryByRole("link")).toBeNull();
-    expect(within(menu).queryByText(/profile/i)).toBeNull();
+    expect(within(menu).getAllByRole("menuitem")).toHaveLength(2);
+    const profile = within(menu).getByRole("menuitem", { name: "Profile" });
+    expect(profile).toHaveAttribute("href", "/user-setting/profile");
+    expect(profile).toHaveAttribute("data-testid", "user-menu-profile");
   });
 
   it("is operable by keyboard: Enter opens it, Escape closes it and returns focus to the trigger", async () => {
