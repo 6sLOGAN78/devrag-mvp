@@ -51,7 +51,6 @@ def test_registry_has_phase2_endpoints_unimplemented() -> None:
     data = yaml.safe_load(ROUTES.read_text(encoding="utf-8"))
     rows = {(e["method"], e["path"]): e for e in data["endpoints"]}
     for key in [
-        ("GET", "/v1/tenant/list"),
         ("POST", "/api/v1/system/tokens"),
         ("DELETE", "/api/v1/system/tokens/{token}"),
         ("GET", "/api/v1/tenants/{tenant_id}/users"),
@@ -60,6 +59,19 @@ def test_registry_has_phase2_endpoints_unimplemented() -> None:
         assert key in rows, key
         assert rows[key]["owner"] == "go"
         assert rows[key]["implemented"] is False, key
+
+
+def test_registry_marks_profile_password_and_tenant_endpoints_implemented() -> None:
+    """Plan 02-15 landed the settings, password, tenant info and tenant list handlers."""
+    data = yaml.safe_load(ROUTES.read_text(encoding="utf-8"))
+    rows = {(e["method"], e["path"]): e for e in data["endpoints"]}
+    for key in [
+        ("POST", "/v1/user/setting"),
+        ("POST", "/v1/user/setting/password"),
+        ("GET", "/v1/user/tenant_info"),
+        ("GET", "/v1/tenant/list"),
+    ]:
+        assert rows[key]["owner"] == "go" and rows[key]["auth"] == "jwt" and rows[key]["implemented"] is True, key
 
 
 def test_registry_marks_register_and_login_implemented() -> None:
