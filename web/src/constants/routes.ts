@@ -1,5 +1,6 @@
-import { Activity, type LucideIcon } from "lucide-react";
+import { Activity, House, type LucideIcon } from "lucide-react";
 import type { ComponentType } from "react";
+import { HOME_PATH } from "@/utils/safe-next";
 
 /**
  * The single typed route registry (UI-01, D-19, 01-UI-SPEC.md).
@@ -39,8 +40,8 @@ export interface RouteEntry {
   nav?: RouteNav;
 }
 
-/** Where `/` sends a visitor. Transitional: plan 02-13 registers /home and switches the signed-in target to it. */
-export const ROOT_SIGNED_IN_TARGET = "/system-status";
+/** Where `/` sends a signed-in visitor: the home dashboard (UI-09). Shared with the post sign-in default in utils/safe-next. */
+export const ROOT_SIGNED_IN_TARGET = HOME_PATH;
 
 export const routes: readonly RouteEntry[] = [
   {
@@ -54,6 +55,13 @@ export const routes: readonly RouteEntry[] = [
     layout: "bare",
     auth: "none",
     component: () => import("@/pages/login"),
+  },
+  {
+    path: "/home",
+    layout: "standard",
+    auth: "required",
+    component: () => import("@/pages/home"),
+    nav: { labelKey: "nav.home", icon: House, order: 1, group: "platform" },
   },
   {
     path: "/system-status",

@@ -52,8 +52,7 @@ describe("shared shell follows the language (UI-42)", () => {
   });
 
   it("route registry stores label keys and the sidebar resolves them per language", async () => {
-    const entry = navEntries()[0]!;
-    expect(entry.nav?.labelKey).toBe("nav.systemStatus");
+    expect(navEntries().map((entry) => entry.nav?.labelKey)).toEqual(["nav.home", "nav.systemStatus"]);
     await act(async () => {
       await setLanguage("zh");
     });
@@ -65,6 +64,7 @@ describe("shared shell follows the language (UI-42)", () => {
       </MemoryRouter>,
     );
     expect(screen.getByRole("navigation", { name: "主导航" })).toBeInTheDocument();
+    expect(screen.getByText("首页")).toBeInTheDocument();
     expect(screen.getByText("系统状态")).toBeInTheDocument();
   });
 });

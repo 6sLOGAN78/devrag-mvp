@@ -4,6 +4,7 @@
     "titleSuffix": "devRag"
   },
   "nav": {
+    "home": "首页",
     "systemStatus": "系统状态",
     "groupPlatform": "平台",
     "groupAccount": "账户",
@@ -45,8 +46,8 @@
     "display": "404",
     "heading": "页面不存在",
     "pageTitle": "页面不存在 - devRag",
-    "body": "此页面不存在,或在当前版本中不可用。返回系统状态。",
-    "action": "前往系统状态"
+    "body": "此页面不存在,或在当前版本中不可用。",
+    "action": "前往首页"
   },
   "renderError": {
     "heading": "出了点问题",
@@ -150,5 +151,19 @@
       "max": "请使用不超过 64 个字符。",
       "invalid": "昵称包含不允许的字符。"
     }
+  },
+  "home": {
+    "pageTitle": "首页 - devRag",
+    "title": "欢迎,{{nickname}}",
+    "workspace": "工作区:{{name}}",
+    "loading": "正在加载你的工作区",
+    "stat": {
+      "role": "你的角色"
+    }
+  },
+  "role": {
+    "owner": "所有者",
+    "admin": "管理员",
+    "member": "成员"
   }
 }

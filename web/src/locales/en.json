@@ -4,6 +4,7 @@
     "titleSuffix": "devRag"
   },
   "nav": {
+    "home": "Home",
     "systemStatus": "System status",
     "groupPlatform": "Platform",
     "groupAccount": "Account",
@@ -45,8 +46,8 @@
     "display": "404",
     "heading": "Page not found",
     "pageTitle": "Page not found - devRag",
-    "body": "This page doesn't exist or isn't available in this version. Go back to System status.",
-    "action": "Go to System status"
+    "body": "This page doesn't exist or isn't available in this version.",
+    "action": "Go to home"
   },
   "renderError": {
     "heading": "Something went wrong",
@@ -150,5 +151,19 @@
       "max": "Use 64 characters or fewer.",
       "invalid": "This nickname contains characters that are not allowed."
     }
+  },
+  "home": {
+    "pageTitle": "Home - devRag",
+    "title": "Welcome, {{nickname}}",
+    "workspace": "Workspace: {{name}}",
+    "loading": "Loading your workspace",
+    "stat": {
+      "role": "Your role"
+    }
+  },
+  "role": {
+    "owner": "Owner",
+    "admin": "Admin",
+    "member": "Member"
   }
 }

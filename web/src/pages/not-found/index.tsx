@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
 import { EmptyState } from "@/components/empty-state";
 import { Button } from "@/components/ui/button";
+import { HOME_PATH } from "@/utils/safe-next";
 
 export default function NotFoundPage() {
   const { t, i18n } = useTranslation();
@@ -17,7 +18,7 @@ export default function NotFoundPage() {
         body={t("notFound.body")}
         action={
           <Button asChild>
-            <Link to="/system-status">{t("notFound.action")}</Link>
+            <Link to={HOME_PATH}>{t("notFound.action")}</Link>
           </Button>
         }
       />
