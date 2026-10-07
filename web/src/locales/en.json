@@ -135,6 +135,10 @@
       "fallback": "Something went wrong. Try again.",
       "rateLimited": "Too many attempts. Wait a few minutes, then try again.",
       "unavailable": "The service is unavailable right now. Try again in a moment."
+    },
+    "passwordChanged": {
+      "title": "Password changed",
+      "body": "Sign in with your new password."
     }
   },
   "errors": {
@@ -145,7 +149,8 @@
     "password": {
       "required": "Enter your password.",
       "min": "Use at least 8 characters.",
-      "max": "Use 128 characters or fewer."
+      "max": "Use 128 characters or fewer.",
+      "mismatch": "The passwords don't match."
     },
     "nickname": {
       "required": "Enter a nickname.",
@@ -192,6 +197,15 @@
     },
     "save": "Save profile",
     "saving": "Saving your profile",
-    "saved": "Profile saved"
+    "saved": "Profile saved",
+    "password": {
+      "title": "Password",
+      "current": "Current password",
+      "new": "New password",
+      "confirm": "Confirm new password",
+      "note": "Changing your password signs you out on every device. Signing out on any device also signs you out everywhere.",
+      "submit": "Change password",
+      "pending": "Changing your password"
+    }
   }
 }

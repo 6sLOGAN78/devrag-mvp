@@ -1,7 +1,13 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useCallback } from "react";
+import { useNavigate } from "react-router";
+import i18n from "@/i18n";
 import type { SessionUser } from "@/interfaces/user";
-import { updateSetting, type SettingInput } from "@/services/user-service";
+import { purgeSession } from "@/services/http";
+import { notifySuccess } from "@/services/notify";
+import { changePassword, updateSetting, type SettingInput } from "@/services/user-service";
 import { useUserStore } from "@/stores/user-store";
+import { beginSignOut, endSignOut } from "@/utils/sign-out-intent";
 import { USER_INFO_QUERY_KEY } from "./use-user-info-request";
 
 /** The profile card edits exactly these two fields; language and theme go through `saveSettingQuietly`. */
@@ -50,4 +56,31 @@ export async function saveSettingQuietly(input: Pick<SettingInput, "language" | 
     ...(input.language === undefined ? {} : { language: input.language }),
     ...(input.color_schema === undefined ? {} : { colorSchema: input.color_schema }),
   });
+}
+
+/**
+ * Changes the password and, on success, ends this browser's session (D-08): the server has already invalidated the
+ * token everywhere, so the local token, user and query cache are purged without the "Session expired" toast, the
+ * browser goes to a bare /login, and "Password changed" is shown instead.
+ *
+ * A plain async function on purpose, not a TanStack mutation: a mutation would keep its variables, and so the
+ * passwords, in the mutation cache. A rejection (wrong current password is HTTP 400) rejects here and leaves the
+ * session untouched.
+ */
+export function usePasswordChange() {
+  const navigate = useNavigate();
+  return useCallback(
+    async (current: string, replacement: string): Promise<void> => {
+      await changePassword(current, replacement);
+      beginSignOut();
+      purgeSession({ toast: false, navigate: false });
+      notifySuccess(i18n.t("auth.passwordChanged.title"), i18n.t("auth.passwordChanged.body"));
+      try {
+        await navigate("/login", { replace: true });
+      } finally {
+        endSignOut();
+      }
+    },
+    [navigate],
+  );
 }
