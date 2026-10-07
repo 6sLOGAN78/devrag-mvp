@@ -133,3 +133,10 @@ Also this phase: WR-16, WR-19, WR-26 (plan 02-02) and CR-02, WR-04, WR-24 (plan 
 - Evidence: 2026-10-07, container `compose-gateway-1` (compose project `compose`, not ours, untouched) published 8080; preflight failed on the port before any teardown.
 - Needed from user: none; the user chose to move devRag to another port.
 - Workaround in repo: `SVR_WEB_HTTP_PORT=8088` in the git-ignored `docker/.env` (R-87); `clean_room.sh` now derives `E2E_BASE_URL`, `MANUAL_BASE_URL` and `LIVE_BASE_URL` from that value.
+
+## B-17 Per-IP rate limits are effectively global behind Docker's port proxy
+- Status: open
+- Affects: AUTH-01, AUTH-05, AUTH-16 (registration, login and OTP rate limits), production deployment
+- Evidence: found in plan 02-09 (2026-10-07). Go takes the client address from `X-Real-IP`, which Nginx sets to `$remote_addr` and Go trusts only from a loopback peer (R-114). With the app container's port published through Docker, Nginx sees the Docker gateway address for every external client, so all clients share one per-IP bucket: the per-IP limits (registration 10/hour, login 30 per 15 min, OTP 20/hour by default) apply to everyone combined, and one abusive client can exhaust them for all. Per-email limits are unaffected. A second observation from the same plan: the per-email login lock also rejects the correct password until the window ends.
+- Needed from user: a decision on how the real client address reaches the container in production (for example host networking, a trusted upstream proxy with `real_ip_header` and a configured trusted range, or accepting global limits and sizing them accordingly), and whether the correct password should bypass the per-email lock.
+- Workaround in repo: none. Limits are configurable (R-112); the dev stack raises the per-IP values so the test suites can run.
