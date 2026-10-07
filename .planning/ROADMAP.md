@@ -152,7 +152,7 @@ Plans:
 **Wave 6** *(blocked on Wave 5 completion)*
 
 - [x] 02-12-PLAN.md - SPA auth guard, session recovery, 401 redirect, purgeSession toast option, browser test behind the guard
-- [ ] 02-14-PLAN.md - Python default-deny gate (503 on infrastructure errors), status and openapi.json authenticated, enumeration, Phase 1 test adaptation
+- [x] 02-14-PLAN.md - Python default-deny gate (503 on infrastructure errors), status and openapi.json authenticated, enumeration, Phase 1 test adaptation
 
 **Wave 7** *(blocked on Wave 6 completion)*
 

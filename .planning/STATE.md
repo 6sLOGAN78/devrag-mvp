@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: milestone
 status: executing
 stopped_at: Completed 02-12-PLAN.md
-last_updated: "2026-10-07T05:48:05.955Z"
+last_updated: "2026-10-07T09:12:40.325Z"
 last_activity: 2026-10-07
 progress:
   total_phases: 8
   completed_phases: 1
   total_plans: 52
-  completed_plans: 37
+  completed_plans: 38
   percent: 13
 ---
 
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-10-05)
 ## Current Position
 
 Phase: 2 (Identity, Tenancy and Authorization) — EXECUTING
-Plan: 14 of 28
+Plan: 15 of 28
 Status: Ready to execute
 Last activity: 2026-10-07
 
-Progress: [███████░░░] 71%
+Progress: [███████░░░] 73%
 
 ## Performance Metrics
 
@@ -55,6 +55,7 @@ Progress: [███████░░░] 71%
 | Phase 01 P01 | 15min | 2 tasks | 4 files |
 | Phase 01 P03 | 30min | 3 tasks | 17 files |
 | Phase 02 P12 | ~2h | 3 tasks | 27 files |
+| Phase 02 P14 | 40min | 3 tasks | 26 files |
 
 ## Accumulated Context
 
@@ -73,6 +74,7 @@ Recent decisions affecting current work:
 - [Phase 01]: 01-05: Go exact-only under /api/v1/system/ (R-53); Python catch-alls /api/ and /v1/
 - [Phase 01]: 01-11: Go --migrate is verify-only; VerifySchema over SchemaProvider (SELECT-only), type families, scratch DB for drift tests
 - [Phase 02]: [02-12] Auth guard decides from stored token plus fetched user; token store is subscribable so a purge re-renders the guard; / registry entry is auth:required
+- [Phase 02]: R-117 Python gate details: 5 s lookup timeout, fail-closed 503 on any resolver error, beta rows also accept access and API tokens, resolver seam keyword-only, static_folder=None
 
 ### Pending Todos
 
@@ -108,6 +110,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-10-07T05:48:05.944Z
+Last session: 2026-10-07T09:12:33.086Z
 Stopped at: Completed 02-12-PLAN.md
 Resume file: None
