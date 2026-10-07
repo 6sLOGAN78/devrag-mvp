@@ -3,12 +3,12 @@ import { render, screen } from "@testing-library/react";
 import { createElement } from "react";
 import type { AxiosAdapter, AxiosRequestConfig, AxiosResponse } from "axios";
 import { AxiosError, AxiosHeaders } from "axios";
-import { beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Toaster } from "@/components/ui/sonner";
 import i18n from "@/i18n";
 import { useUserStore } from "@/stores/user-store";
 import { getAuthorization, setAuthorization } from "@/utils/authorization";
-import { ApiError, http, purgeSession, registerQueryClient, request, requestWithMeta } from "./http";
+import { ApiError, http, purgeSession, registerNavigate, registerQueryClient, request, requestWithMeta } from "./http";
 
 interface Reply {
   status?: number;
@@ -336,5 +336,84 @@ describe("unit http purgeSession and infrastructure errors", () => {
     expect(getAuthorization()).toBe("fake-token-aaa");
     expect(useUserStore.getState().userId).toBe("u1");
     expect(qc.getQueryData(["k"])).toBe(1);
+  });
+});
+
+describe("unit http 401 navigation", () => {
+  let navigate: ReturnType<typeof vi.fn>;
+  let here = "/user-setting/api?x=1";
+
+  beforeEach(() => {
+    seen = [];
+    reply = {};
+    here = "/user-setting/api?x=1";
+    localStorage.clear();
+    useUserStore.getState().reset();
+    http.defaults.adapter = adapter;
+    navigate = vi.fn();
+    registerNavigate({ navigate: (to: string) => navigate(to), currentPath: () => here });
+    registerQueryClient(new QueryClient());
+  });
+  afterEach(() => registerNavigate(null));
+
+  it("navigates to /login?next=<current path+search> when the stored token is rejected, without a reload", async () => {
+    setAuthorization("fake-token-aaa");
+    reply = { status: 401, data: { code: 401, message: "expired", data: null } };
+    await request({ url: "/x" }, { silent: true }).catch(() => undefined);
+    expect(navigate).toHaveBeenCalledTimes(1);
+    expect(navigate).toHaveBeenCalledWith("/login?next=%2Fuser-setting%2Fapi%3Fx%3D1");
+  });
+
+  it("navigates to a bare /login when the 401 happens on a public auth page", async () => {
+    here = "/login?next=%2Fx";
+    setAuthorization("fake-token-aaa");
+    reply = { status: 401, data: { code: 401, message: "expired", data: null } };
+    await request({ url: "/x" }, { silent: true }).catch(() => undefined);
+    expect(navigate).toHaveBeenCalledWith("/login");
+  });
+
+  it("does not navigate for a stale 401 that carried an older token", async () => {
+    setAuthorization("fake-token-aaa");
+    const late: AxiosAdapter = (config) => {
+      setAuthorization("fake-token-bbb");
+      return adapter(config);
+    };
+    reply = { status: 401, data: { code: 401, message: "stale", data: null } };
+    await request({ url: "/x", adapter: late }, { silent: true }).catch(() => undefined);
+    expect(navigate).not.toHaveBeenCalled();
+    expect(getAuthorization()).toBe("fake-token-bbb");
+  });
+
+  it("does not navigate for a tokenless 401 (wrong credentials)", async () => {
+    reply = { status: 401, data: { code: 401, message: "wrong", data: null } };
+    await request({ url: "/x" }, { silent: true }).catch(() => undefined);
+    expect(navigate).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ["503", { status: 503, data: { code: 503, message: "db", data: null } }],
+    ["network failure", { fail: "network" as const }],
+  ])("does not navigate or clear the user store on a %s with the stored token", async (_name, failure) => {
+    setAuthorization("fake-token-aaa");
+    useUserStore.getState().setUserId("u1");
+    reply = failure;
+    await request({ url: "/x" }, { silent: true }).catch(() => undefined);
+    expect(navigate).not.toHaveBeenCalled();
+    expect(useUserStore.getState().userId).toBe("u1");
+    expect(getAuthorization()).toBe("fake-token-aaa");
+  });
+
+  it("purgeSession({ toast: false }) navigates too", () => {
+    setAuthorization("fake-token-aaa");
+    purgeSession({ toast: false });
+    expect(navigate).toHaveBeenCalledWith("/login?next=%2Fuser-setting%2Fapi%3Fx%3D1");
+  });
+
+  it("never uses a hard reload: window.location is not touched", async () => {
+    const before = window.location.href;
+    setAuthorization("fake-token-aaa");
+    reply = { status: 401, data: { code: 401, message: "expired", data: null } };
+    await request({ url: "/x" }, { silent: true }).catch(() => undefined);
+    expect(window.location.href).toBe(before);
   });
 });

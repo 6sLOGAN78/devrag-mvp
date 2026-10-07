@@ -1,22 +1,46 @@
 import { render, screen } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { AxiosError, type AxiosAdapter } from "axios";
+import { AxiosError, AxiosHeaders, type AxiosAdapter } from "axios";
 import { createMemoryRouter, RouterProvider } from "react-router";
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { routes, type RouteEntry } from "@/constants/routes";
 import { ShellError } from "@/pages/route-error";
 import { buildRoutes } from "@/routes";
 import { http } from "@/services/http";
+import { useUserStore } from "@/stores/user-store";
 import { waitUntil } from "@/test/wait-until";
+import { setAuthorization } from "@/utils/authorization";
 
 const originalAdapter = http.defaults.adapter;
-const refuse: AxiosAdapter = (config) => Promise.reject(new AxiosError("Network Error", "ERR_NETWORK", config));
+const userDto = {
+  id: "u1",
+  nickname: "Ada",
+  email: "ada@example.test",
+  avatar: "",
+  language: "English",
+  color_schema: "Bright",
+  tenant_id: "t1",
+  tenant_name: "Ada's workspace",
+  role: "owner",
+  is_superuser: false,
+};
+let infoGate: Promise<void> = Promise.resolve();
+/** Session recovery answers with a real user; every other request is refused like a downed engine. */
+const refuse: AxiosAdapter = async (config) => {
+  if (config.url === "/v1/user/info") {
+    await infoGate;
+    return { data: { code: 0, message: "", data: userDto }, status: 200, statusText: "200", headers: new AxiosHeaders(), config } as never;
+  }
+  throw new AxiosError("Network Error", "ERR_NETWORK", config);
+};
 
 beforeAll(() => {
   vi.stubGlobal("matchMedia", (query: string) => ({ matches: false, media: query, addEventListener: () => undefined, removeEventListener: () => undefined }));
   vi.stubGlobal("ResizeObserver", class { observe() {} unobserve() {} disconnect() {} });
 });
 beforeEach(() => {
+  infoGate = Promise.resolve();
+  useUserStore.getState().reset();
   http.defaults.adapter = refuse;
 });
 afterEach(() => {
@@ -25,15 +49,67 @@ afterEach(() => {
 
 function renderAt(path: string, entries?: readonly RouteEntry[]) {
   const router = createMemoryRouter(buildRoutes(entries), { initialEntries: [path] });
-  return render(
+  const view = render(
     <QueryClientProvider client={new QueryClient()}>
       <RouterProvider router={router} />
     </QueryClientProvider>,
   );
+  return Object.assign(view, { router });
 }
+
+function signIn() {
+  setAuthorization("tok-a");
+}
+
+describe("auth guard in the route table (UI-02, UI-07)", () => {
+  it("redirects a signed-out visitor at / to /login?next=%2F inside the bare layout, never showing the shell", async () => {
+    const { router } = renderAt("/");
+    expect(await screen.findByTestId("layout-bare")).toBeInTheDocument();
+    expect(router.state.location.pathname).toBe("/login");
+    expect(router.state.location.search).toBe("?next=%2F");
+    expect(screen.queryByTestId("layout-standard")).toBeNull();
+    expect(screen.queryByRole("heading", { name: "System status" })).toBeNull();
+  });
+
+  it("keeps /login, /forgot-password and unknown paths public: Not Found renders without a token", async () => {
+    for (const path of ["/login", "/forgot-password", "/nope"]) {
+      const { router, unmount } = renderAt(path);
+      expect(await screen.findByRole("heading", { name: "Page not found" })).toBeInTheDocument();
+      expect(router.state.location.pathname).toBe(path);
+      expect(screen.getByTestId("layout-bare")).toBeInTheDocument();
+      expect(screen.queryByTestId("layout-standard")).toBeNull();
+      unmount();
+    }
+  });
+
+  it("renders Not Found inside the standard layout once signed in", async () => {
+    signIn();
+    renderAt("/nope");
+    expect(await screen.findByRole("heading", { name: "Page not found" })).toBeInTheDocument();
+    expect(screen.getByTestId("layout-standard")).toBeInTheDocument();
+  });
+
+  it("never flashes the shell or the page before session recovery resolves", async () => {
+    signIn();
+    let release: () => void = () => undefined;
+    infoGate = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    renderAt("/");
+    await waitUntil(() => screen.queryByTestId("session-skeleton") !== null, { describe: "session skeleton" });
+    expect(screen.getByTestId("layout-bare")).toBeInTheDocument();
+    expect(screen.queryByTestId("layout-standard")).toBeNull();
+    expect(screen.queryByRole("heading", { name: "System status" })).toBeNull();
+    release();
+    expect(await screen.findByTestId("layout-standard")).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "System status" })).toBeInTheDocument();
+    expect(useUserStore.getState().user?.nickname).toBe("Ada");
+  });
+});
 
 describe("route table", () => {
   it("renders every registry route inside its declared layout", async () => {
+    signIn();
     expect(routes.length).toBeGreaterThan(0);
     const status = renderAt("/");
     expect(await screen.findByTestId("layout-standard")).toBeInTheDocument();
@@ -71,6 +147,7 @@ describe("route table", () => {
   });
 
   it("shows the delayed route skeleton while a lazy chunk is pending", async () => {
+    signIn();
     const entries: RouteEntry[] = [
       ...routes,
       { path: "/slow", layout: "standard", auth: "none", component: () => new Promise(() => undefined) },
@@ -81,6 +158,7 @@ describe("route table", () => {
   });
 
   it("renders the route error state inside the layout when a lazy chunk fails to load", async () => {
+    signIn();
     vi.spyOn(console, "error").mockImplementation(() => undefined);
     const entries: RouteEntry[] = [
       ...routes,
