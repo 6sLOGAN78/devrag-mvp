@@ -49,7 +49,7 @@ def test_request_is_logged_without_credentials(ingress: httpx.Client, prefix: st
 
 def test_authenticated_go_request_is_logged_without_the_token(ingress: httpx.Client, account: Account) -> None:
     path = f"/v1/user/logprobe-{uuid.uuid4().hex}"
-    resp = ingress.get(path, headers={"Authorization": f"Bearer {account.token}"}, cookies={"ragflow_auth": account.token})
+    resp = ingress.get(path, headers={"Authorization": f"Bearer {account.token}", "Cookie": f"ragflow_auth={account.token}"})
     assert resp.status_code == 404
     rec = wait_until(lambda: _find(LOG_DIR / "ragflow_go.log", path), timeout=30, interval=0.5)
     assert rec["status"] == 404
