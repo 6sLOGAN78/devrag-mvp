@@ -103,13 +103,13 @@ endpoints:
   - {method: DELETE, path: "/api/v1/system/tokens/{token}", owner: go, auth: jwt, roles: [owner], scope: tenant, implemented: true,
      note: the token is in the path; the request log carries the route template only; another tenant's token is 404}
   - {method: GET, path: "/api/v1/tenants/{tenant_id}/users", owner: go, auth: jwt, roles: [owner, admin, normal], scope: tenant,
-     implemented: false}
+     implemented: true, note: any active member lists; only the owner also sees pending invitations; a non-member gets the same 404 as a nonexistent id}
   - {method: POST, path: "/api/v1/tenants/{tenant_id}/users", owner: go, auth: jwt, roles: [owner], scope: tenant,
-     implemented: false, note: invite by email (D-13 and D-14)}
+     implemented: true, note: invite by email (D-13 and D-14); rate limited per caller and per tenant (R-123)}
   - {method: DELETE, path: "/api/v1/tenants/{tenant_id}/users", owner: go, auth: jwt, roles: [owner, self], scope: tenant,
      implemented: false, note: owner removes a member or withdraws an invite; a member removes self; never the owner row (D-16)}
   - {method: PATCH, path: "/api/v1/tenants/{tenant_id}", owner: go, auth: jwt, roles: [invite], scope: tenant,
-     implemented: false, note: accept or decline a pending invitation (D-15)}
+     implemented: true, note: accept or decline a pending invitation (D-15); only a row with role invite can change (D-27)}
   - {method: PATCH, path: "/api/v1/tenants/{tenant_id}/users/{user_id}", owner: go, auth: jwt, roles: [owner], scope: tenant,
      implemented: false, note: role change (R-92)}
 

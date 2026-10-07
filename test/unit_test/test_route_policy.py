@@ -51,7 +51,6 @@ def test_registry_has_phase2_endpoints_unimplemented() -> None:
     data = yaml.safe_load(ROUTES.read_text(encoding="utf-8"))
     rows = {(e["method"], e["path"]): e for e in data["endpoints"]}
     for key in [
-        ("GET", "/api/v1/tenants/{tenant_id}/users"),
         ("PATCH", "/api/v1/tenants/{tenant_id}/users/{user_id}"),
     ]:
         assert key in rows, key
@@ -67,6 +66,19 @@ def test_registry_marks_token_management_implemented_and_jwt_only() -> None:
         row = rows[key]
         assert (row["owner"], row["auth"], row["implemented"], row["scope"]) == ("go", "jwt", True, "tenant"), key
         assert row["roles"] == ["owner"], key
+
+
+def test_registry_marks_members_invite_and_respond_implemented_and_jwt_only() -> None:
+    """Plan 02-22 landed the member list, the owner-only invite and accept or decline; none accepts an API or beta token."""
+    data = yaml.safe_load(ROUTES.read_text(encoding="utf-8"))
+    rows = {(e["method"], e["path"]): e for e in data["endpoints"]}
+    for key, roles in [
+        (("GET", "/api/v1/tenants/{tenant_id}/users"), ["owner", "admin", "normal"]),
+        (("POST", "/api/v1/tenants/{tenant_id}/users"), ["owner"]),
+        (("PATCH", "/api/v1/tenants/{tenant_id}"), ["invite"]),
+    ]:
+        row = rows[key]
+        assert (row["owner"], row["auth"], row["implemented"], row["scope"], row["roles"]) == ("go", "jwt", True, "tenant", roles), key
 
 
 def test_registry_marks_profile_password_and_tenant_endpoints_implemented() -> None:

@@ -70,6 +70,7 @@ func runAPI() error {
 	}
 	defer closeMail()
 	reset := service.NewPasswordReset(db, limiter, service.NewOTP(rd, "auth", cfg.Security.SecretKey, cfg.Auth.OTPTTL), mailQueue, cfg)
+	tenants := handler.NewTenant(service.NewTenant(db).WithInvites(limiter, service.InviteLimitsFrom(cfg.RateLimit)))
 	engine := router.NewEngine(cfg, logger, handler.NewSystem(svc),
 		router.WithAuth(auth),
 		router.WithAccount(handler.NewAccount(accounts, cfg.Security.TokenMaxAge)),
@@ -78,7 +79,8 @@ func runAPI() error {
 		router.WithTokens(handler.NewToken(service.NewToken(db, service.NewLimiter(rd, "rl"), service.DefaultTokenLimits()))),
 		router.WithProfile(
 			handler.NewSettings(service.NewUser(db, service.NewLimiter(rd, "rl"), cfg)),
-			handler.NewTenant(service.NewTenant(db))))
+			tenants),
+		router.WithTeam(tenants))
 	srv := &http.Server{Addr: cfg.Addr(), Handler: engine, ReadHeaderTimeout: readHeaderTimeout}
 
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)

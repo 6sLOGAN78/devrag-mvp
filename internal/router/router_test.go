@@ -369,7 +369,7 @@ func fullEngine(t *testing.T) *gin.Engine {
 	e, _ := build(t, pinger{}, pinger{}, settings{value: "0002"}, nil,
 		WithAccount(handler.NewAccount(nil, time.Hour)), WithSession(handler.NewUser(nil)),
 		WithProfile(handler.NewSettings(nil), handler.NewTenant(nil)), WithPasswordReset(handler.NewPasswordReset(nil)),
-		WithTokens(handler.NewToken(nil)))
+		WithTokens(handler.NewToken(nil)), WithTeam(handler.NewTenant(nil)))
 	return e
 }
 

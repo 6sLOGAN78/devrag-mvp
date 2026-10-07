@@ -13,6 +13,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"devrag/internal/dao"
 	"devrag/internal/entity"
 	"devrag/internal/testutil"
 )
@@ -408,4 +409,24 @@ func TestInviteRoleNeverCountsAsMembershipForPermissions(t *testing.T) {
 	assert.ErrorIs(t, err, ErrNotFound)
 	_, err = e.tenant.ListMembers(ctx, pi, owner.ID, 1, 10)
 	assert.ErrorIs(t, err, ErrNotFound)
+}
+
+func TestStoreFailureIsUnavailableNotAnInternalError(t *testing.T) {
+	e := newMembersEnv(t, 100)
+	ctx := context.Background()
+	email := testutil.UniqueEmail("sf")
+	owner := e.register(t, email, testutil.FixtureCredential())
+	p := e.principal(t, email)
+
+	closed, err := dao.OpenDB(ctx, e.cfg.MySQL)
+	require.NoError(t, err)
+	require.NoError(t, closed.Close())
+	svc := NewTenant(closed).WithInvites(e.tenant.limiter, e.tenant.limits)
+
+	_, err = svc.ListMembers(ctx, p, owner.ID, 1, 10)
+	assert.ErrorIs(t, err, ErrUnavailable)
+	_, err = svc.Invite(ctx, p, owner.ID, testutil.UniqueEmail("x"))
+	assert.ErrorIs(t, err, ErrUnavailable)
+	assert.ErrorIs(t, svc.Respond(ctx, p, owner.ID, InviteAccept), ErrUnavailable)
+	assert.NotContains(t, err.Error(), "SELECT", "only the error type is kept")
 }

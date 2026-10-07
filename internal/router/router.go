@@ -93,6 +93,16 @@ func WithProfile(s *handler.Settings, t *handler.Tenant) Option {
 	})
 }
 
+// WithTeam registers member listing, invitation and accept or decline. The three routes are jwt-only in
+// conf/routes.yaml: API and beta credentials are refused at the gate.
+func WithTeam(t *handler.Tenant) Option {
+	return WithExtraRoutes(func(e *gin.Engine) {
+		e.GET("/api/v1/tenants/:tenant_id/users", t.Members)
+		e.POST("/api/v1/tenants/:tenant_id/users", t.Invite)
+		e.PATCH("/api/v1/tenants/:tenant_id", t.Respond)
+	})
+}
+
 // WithPasswordReset registers the public forgot-password routes. They are listed with auth none in
 // conf/routes.yaml, never read or set the auth cookie, and are rate limited in the service.
 func WithPasswordReset(h *handler.PasswordReset) Option {
