@@ -167,7 +167,7 @@ Plans:
 
 **Wave 9** *(blocked on Wave 8 completion)*
 
-- [ ] 02-16-PLAN.md - Profile page, language and theme persistence
+- [x] 02-16-PLAN.md - Profile page, language and theme persistence
 - [ ] 02-20-PLAN.md - API token CRUD, API and beta credential resolution
 
 **Wave 10** *(blocked on Wave 9 completion)*
