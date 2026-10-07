@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import os
 import time
 from collections.abc import Callable
 from typing import Any
@@ -88,6 +89,62 @@ async def _run_one(name: str, fn: Callable[[Settings], None], settings: Settings
     return name, {"status": status, "elapsed_ms": int((time.perf_counter() - started) * 1000)}
 
 
-async def run_probes(settings: Settings, cap: float = PROBE_TIMEOUT_SECONDS) -> dict[str, dict[str, Any]]:
+async def _run_all(settings: Settings, cap: float) -> dict[str, dict[str, Any]]:
     results = await asyncio.gather(*(_run_one(name, fn, settings, cap) for name, fn in _PROBES.items()))
     return dict(results)
+
+
+# Single-flight + short result cache (WR-06): /system/healthz is unauthenticated, so N concurrent callers must
+# not open 4N backend connections. Callers share one in-flight probe set; a finished result (ok or down) is
+# reused for ``cache_ttl_seconds()``.
+CACHE_TTL_ENV = "HEALTH_CACHE_TTL_SECONDS"
+DEFAULT_CACHE_TTL_SECONDS = 3.0
+MIN_CACHE_TTL_SECONDS = 1.0
+MAX_CACHE_TTL_SECONDS = 5.0
+
+_monotonic = time.monotonic
+_cached: tuple[Settings, float, dict[str, dict[str, Any]]] | None = None
+_inflight: tuple[Settings, asyncio.AbstractEventLoop, asyncio.Task[dict[str, dict[str, Any]]]] | None = None
+
+
+def cache_ttl_seconds() -> float:
+    """Cache window from ``HEALTH_CACHE_TTL_SECONDS`` (default 3), clamped to 1..5; garbage falls back to the default."""
+    raw = os.environ.get(CACHE_TTL_ENV)
+    if raw is None:
+        return DEFAULT_CACHE_TTL_SECONDS
+    try:
+        value = float(raw)
+    except ValueError:
+        return DEFAULT_CACHE_TTL_SECONDS
+    return min(MAX_CACHE_TTL_SECONDS, max(MIN_CACHE_TTL_SECONDS, value))
+
+
+def reset_probe_cache() -> None:
+    global _cached, _inflight
+    _cached = None
+    _inflight = None
+
+
+def _copy(result: dict[str, dict[str, Any]]) -> dict[str, dict[str, Any]]:
+    return {name: dict(check) for name, check in result.items()}
+
+
+async def _leader(settings: Settings, cap: float) -> dict[str, dict[str, Any]]:
+    global _cached, _inflight
+    try:
+        result = await _run_all(settings, cap)
+        _cached = (settings, _monotonic(), result)
+        return result
+    finally:
+        _inflight = None
+
+
+async def run_probes(settings: Settings, cap: float = PROBE_TIMEOUT_SECONDS) -> dict[str, dict[str, Any]]:
+    global _inflight
+    if _cached is not None and _cached[0] == settings and _monotonic() - _cached[1] < cache_ttl_seconds():
+        return _copy(_cached[2])
+    loop = asyncio.get_running_loop()
+    if _inflight is None or _inflight[0] != settings or _inflight[1] is not loop:
+        # The probe set runs as its own task so one cancelled caller cannot cancel the others.
+        _inflight = (settings, loop, loop.create_task(_leader(settings, cap)))
+    return _copy(await asyncio.shield(_inflight[2]))

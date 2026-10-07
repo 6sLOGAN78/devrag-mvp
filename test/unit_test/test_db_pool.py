@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import threading
+import time
 
 import peewee
 import pymysql
@@ -9,9 +10,12 @@ import pytest
 from playhouse.pool import MaxConnectionsExceeded
 
 from api.db import database as database_module
-from api.db.database import RetryingPooledMySQLDatabase
+from api.db.database import RetryingPooledMySQLDatabase, init_database
+from common.settings import MySQLSettings
 
 pytestmark = pytest.mark.unit
+
+HANG_CAP_SECONDS = 4.0
 
 
 class FakeCursor:
@@ -42,8 +46,14 @@ class FakeConnection:
         self.open = True
         self.closed = False
         self.dead = False
+        self.hung = False
+        self.read_timeout: float | None = None
 
     def ping(self, reconnect: bool = True) -> None:
+        if self.hung:
+            # A paused server never answers: the call returns only when the driver's socket read timeout fires.
+            threading.Event().wait(self.read_timeout if self.read_timeout else HANG_CAP_SECONDS)
+            raise pymysql.err.OperationalError(2013, "Lost connection to MySQL server during query")
         if self.dead:
             raise pymysql.err.OperationalError(2006, "MySQL server has gone away")
 
@@ -65,6 +75,7 @@ class FakeDriver:
     def __init__(self) -> None:
         self.connections: list[FakeConnection] = []
         self.connect_attempts = 0
+        self.connect_kwargs: list[dict[str, object]] = []
         self.connect_failures_remaining = 0
         self.executed: list[tuple[int, str]] = []
         self.execute_failures: list[dict[str, object]] = []
@@ -75,6 +86,8 @@ class FakeDriver:
             self.connect_failures_remaining -= 1
             raise pymysql.err.OperationalError(2003, "Can't connect to MySQL server")
         conn = FakeConnection(self, len(self.connections) + 1)
+        conn.read_timeout = kwargs.get("read_timeout")  # type: ignore[assignment]
+        self.connect_kwargs.append(kwargs)
         self.connections.append(conn)
         return conn
 
@@ -205,3 +218,28 @@ def test_dead_idle_connection_is_discarded_on_checkout(driver, sleeps):
     db.execute_sql("UPDATE t SET v=v+1")
     assert driver.executed == [(2, "UPDATE t SET v=v+1")]
     assert sleeps == []
+
+
+def _settings(**extra: object) -> MySQLSettings:
+    return MySQLSettings(name="x", user="u", password="p", host="h", port=3306, max_connections=2, stale_timeout=300, **extra)  # type: ignore[arg-type]
+
+
+def test_init_database_passes_read_and_write_timeouts_to_the_driver(driver):
+    db = init_database(_settings())
+    db.connect()
+    kwargs = driver.connect_kwargs[0]
+    assert kwargs["read_timeout"] == 30 and kwargs["write_timeout"] == 30
+    db.close()
+
+
+def test_paused_server_cannot_block_checkout_past_the_read_timeout(driver, sleeps):
+    db = init_database(_settings(read_timeout=0.2, write_timeout=0.2))
+    db.connect()
+    db.close()
+    driver.connections[0].hung = True
+    started = time.monotonic()
+    db.connect()
+    assert time.monotonic() - started < HANG_CAP_SECONDS / 2
+    assert len(driver.connections) == 2
+    assert driver.connect_kwargs[1]["read_timeout"] == 0.2
+    db.close()

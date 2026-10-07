@@ -14,6 +14,8 @@ mysql:
   port: ${MYSQL_PORT:-3306}
   max_connections: ${MYSQL_MAX_CONNECTIONS:-100}
   stale_timeout: ${MYSQL_STALE_TIMEOUT:-300}
+  read_timeout: ${MYSQL_READ_TIMEOUT:-30}
+  write_timeout: ${MYSQL_WRITE_TIMEOUT:-30}
 redis:
   host: '${REDIS_HOST:-redis}'
   port: ${REDIS_PORT:-6379}

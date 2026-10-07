@@ -26,6 +26,8 @@ class MySQLSettings:
     port: int
     max_connections: int
     stale_timeout: int
+    read_timeout: float = 30.0
+    write_timeout: float = 30.0
 
     def __repr__(self) -> str:
         return f"MySQLSettings(name={self.name!r}, user={self.user!r}, password={MASK!r}, host={self.host!r}, port={self.port})"
@@ -129,6 +131,8 @@ def parse_settings(data: dict[str, Any]) -> Settings:
             port=_get(my, "mysql", "port", int),
             max_connections=_get(my, "mysql", "max_connections", int),
             stale_timeout=_get(my, "mysql", "stale_timeout", int),
+            read_timeout=float(my.get("read_timeout") or 30),
+            write_timeout=float(my.get("write_timeout") or 30),
         ),
         redis=RedisSettings(
             host=_get(rd, "redis", "host"),

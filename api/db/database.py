@@ -162,6 +162,10 @@ def init_database(mysql: MySQLSettings | None = None, **overrides: Any) -> Retry
         stale_timeout=cfg.stale_timeout,
         autoconnect=False,
         connect_timeout=CONNECT_TIMEOUT_SECONDS,
+        # WR-26: the idle-connection ping runs under the pool lock; without a socket timeout a paused server
+        # would block every checkout until the kernel gives up on the connection.
+        read_timeout=cfg.read_timeout,
+        write_timeout=cfg.write_timeout,
         **overrides,
     )
     DB.initialize(database)

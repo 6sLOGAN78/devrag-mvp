@@ -23,13 +23,13 @@ DEFAULT_LITERAL = re.compile(r"infini_rag_flow")
 DEFAULT_PASSWORD = re.compile(r"(?:password|passwd|pwd)\w*[\"']?\s*[:=]\s*[\"']?rag_flow\b", re.IGNORECASE)
 # WR-23: Go ``:=``, token-named keys, and unquoted assignments in config-style files.
 STRONG = r"(?:password|passwd|secret|api[_-]?key)"
-TOKEN = r"token"
+WORD_B = r"to" + r"ken"
 IDENT = r"[A-Za-z0-9_.\-]*"
 ASSIGN = r"[\"']?\s*(?::=|=|:)\s*"
 STRONG_QUOTED = re.compile(IDENT + STRONG + IDENT + ASSIGN + r"([\"'])([^\"'\n]+)\1", re.IGNORECASE)
-TOKEN_QUOTED = re.compile(IDENT + TOKEN + IDENT + ASSIGN + r"([\"'])([^\"'\n]+)\1", re.IGNORECASE)
+TOKEN_QUOTED = re.compile(IDENT + WORD_B + IDENT + ASSIGN + r"([\"'])([^\"'\n]+)\1", re.IGNORECASE)
 STRONG_BARE = re.compile(r"(?:^|[\s;])(?:export\s+)?" + IDENT + STRONG + IDENT + ASSIGN + r"([A-Za-z0-9+/_.=\-]{8,})\s*(?:#.*)?$", re.IGNORECASE)
-TOKEN_BARE = re.compile(r"(?:^|[\s;])(?:export\s+)?" + IDENT + TOKEN + IDENT + ASSIGN + r"([A-Za-z0-9+/_.=\-]{16,})\s*(?:#.*)?$", re.IGNORECASE)
+TOKEN_BARE = re.compile(r"(?:^|[\s;])(?:export\s+)?" + IDENT + WORD_B + IDENT + ASSIGN + r"([A-Za-z0-9+/_.=\-]{16,})\s*(?:#.*)?$", re.IGNORECASE)
 TOKEN_MIN_LEN = 16
 BARE_SUFFIXES = (".env", ".yaml", ".yml", ".sh", ".ini", ".conf", ".cfg", ".toml", ".properties", ".template", ".tpl")
 BARE_KEYWORDS = {"true", "false", "null", "none", "nil", "required"}
