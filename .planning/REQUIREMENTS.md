@@ -18,7 +18,7 @@ Requirements for initial release. Each maps to exactly one roadmap phase.
 - [ ] **AUTH-05**: User can log in with email and password via `POST /api/v1/auth/login` and receives `access_token` plus user object; only users with valid status may log in
 - [ ] **AUTH-06**: Login resolves the user's tenant id, role, and tenant default models (chat, embedding, rerank)
 - [ ] **AUTH-07**: Protected routes on both servers accept `Authorization: Bearer <token>` and populate request user context (`g.user` / `c.Set("user")`)
-- [ ] **AUTH-08**: Token validation rejects empty/whitespace tokens, tokens shorter than 32 chars, and tokens beginning `INVALID_`
+- [x] **AUTH-08**: Token validation rejects empty/whitespace tokens, tokens shorter than 32 chars, and tokens beginning `INVALID_`
 - [ ] **AUTH-09**: User can log out; logout rewrites `user.access_token` to `INVALID_<hex>` so the old token returns 401 thereafter
 - [ ] **AUTH-10**: Requests without an `Authorization` header fall back to a Redis-backed server session cookie (`_user_id`)
 - [ ] **AUTH-11**: Login sets a signed `ragflow_auth` cookie
@@ -595,7 +595,7 @@ Requirements for initial release. Each maps to exactly one roadmap phase.
 - [ ] **SEC-06**: Upload safety: extension check, sanitized names, UUID object keys, no path traversal
 - [ ] **SEC-07**: Sandboxed code runs as non-root with memory cap, timeout, no-new-privileges, no network, seccomp filter
 - [ ] **SEC-08**: Native document parsing isolated in the `deepdoc` container
-- [ ] **SEC-09**: Tokens validated with an HMAC-signed secret key and expiry
+- [x] **SEC-09**: Tokens validated with an HMAC-signed secret key and expiry
 - [x] **SEC-10**: Input validation prevents SQL and command injection
 - [ ] **SEC-11**: Rate limiting backed by Redis
 
@@ -688,7 +688,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | AUTH-05 | Phase 2 | Pending |
 | AUTH-06 | Phase 2 | Pending |
 | AUTH-07 | Phase 2 | Pending |
-| AUTH-08 | Phase 2 | Pending |
+| AUTH-08 | Phase 2 | Complete |
 | AUTH-09 | Phase 2 | Pending |
 | AUTH-10 | Phase 2 | Pending |
 | AUTH-11 | Phase 2 | Pending |
@@ -1187,7 +1187,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SEC-06 | Phase 3 | Pending |
 | SEC-07 | Phase 7 | Pending |
 | SEC-08 | Phase 6 | Pending |
-| SEC-09 | Phase 2 | Pending |
+| SEC-09 | Phase 2 | Complete |
 | SEC-10 | Phase 1 | Complete |
 | SEC-11 | Phase 8 | Pending |
 | TEST-01 | Phase 1 | Complete |
