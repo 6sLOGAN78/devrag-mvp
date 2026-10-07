@@ -185,7 +185,9 @@ async def test_raw_header_without_bearer_prefix_is_accepted(store):
 def _bad_tokens() -> dict[str, str]:
     good = _signed()
     head, _, tail = good.rpartition(".")
-    flipped = tail[:-1] + ("A" if tail[-1] != "A" else "B")
+    # Change the first signature character: the last one carries unused trailing bits, so swapping it can decode to
+    # the same bytes and leave the token valid.
+    flipped = ("A" if tail[0] != "A" else "B") + tail[1:]
     now = int(time.time())
     return {
         "empty_bearer": "",
