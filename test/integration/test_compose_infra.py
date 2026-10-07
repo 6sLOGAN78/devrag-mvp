@@ -110,3 +110,73 @@ def test_elasticsearch_cluster_and_watermarks(env: dict[str, str]) -> None:
 def test_env_file_is_not_tracked() -> None:
     assert Path(REPO_ROOT / "docker" / ".env").is_file()
     assert sh(["git", "check-ignore", "-q", "docker/.env"]).returncode == 0
+
+
+# --- Mail catcher is dev-only (D-05, D-20, R-95, R-96); config-only checks, nothing is started ---
+
+MAILPIT_IMAGE = "axllent/mailpit:v1.31.4"
+FAKE_ENV_KEYS = ("MYSQL_PASSWORD", "REDIS_PASSWORD", "MINIO_PASSWORD", "ELASTIC_PASSWORD", "MYSQL_ROOT_PASSWORD")
+
+
+def compose_config(files: list[str], profiles: list[str]) -> dict[str, object]:
+    """Resolved compose model with fake secrets and no env file, so it does not depend on docker/.env."""
+    env = {**os.environ, **{key: "x" * 32 for key in FAKE_ENV_KEYS}, "SECRET_KEY": "x" * 40}
+    cmd = ["docker", "compose", "-p", PROJECT, "--env-file", os.devnull]
+    for name in files:
+        cmd += ["-f", f"docker/{name}"]
+    for name in profiles:
+        cmd += ["--profile", name]
+    out = sh([*cmd, "config", "--format", "json"], env=env)
+    assert out.returncode == 0, out.stderr
+    return json.loads(out.stdout)
+
+
+def test_mailpit_exists_only_in_dev_config_under_profile_mail() -> None:
+    files = ["docker-compose.yml", "docker-compose.dev.yml"]
+    active = compose_config(files, ["mail"])["services"]
+    assert "mailpit" in active
+    assert active["mailpit"]["image"] == MAILPIT_IMAGE
+    assert active["mailpit"]["profiles"] == ["mail"]
+    assert "mailpit" not in compose_config(files, ["cpu", "elasticsearch"])["services"]
+
+
+def test_production_config_has_no_mail_service_with_every_profile_enabled() -> None:
+    services = compose_config(["docker-compose.yml"], ["*"])["services"]
+    assert services, "profile-expanded production config must list services"
+    assert {"app", "es01"} <= set(services), "wildcard profile did not expand"
+    for name, service in services.items():
+        image = str(service.get("image", ""))
+        assert "mailpit" not in name and "mail" not in service.get("profiles", []), name
+        assert "mailpit" not in image and "axllent" not in image, f"{name}: {image}"
+
+
+def test_mailpit_http_port_is_loopback_only() -> None:
+    mailpit = compose_config(["docker-compose.yml", "docker-compose.dev.yml"], ["mail"])["services"]["mailpit"]
+    ports = mailpit.get("ports", [])
+    assert ports, "HTTP API must be published for tests"
+    assert all(p.get("host_ip") == "127.0.0.1" for p in ports), ports
+    assert {int(p["target"]) for p in ports} == {8025}, "SMTP (1025) must stay inside the network"
+
+
+def test_mail_helpers_round_trip_through_mailpit() -> None:
+    """Live: send one message over SMTP and read it back through the HTTP API (needs `--profile mail`)."""
+    import smtplib
+    import uuid
+    from email.message import EmailMessage
+
+    from test.helpers.mail import base_url, extract_code, wait_for_mail
+
+    smtp_port = int(os.environ.get("MAILPIT_SMTP_PORT", "1025"))
+    recipient = f"{uuid.uuid4().hex}@devrag.test"
+    msg = EmailMessage()
+    msg["From"], msg["To"], msg["Subject"] = "no-reply@devrag.local", recipient, "devRag verification code"
+    msg.set_content("Your code is 123456 and expires soon.")
+    container = wait_until(lambda: container_id("mailpit"), timeout=30, describe=lambda: "mailpit not running; start the mail profile")
+    ip = sh(["docker", "inspect", "--format", "{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}", container]).stdout.strip()
+    assert ip, "mailpit has no network address"
+    with smtplib.SMTP(ip, smtp_port, timeout=10) as smtp:
+        smtp.send_message(msg)
+    got = wait_for_mail(recipient)
+    assert got["Subject"] == "devRag verification code"
+    assert extract_code(got) == "123456"
+    assert base_url().startswith("http://127.0.0.1")
