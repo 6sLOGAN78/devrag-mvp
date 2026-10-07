@@ -222,8 +222,9 @@ func TestCookieCSRFRule(t *testing.T) {
 		return m
 	}
 
-	req := func(hdr map[string]string, cookie string) *httptest.ResponseRecorder {
+	reqFrom := func(remote string, hdr map[string]string, cookie string) *httptest.ResponseRecorder {
 		r := httptest.NewRequest("POST", "http://app.example.test/v1/user/setting", nil)
+		r.RemoteAddr = remote
 		for k, v := range hdr {
 			r.Header.Set(k, v)
 		}
@@ -231,6 +232,9 @@ func TestCookieCSRFRule(t *testing.T) {
 		w := httptest.NewRecorder()
 		e.ServeHTTP(w, r)
 		return w
+	}
+	req := func(hdr map[string]string, cookie string) *httptest.ResponseRecorder {
+		return reqFrom("127.0.0.1:40000", hdr, cookie)
 	}
 
 	w := req(nil, good)
@@ -242,6 +246,10 @@ func TestCookieCSRFRule(t *testing.T) {
 	assert.Equal(t, http.StatusOK, req(with(map[string]string{"Origin": "http://app.example.test"}), good).Code, "same-origin Origin")
 	assert.Equal(t, http.StatusOK, req(with(map[string]string{"Referer": "http://app.example.test/page?x=1"}), good).Code, "same-origin Referer")
 	assert.Equal(t, http.StatusOK, req(with(map[string]string{"Origin": "http://public.example.test:8088", "X-Forwarded-Host": "public.example.test:8088"}), good).Code, "proxy-provided host")
+	// R-114: X-Forwarded-Host is trusted only from a loopback peer (the Nginx in the same container).
+	forged := map[string]string{"Origin": "http://evil.test", "X-Forwarded-Host": "evil.test"}
+	assert.Equal(t, http.StatusForbidden, reqFrom("198.51.100.9:40000", forged, good).Code, "a forged X-Forwarded-Host from a non-loopback peer is ignored")
+	assert.Equal(t, http.StatusOK, reqFrom("198.51.100.9:40000", map[string]string{"Origin": "http://app.example.test"}, good).Code, "the real Host still works for a direct peer")
 	assert.Equal(t, http.StatusForbidden, req(with(map[string]string{"Origin": "http://app.example.test:9999"}), good).Code, "same host, different port")
 
 	// Bearer-authenticated requests are unaffected.

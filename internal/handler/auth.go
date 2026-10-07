@@ -124,8 +124,8 @@ func safeMethod(m string) bool {
 }
 
 // sameOrigin implements the CSRF rule for cookie-authenticated unsafe requests: Origin, else
-// Referer, must name the request's own host (X-Forwarded-Host from the proxy, else Host) or an
-// allowed origin. A missing or opaque origin is refused.
+// Referer, must name the request's own host (X-Forwarded-Host when the peer is the loopback proxy,
+// else Host) or an allowed origin. A missing or opaque origin is refused.
 func sameOrigin(r *http.Request, allowed []string) bool {
 	raw := r.Header.Get("Origin")
 	if raw == "" {
@@ -141,9 +141,9 @@ func sameOrigin(r *http.Request, allowed []string) bool {
 	if slices.Contains(allowed, strings.ToLower(u.Scheme+"://"+u.Host)) {
 		return true
 	}
-	host := r.Header.Get("X-Forwarded-Host")
-	if host == "" {
-		host = r.Host
+	host := r.Host
+	if fwd := r.Header.Get("X-Forwarded-Host"); fwd != "" && common.IsLoopbackPeer(r) {
+		host = fwd
 	}
 	if i := strings.IndexByte(host, ','); i >= 0 {
 		host = host[:i]
@@ -151,8 +151,9 @@ func sameOrigin(r *http.Request, allowed []string) bool {
 	return strings.EqualFold(u.Host, strings.TrimSpace(host))
 }
 
-// secureRequest reports whether the auth cookie should carry Secure. A forwarded https scheme can
-// only add the flag, never remove it, so honouring the header cannot weaken the cookie.
+// secureRequest reports whether the auth cookie should carry Secure: the connection itself is TLS,
+// or the loopback reverse proxy (Nginx in the same container) says it terminated TLS. The header
+// from any other peer is ignored (R-114), the same rule as the client IP.
 func secureRequest(r *http.Request) bool {
-	return r.TLS != nil || r.Header.Get("X-Forwarded-Proto") == "https"
+	return r.TLS != nil || (r.Header.Get("X-Forwarded-Proto") == "https" && common.IsLoopbackPeer(r))
 }

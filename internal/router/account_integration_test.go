@@ -208,9 +208,14 @@ func TestLoginSetsCookieAndReturnsToken(t *testing.T) {
 	assert.Equal(t, 2592000, c.MaxAge)
 	assert.False(t, c.Secure, "plain HTTP request")
 
+	// R-114: X-Forwarded-Proto is trusted only from a loopback peer (the Nginx in the same container).
+	w = r.post("/api/v1/auth/login", map[string]string{"email": email, "password": testutil.FixtureCredential()}, "127.0.0.1:1000", map[string]string{"X-Forwarded-Proto": "https"})
+	require.Equal(t, http.StatusOK, w.Code)
+	assert.True(t, w.Result().Cookies()[0].Secure, "Secure when the proxy on loopback reports TLS")
+
 	w = r.post("/api/v1/auth/login", map[string]string{"email": email, "password": testutil.FixtureCredential()}, "198.51.100.9:1000", map[string]string{"X-Forwarded-Proto": "https"})
 	require.Equal(t, http.StatusOK, w.Code)
-	assert.True(t, w.Result().Cookies()[0].Secure, "Secure when the request arrived over TLS")
+	assert.False(t, w.Result().Cookies()[0].Secure, "a forwarded scheme from a non-loopback peer is ignored")
 }
 
 func TestLoginFailuresAreByteIdentical(t *testing.T) {

@@ -41,3 +41,23 @@ func TestClientIP(t *testing.T) {
 		})
 	}
 }
+
+func TestIsLoopbackPeer(t *testing.T) {
+	cases := []struct {
+		remote string
+		want   bool
+	}{
+		{"127.0.0.1:5555", true},
+		{"[::1]:5555", true},
+		{"[::ffff:127.0.0.1]:5555", true},
+		{"198.51.100.7:4444", false},
+		{"172.18.0.5:4444", false},
+		{"", false},
+		{"not-an-address", false},
+	}
+	for _, c := range cases {
+		t.Run(c.remote, func(t *testing.T) {
+			assert.Equal(t, c.want, IsLoopbackPeer(reqFrom(c.remote, nil)))
+		})
+	}
+}
