@@ -1,0 +1,19 @@
+{
+  "app": { "wordmark": "devRag", "titleSuffix": "devRag" },
+  "nav": {
+    "systemStatus": "System status",
+    "groupCaption": "Platform",
+    "openMenu": "Open navigation menu",
+    "closeMenu": "Close"
+  },
+  "a11y": { "skipLink": "Skip to main content", "primaryNav": "Primary" },
+  "theme": { "label": "Change theme", "light": "Light", "dark": "Dark", "system": "System" },
+  "errorState": {
+    "headingFor": "Couldn't load {{noun}}",
+    "defaultNoun": "data",
+    "body": "The request failed. Check your connection and try again. If it keeps failing, check System status.",
+    "action": "Try again",
+    "codeLabel": "Code"
+  },
+  "emptyState": { "fallbackHeading": "Nothing here yet", "headingFor": "No {{noun}} yet" }
+}

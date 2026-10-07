@@ -59,4 +59,8 @@
       transition-duration: 0.01ms !important;
     }
   }
+
+  html:lang(zh) {
+    font-family: "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  }
 }

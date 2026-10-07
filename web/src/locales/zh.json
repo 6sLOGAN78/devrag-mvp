@@ -1,0 +1,19 @@
+{
+  "app": { "wordmark": "devRag", "titleSuffix": "devRag" },
+  "nav": {
+    "systemStatus": "系统状态",
+    "groupCaption": "平台",
+    "openMenu": "打开导航菜单",
+    "closeMenu": "关闭"
+  },
+  "a11y": { "skipLink": "跳到主要内容", "primaryNav": "主导航" },
+  "theme": { "label": "切换主题", "light": "浅色", "dark": "深色", "system": "跟随系统" },
+  "errorState": {
+    "headingFor": "无法加载{{noun}}",
+    "defaultNoun": "数据",
+    "body": "请求失败。请检查网络连接后重试。如果仍然失败,请查看系统状态。",
+    "action": "重试",
+    "codeLabel": "错误码"
+  },
+  "emptyState": { "fallbackHeading": "这里还没有内容", "headingFor": "还没有{{noun}}" }
+}
