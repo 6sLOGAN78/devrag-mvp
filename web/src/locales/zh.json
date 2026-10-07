@@ -12,7 +12,8 @@
   },
   "header": {
     "accountMenu": "账户菜单",
-    "signOut": "退出登录"
+    "signOut": "退出登录",
+    "language": "切换语言"
   },
   "a11y": {
     "skipLink": "跳到主要内容",
@@ -95,6 +96,59 @@
     "session": {
       "title": "会话已过期",
       "description": "您的会话已结束。请重新加载页面以继续。"
+    }
+  },
+  "auth": {
+    "login": {
+      "pageTitle": "登录 - devRag",
+      "title": "登录 devRag",
+      "submit": "登录",
+      "pending": "正在登录",
+      "forgot": "忘记密码?",
+      "noAccount": "还没有账户?",
+      "createOne": "创建账户",
+      "registrationOff": "此服务器已关闭新账户注册。",
+      "failed": "邮箱或密码不正确"
+    },
+    "register": {
+      "pageTitle": "创建账户 - devRag",
+      "title": "创建你的账户",
+      "submit": "创建账户",
+      "pending": "正在创建你的账户",
+      "haveAccount": "已有账户?",
+      "signIn": "登录"
+    },
+    "field": {
+      "email": "邮箱",
+      "emailPlaceholder": "name@example.com",
+      "password": "密码",
+      "nickname": "昵称",
+      "passwordHelp": "至少 8 个字符。"
+    },
+    "password": {
+      "show": "显示密码",
+      "hide": "隐藏密码"
+    },
+    "error": {
+      "fallback": "出了点问题,请重试。",
+      "rateLimited": "尝试次数过多。请等待几分钟后再试。",
+      "unavailable": "服务暂时不可用。请稍后再试。"
+    }
+  },
+  "errors": {
+    "email": {
+      "required": "请输入邮箱地址。",
+      "invalid": "请输入有效的邮箱地址。"
+    },
+    "password": {
+      "required": "请输入密码。",
+      "min": "请至少使用 8 个字符。",
+      "max": "请使用不超过 128 个字符。"
+    },
+    "nickname": {
+      "required": "请输入昵称。",
+      "max": "请使用不超过 64 个字符。",
+      "invalid": "昵称包含不允许的字符。"
     }
   }
 }

@@ -25,3 +25,6 @@ export const goHealthPath = resolve("go", "/health");
 export const pythonStatusPath = resolve("python", "/api/v1/system/status");
 export const logoutPath = resolve("go", "/api/v1/auth/logout");
 export const userInfoPath = resolveUnder("go", "/v1/user/", "info");
+export const loginPath = resolveUnder("go", "/api/v1/auth/", "login");
+export const registerPath = resolve("go", "/api/v1/users");
+export const systemConfigPath = resolve("go", "/api/v1/system/config");

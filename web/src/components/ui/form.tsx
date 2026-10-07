@@ -26,6 +26,9 @@ function FormField<TFieldValues extends FieldValues = FieldValues, TName extends
 
 interface FormItemContextValue {
   id: string;
+  /** FormDescription reports itself so aria-describedby never names an element that is not rendered. */
+  setHasDescription: (value: boolean) => void;
+  hasDescription: boolean;
 }
 const FormItemContext = React.createContext<FormItemContextValue | null>(null);
 
@@ -41,14 +44,17 @@ function useFormField() {
     formItemId: `${item.id}-item`,
     formDescriptionId: `${item.id}-description`,
     formMessageId: `${item.id}-message`,
+    hasDescription: item.hasDescription,
     ...state,
   };
 }
 
 const FormItem = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(({ className, ...props }, ref) => {
   const id = React.useId();
+  const [hasDescription, setHasDescription] = React.useState(false);
+  const value = React.useMemo(() => ({ id, hasDescription, setHasDescription }), [id, hasDescription]);
   return (
-    <FormItemContext.Provider value={{ id }}>
+    <FormItemContext.Provider value={value}>
       <div ref={ref} className={cn("flex flex-col gap-1", className)} {...props} />
     </FormItemContext.Provider>
   );
@@ -65,12 +71,13 @@ FormLabel.displayName = "FormLabel";
 
 /** Supplies id, aria-describedby and aria-invalid to its single child control. */
 const FormControl = React.forwardRef<React.ElementRef<typeof Slot>, React.ComponentPropsWithoutRef<typeof Slot>>(({ ...props }, ref) => {
-  const { error, formItemId, formDescriptionId, formMessageId } = useFormField();
+  const { error, formItemId, formDescriptionId, formMessageId, hasDescription } = useFormField();
+  const describedBy = [hasDescription ? formDescriptionId : null, error ? formMessageId : null].filter(Boolean).join(" ");
   return (
     <Slot
       ref={ref}
       id={formItemId}
-      aria-describedby={error ? `${formDescriptionId} ${formMessageId}` : formDescriptionId}
+      aria-describedby={describedBy === "" ? undefined : describedBy}
       aria-invalid={error ? true : undefined}
       {...props}
     />
@@ -80,6 +87,12 @@ FormControl.displayName = "FormControl";
 
 const FormDescription = React.forwardRef<HTMLParagraphElement, React.HTMLAttributes<HTMLParagraphElement>>(({ className, ...props }, ref) => {
   const { formDescriptionId } = useFormField();
+  const item = React.useContext(FormItemContext);
+  const setHasDescription = item?.setHasDescription;
+  React.useEffect(() => {
+    setHasDescription?.(true);
+    return () => setHasDescription?.(false);
+  }, [setHasDescription]);
   return <p ref={ref} id={formDescriptionId} className={cn("text-xs font-normal text-muted-foreground", className)} {...props} />;
 });
 FormDescription.displayName = "FormDescription";

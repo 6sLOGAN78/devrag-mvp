@@ -190,6 +190,15 @@ describe("unit http client token handling", () => {
     expect(authOf(0)).toBe("Bearer fake-token-aaa");
   });
 
+  it("never attaches the token to an anonymous request, and its 401 purges nothing", async () => {
+    setAuthorization("fake-token-aaa");
+    reply = { status: 401, data: { code: 401, message: "no", data: null } };
+    await expect(request({ url: "/api/v1/auth/login", method: "POST", anonymous: true }, { silent: true })).rejects.toBeInstanceOf(ApiError);
+    expect(authOf(0)).toBeUndefined();
+    expect(seen[0]?.sentToken).toBeNull();
+    expect(getAuthorization()).toBe("fake-token-aaa");
+  });
+
   it("attaches the token to an absolute URL on the page origin", async () => {
     setAuthorization("fake-token-aaa");
     reply = { data: { code: 0, message: "", data: null } };

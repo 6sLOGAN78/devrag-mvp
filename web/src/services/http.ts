@@ -17,6 +17,8 @@ declare module "axios" {
   interface AxiosRequestConfig {
     /** Suppress the error toast for this request. */
     silent?: boolean;
+    /** Never attach the stored token (sign in and sign up: a stale token must not ride along or trigger a purge). */
+    anonymous?: boolean;
     /** Internal: the token actually attached to this request, or null when none was sent. */
     sentToken?: string | null;
   }
@@ -145,7 +147,7 @@ export const http = axios.create({ baseURL: "", timeout: TIMEOUT_MS });
 
 http.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   const token = getAuthorization();
-  if (token && isSameOrigin(config.url, config.baseURL)) {
+  if (token && config.anonymous !== true && isSameOrigin(config.url, config.baseURL)) {
     config.headers.set("Authorization", `Bearer ${token}`);
     config.sentToken = token;
   } else {

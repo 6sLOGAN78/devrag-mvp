@@ -50,6 +50,12 @@ export const routes: readonly RouteEntry[] = [
     redirect: ({ signedIn }) => (signedIn ? ROOT_SIGNED_IN_TARGET : "/login"),
   },
   {
+    path: "/login",
+    layout: "bare",
+    auth: "none",
+    component: () => import("@/pages/login"),
+  },
+  {
     path: "/system-status",
     layout: "standard",
     auth: "required",

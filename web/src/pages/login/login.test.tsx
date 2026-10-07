@@ -429,7 +429,7 @@ describe("signing in", () => {
     expect(alert).toHaveTextContent("Too many attempts. Wait a few minutes, then try again.");
     expect(alert).not.toHaveTextContent(PINNED);
     expect(screen.getByTestId("login-submit")).not.toHaveAttribute("aria-disabled", "true");
-    expect(screen.getByTestId("field-email")).toHaveValue("ada@example.test");
+    expect(screen.getByTestId("field-email")).toHaveValue("Ada@Example.test");
   });
 
   it("gives an unavailable service its own message", async () => {

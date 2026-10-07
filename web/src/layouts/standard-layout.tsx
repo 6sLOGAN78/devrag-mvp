@@ -2,6 +2,7 @@ import { Menu } from "lucide-react";
 import { useState } from "react";
 import { Outlet } from "react-router";
 import { AppSidebar } from "@/components/app-sidebar";
+import { LanguageSwitch } from "@/components/language-switch";
 import { SkipLink } from "@/components/skip-link";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { UserMenu } from "@/components/user-menu";
@@ -38,6 +39,7 @@ export function StandardLayout() {
             <span className="text-xl font-semibold leading-tight">{t("app.wordmark")}</span>
           </div>
           <div className="flex items-center gap-2">
+            <LanguageSwitch />
             <ThemeToggle />
             <UserMenu />
           </div>

@@ -72,8 +72,17 @@ describe("auth guard in the route table (UI-02, UI-07)", () => {
     expect(screen.queryByRole("heading", { name: "System status" })).toBeNull();
   });
 
-  it("keeps /login, /forgot-password and unknown paths public: Not Found renders without a token", async () => {
-    for (const path of ["/login", "/forgot-password", "/nope"]) {
+  it("keeps /login public and renders the sign-in page in the bare layout without a token", async () => {
+    const { router } = renderAt("/login");
+    expect(await screen.findByTestId("login-page")).toBeInTheDocument();
+    expect(router.state.location.pathname).toBe("/login");
+    expect(screen.getByTestId("layout-bare")).toBeInTheDocument();
+    expect(screen.getByTestId("language-switch")).toBeInTheDocument();
+    expect(screen.queryByTestId("layout-standard")).toBeNull();
+  });
+
+  it("keeps /forgot-password and unknown paths public: Not Found renders without a token", async () => {
+    for (const path of ["/forgot-password", "/nope"]) {
       const { router, unmount } = renderAt(path);
       expect(await screen.findByRole("heading", { name: "Page not found" })).toBeInTheDocument();
       expect(router.state.location.pathname).toBe(path);
@@ -151,7 +160,7 @@ describe("route table", () => {
     expect(await screen.findByTestId("layout-standard")).toBeInTheDocument();
   });
 
-  it.each(["/login", "/datasets"])("renders the honest Not Found page for unbuilt %s", async (path) => {
+  it.each(["/datasets"])("renders the honest Not Found page for unbuilt %s", async (path) => {
     renderAt(path);
     expect(await screen.findByRole("heading", { name: "Page not found" })).toBeInTheDocument();
     expect(screen.getByText("404")).toBeInTheDocument();

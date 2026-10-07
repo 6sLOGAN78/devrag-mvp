@@ -12,7 +12,8 @@
   },
   "header": {
     "accountMenu": "Account menu",
-    "signOut": "Sign out"
+    "signOut": "Sign out",
+    "language": "Change language"
   },
   "a11y": {
     "skipLink": "Skip to main content",
@@ -95,6 +96,59 @@
     "session": {
       "title": "Session expired",
       "description": "Your session ended. Reload the page to continue."
+    }
+  },
+  "auth": {
+    "login": {
+      "pageTitle": "Sign in - devRag",
+      "title": "Sign in to devRag",
+      "submit": "Sign in",
+      "pending": "Signing in",
+      "forgot": "Forgot password?",
+      "noAccount": "No account yet?",
+      "createOne": "Create one",
+      "registrationOff": "New accounts are turned off on this server.",
+      "failed": "Email or password is incorrect"
+    },
+    "register": {
+      "pageTitle": "Create account - devRag",
+      "title": "Create your account",
+      "submit": "Create account",
+      "pending": "Creating your account",
+      "haveAccount": "Already have an account?",
+      "signIn": "Sign in"
+    },
+    "field": {
+      "email": "Email",
+      "emailPlaceholder": "name@example.com",
+      "password": "Password",
+      "nickname": "Nickname",
+      "passwordHelp": "At least 8 characters."
+    },
+    "password": {
+      "show": "Show password",
+      "hide": "Hide password"
+    },
+    "error": {
+      "fallback": "Something went wrong. Try again.",
+      "rateLimited": "Too many attempts. Wait a few minutes, then try again.",
+      "unavailable": "The service is unavailable right now. Try again in a moment."
+    }
+  },
+  "errors": {
+    "email": {
+      "required": "Enter your email address.",
+      "invalid": "Enter a valid email address."
+    },
+    "password": {
+      "required": "Enter your password.",
+      "min": "Use at least 8 characters.",
+      "max": "Use 128 characters or fewer."
+    },
+    "nickname": {
+      "required": "Enter a nickname.",
+      "max": "Use 64 characters or fewer.",
+      "invalid": "This nickname contains characters that are not allowed."
     }
   }
 }

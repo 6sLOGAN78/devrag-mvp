@@ -169,8 +169,8 @@ describe("FullBleedLayout and BareLayout", () => {
 });
 
 describe("registry", () => {
-  it("contains exactly the entries /, /system-status and *", () => {
-    expect(routes.map((r) => r.path)).toEqual(["/", "/system-status", "*"]);
+  it("contains exactly the entries /, /login, /system-status and *", () => {
+    expect(routes.map((r) => r.path)).toEqual(["/", "/login", "/system-status", "*"]);
     expect(navEntries().map((r) => i18n.t(r.nav?.labelKey ?? ""))).toEqual(["System status"]);
   });
 
