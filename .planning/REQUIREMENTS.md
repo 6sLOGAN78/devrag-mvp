@@ -26,9 +26,9 @@ Requirements for initial release. Each maps to exactly one roadmap phase.
 - [ ] **AUTH-13**: User can fetch own profile, avatar, tenant id and role via `GET /v1/user/info`
 - [ ] **AUTH-14**: User can update nickname, avatar, and language via `POST /v1/user/setting`
 - [ ] **AUTH-15**: User can change password by supplying old and new password via `POST /v1/user/setting/password`
-- [ ] **AUTH-16**: User can request a password-reset OTP via `POST /api/v1/auth/password/forgot/otp`
-- [ ] **AUTH-17**: User can verify the OTP via `POST /api/v1/auth/password/forgot/otp/verify`
-- [ ] **AUTH-18**: User can reset password with email, OTP, and new password via `POST /api/v1/auth/password/reset`
+- [x] **AUTH-16**: User can request a password-reset OTP via `POST /api/v1/auth/password/forgot/otp`
+- [x] **AUTH-17**: User can verify the OTP via `POST /api/v1/auth/password/forgot/otp/verify`
+- [x] **AUTH-18**: User can reset password with email, OTP, and new password via `POST /api/v1/auth/password/reset`
 - [ ] **AUTH-19**: User can create a programmatic API token via `POST /system/tokens`
 - [ ] **AUTH-20**: User can list API tokens via `GET /system/tokens`
 - [ ] **AUTH-21**: User can delete an API token via `DELETE /system/tokens/<token>`
@@ -696,9 +696,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | AUTH-13 | Phase 2 | Pending |
 | AUTH-14 | Phase 2 | Pending |
 | AUTH-15 | Phase 2 | Pending |
-| AUTH-16 | Phase 2 | Pending |
-| AUTH-17 | Phase 2 | Pending |
-| AUTH-18 | Phase 2 | Pending |
+| AUTH-16 | Phase 2 | Complete |
+| AUTH-17 | Phase 2 | Complete |
+| AUTH-18 | Phase 2 | Complete |
 | AUTH-19 | Phase 2 | Pending |
 | AUTH-20 | Phase 2 | Pending |
 | AUTH-21 | Phase 2 | Pending |

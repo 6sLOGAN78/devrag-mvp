@@ -136,7 +136,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 02-05-PLAN.md - D-20 npm set, itsdangerous declaration, Mailpit in the dev compose overlay only, mail helpers
+- [x] 02-05-PLAN.md - D-20 npm set, itsdangerous declaration, Mailpit in the dev compose overlay only, mail helpers
 - [ ] 02-07-PLAN.md - WR-10 full schema verification, account test fixtures
 
 **Wave 4** *(blocked on Wave 3 completion)*
