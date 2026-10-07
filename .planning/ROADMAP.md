@@ -157,7 +157,7 @@ Plans:
 **Wave 7** *(blocked on Wave 6 completion)*
 
 - [x] 02-15-PLAN.md - Go profile settings, password change, tenant info and list
-- [ ] 02-19-PLAN.md - Superuser startup hook, B-08 update
+- [x] 02-19-PLAN.md - Superuser startup hook, B-08 update
 - [ ] 02-28-PLAN.md - Account menu and sign out, System status at /system-status, root redirect
 
 **Wave 8** *(blocked on Wave 7 completion)*
