@@ -11,8 +11,8 @@ from pathlib import Path
 from typing import Any
 
 REDACTED = "***"
-SENSITIVE_KEYS = ("password", "passwd", "pwd", "secret", "api_key", "apikey", "token", "authorization", "cookie")
-_SENSITIVE_WORDS = re.compile(r"password|passwd|pwd|secret|api[_-]?key|token|authorization|cookie", re.IGNORECASE)
+SENSITIVE_KEYS = ("password", "passwd", "pwd", "secret", "api_key", "apikey", "token", "authorization", "cookie", "otp", "ticket")
+_SENSITIVE_WORDS = re.compile(r"password|passwd|pwd|secret|api[_-]?key|token|authorization|cookie|otp|ticket", re.IGNORECASE)
 # Redaction is a linear two-stage scan (CR-02, D-31): every quantifier is bounded, every value
 # match is anchored at a position found by KEYSEP, and a consumed span is never rescanned.
 _MAX_INPUT = 64 * 1024

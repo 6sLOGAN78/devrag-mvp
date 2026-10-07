@@ -17,7 +17,7 @@ import (
 // RedactedValue replaces any sensitive value in log output.
 const RedactedValue = "***"
 
-var sensitiveKeys = []string{"password", "passwd", "pwd", "secret", "api_key", "apikey", "token", "authorization", "cookie"}
+var sensitiveKeys = []string{"password", "passwd", "pwd", "secret", "api_key", "apikey", "token", "authorization", "cookie", "otp", "ticket"}
 
 // redactedMarker replaces values that cannot be safely inspected.
 const redactedMarker = "***unserialisable***"
@@ -25,7 +25,7 @@ const redactedMarker = "***unserialisable***"
 // fragmentPattern matches key=value, key: value and "key": "value" forms for sensitive keys.
 // Groups: 1 key (with optional quotes), 2 separator, 3 value (AWS4 signature line, or optional auth
 // scheme + quoted run with escaped quotes or bare run). RE2 guarantees linear-time matching.
-var fragmentPattern = regexp.MustCompile(`(?i)(["']?[\w-]*(?:password|passwd|pwd|secret|api[_-]?key|token|authorization)[\w-]*["']?)([ \t]*[=:][ \t]*)(AWS4-HMAC-SHA256[ \t]+[^\n]+|(?:(?:Bearer|Basic|Digest|Token|ApiKey|Api-Key|Negotiate)[ \t]+)?(?:"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|[^\s,;&}]+))`)
+var fragmentPattern = regexp.MustCompile(`(?i)(["']?[\w-]*(?:password|passwd|pwd|secret|api[_-]?key|token|authorization|otp|ticket)[\w-]*["']?)([ \t]*[=:][ \t]*)(AWS4-HMAC-SHA256[ \t]+[^\n]+|(?:(?:Bearer|Basic|Digest|Token|ApiKey|Api-Key|Negotiate)[ \t]+)?(?:"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|[^\s,;&}]+))`)
 
 // cookiePattern masks cookie and set-cookie values: a quoted value, otherwise everything to end of line.
 var cookiePattern = regexp.MustCompile(`(?i)(["']?[\w-]*cookie[\w-]*["']?)([ \t]*[=:][ \t]*)("(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|[^\n]+)`)

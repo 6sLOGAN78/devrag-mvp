@@ -63,10 +63,18 @@ func runAPI() error {
 	svc := service.NewSystem(db, rd, db).WithRegisterEnabled(cfg.Auth.RegisterEnabled)
 	accounts := service.NewAccount(db, service.NewLimiter(rd, "rl"), cfg)
 	auth := service.NewAuth(db, cfg.Security.SecretKey, cfg.Security.TokenMaxAge)
+	limiter := service.NewLimiter(rd, "rl")
+	mailQueue, closeMail, err := newMailQueue(cfg, logger)
+	if err != nil {
+		return err
+	}
+	defer closeMail()
+	reset := service.NewPasswordReset(db, limiter, service.NewOTP(rd, "auth", cfg.Security.SecretKey, cfg.Auth.OTPTTL), mailQueue, cfg)
 	engine := router.NewEngine(cfg, logger, handler.NewSystem(svc),
 		router.WithAuth(auth),
 		router.WithAccount(handler.NewAccount(accounts, cfg.Security.TokenMaxAge)),
 		router.WithSession(handler.NewUser(auth)),
+		router.WithPasswordReset(handler.NewPasswordReset(reset)),
 		router.WithProfile(
 			handler.NewSettings(service.NewUser(db, service.NewLimiter(rd, "rl"), cfg)),
 			handler.NewTenant(service.NewTenant(db))))

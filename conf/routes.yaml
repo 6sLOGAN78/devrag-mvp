@@ -87,11 +87,11 @@ endpoints:
   - {method: POST, path: /api/v1/users, owner: go, auth: none, roles: [], scope: none, implemented: true}
   - {method: POST, path: /api/v1/auth/login, owner: go, auth: none, roles: [], scope: none, implemented: true}
   - {method: POST, path: /api/v1/auth/logout, owner: go, auth: jwt, roles: [], scope: none, implemented: true}
-  - {method: POST, path: /api/v1/auth/password/forgot/otp, owner: go, auth: none, roles: [], scope: none, implemented: false,
+  - {method: POST, path: /api/v1/auth/password/forgot/otp, owner: go, auth: none, roles: [], scope: none, implemented: true,
      note: rate limited}
-  - {method: POST, path: /api/v1/auth/password/forgot/otp/verify, owner: go, auth: none, roles: [], scope: none, implemented: false,
+  - {method: POST, path: /api/v1/auth/password/forgot/otp/verify, owner: go, auth: none, roles: [], scope: none, implemented: true,
      note: rate limited}
-  - {method: POST, path: /api/v1/auth/password/reset, owner: go, auth: none, roles: [], scope: none, implemented: false,
+  - {method: POST, path: /api/v1/auth/password/reset, owner: go, auth: none, roles: [], scope: none, implemented: true,
      note: rate limited}
   - {method: GET, path: /v1/user/info, owner: go, auth: jwt, roles: [], scope: none, implemented: true}
   - {method: POST, path: /v1/user/setting, owner: go, auth: jwt, roles: [], scope: none, implemented: true}

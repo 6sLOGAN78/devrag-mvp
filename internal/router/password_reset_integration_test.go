@@ -6,6 +6,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"regexp"
@@ -16,6 +17,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
@@ -121,6 +123,13 @@ func newResetRig(t *testing.T, mutate func(*server.Config), redisDown bool) *res
 		WithPasswordReset(handler.NewPasswordReset(pr)))
 	rig := &accountRig{engine: e, cfg: cfg, logs: logs, raw: raw, db: db}
 	t.Cleanup(func() {
+		sweep := redis.NewClient(&redis.Options{Addr: net.JoinHostPort(cfg.Redis.Host, strconv.Itoa(cfg.Redis.Port)), Password: cfg.Redis.Password, DB: cfg.Redis.DB})
+		if ks, err := sweep.Keys(context.Background(), prefix+"*").Result(); err == nil {
+			for _, k := range ks {
+				_ = sweep.Del(context.Background(), k).Err()
+			}
+		}
+		_ = sweep.Close()
 		for _, em := range rig.emails {
 			var id string
 			if raw.Raw("SELECT id FROM user WHERE email = ?", em).Scan(&id).Error == nil && id != "" {
@@ -324,7 +333,7 @@ func TestKnownAndUnknownRequestsBothConsumeTheIPLimit(t *testing.T) {
 func TestRedisOutageFailsClosedWithoutSending(t *testing.T) {
 	r := newResetRig(t, nil, true)
 	for _, p := range []string{forgotPath, verifyPath, resetPath} {
-		w := r.post(p, map[string]string{"email": testutil.UniqueEmail("down"), "otp": "123456", "new_password": "reset-new-pass-0003", "reset_ticket": "x"}, clientPeer, nil)
+		w := r.post(p, map[string]string{"email": testutil.UniqueEmail("down"), "otp": "123456", "new_password": "reset-new-pass-0003", "reset_ticket": strings.Repeat("A", 43)}, clientPeer, nil)
 		assert.Equal(t, http.StatusServiceUnavailable, w.Code, p)
 		assert.EqualValues(t, 503, parse(t, w).Code)
 		assert.NotContains(t, w.Body.String(), "redis")

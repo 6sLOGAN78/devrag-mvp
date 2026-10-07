@@ -406,6 +406,6 @@ func TestRedisOutageIsUnavailableNotInvalid(t *testing.T) {
 	assert.True(t, errors.Is(err, ErrUnavailable), "verify: %v", err)
 	_, err = o.IssueTicket(ctx, "a@example.test", "u", time.Minute)
 	assert.True(t, errors.Is(err, ErrUnavailable))
-	_, err = o.ConsumeTicket(ctx, "a@example.test", "tkt")
+	_, err = o.ConsumeTicket(ctx, "a@example.test", strings.Repeat("A", ticketLength))
 	assert.True(t, errors.Is(err, ErrUnavailable))
 }

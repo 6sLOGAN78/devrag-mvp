@@ -79,8 +79,16 @@ func newResetEnv(t *testing.T, mutate func(*server.Config)) *resetEnv {
 	return e
 }
 
+// clearInterval removes the one-per-interval counter so a test can request a second code for the
+// same email at once; production never does this.
+func (e *resetEnv) clearInterval(t *testing.T, email string) {
+	t.Helper()
+	require.NoError(t, e.svc.limiter.Reset(context.Background(), "otp:email:interval:"+emailKey(normaliseEmail(email))))
+}
+
 func (e *resetEnv) request(t *testing.T, email string) string {
 	t.Helper()
+	e.clearInterval(t, email)
 	require.NoError(t, e.reset.RequestReset(context.Background(), email, "203.0.113.50"))
 	for _, m := range e.queue.sent() {
 		if strings.EqualFold(m.To, strings.TrimSpace(email)) {
@@ -235,6 +243,7 @@ func TestACodeForAOneAccountCanNeverResetAnother(t *testing.T) {
 // production; the service tests raise the limits, so this is the same call as request.
 func (e *resetEnv) request2(t *testing.T, email string) string {
 	t.Helper()
+	e.clearInterval(t, email)
 	before := len(e.queue.sent())
 	require.NoError(t, e.reset.RequestReset(context.Background(), email, "203.0.113.50"))
 	mails := e.queue.sent()
