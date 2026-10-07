@@ -16,6 +16,12 @@ var ErrNoTenant = errors.New("no workspace")
 type TenantStore interface {
 	FindTenant(ctx context.Context, id string) (*entity.Tenant, error)
 	ListMemberships(ctx context.Context, userID string) ([]dao.MembershipRow, error)
+	FindMemberRole(ctx context.Context, tenantID, userID string) (string, error)
+	ListTenantMembers(ctx context.Context, tenantID string, includePending bool, limit, offset int) ([]dao.MemberRow, error)
+	FindActiveUserByEmail(ctx context.Context, email string) (*entity.User, error)
+	CreateInvite(ctx context.Context, inviterID string, row entity.UserTenant) error
+	AcceptInvite(ctx context.Context, tenantID, userID string, now time.Time) (bool, error)
+	DeclineInvite(ctx context.Context, tenantID, userID string) (bool, error)
 }
 
 // TenantInfo is the caller's own workspace with its default model ids; unconfigured ids are empty.
@@ -30,11 +36,20 @@ type Membership struct {
 	JoinedAt                                               time.Time
 }
 
-// Tenant serves tenant info and the membership list.
-type Tenant struct{ store TenantStore }
+// Tenant serves tenant info, the membership list and team membership (members, invitations).
+type Tenant struct {
+	store   TenantStore
+	limiter *Limiter
+	limits  InviteLimits
+	now     func() time.Time
+	newID   func() string
+}
 
-// NewTenant wires the service.
-func NewTenant(store TenantStore) *Tenant { return &Tenant{store: store} }
+// NewTenant wires the service. Invitations additionally need WithInvites: without a limiter they fail
+// closed.
+func NewTenant(store TenantStore) *Tenant {
+	return &Tenant{store: store, now: time.Now, newID: randomID}
+}
 
 // Info returns the caller's own workspace, resolved from the principal (never from the request).
 func (t *Tenant) Info(ctx context.Context, p Principal) (TenantInfo, error) {
