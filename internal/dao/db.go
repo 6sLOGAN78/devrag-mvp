@@ -45,7 +45,7 @@ func DSN(cfg server.MySQLConfig) string {
 
 // OpenDB opens a pooled MySQL handle and verifies it with a bounded ping.
 func OpenDB(ctx context.Context, cfg server.MySQLConfig) (*DB, error) {
-	g, err := gorm.Open(mysql.Open(DSN(cfg)), &gorm.Config{Logger: logger.Discard})
+	g, err := gorm.Open(mysql.Open(DSN(cfg)), &gorm.Config{Logger: logger.Discard, TranslateError: true})
 	if err != nil {
 		return nil, fmt.Errorf("open database: %w", sanitize(err))
 	}

@@ -51,6 +51,8 @@ type ConfigData struct {
 	Engine     string `json:"engine"`
 	APIVersion string `json:"api_version"`
 	Service    string `json:"service"`
+	// RegisterEnabled reports the registration switch (D-01) so the SPA can hide the sign-up form.
+	RegisterEnabled bool `json:"register_enabled"`
 }
 
 // VersionData is the /api/v1/system/version payload.
@@ -70,11 +72,19 @@ type System struct {
 	redis    Pinger
 	settings SettingsReader
 	timeout  time.Duration
+
+	registerEnabled bool
 }
 
 // NewSystem wires the service to its dependencies.
 func NewSystem(db Pinger, redis Pinger, settings SettingsReader) *System {
-	return &System{db: db, redis: redis, settings: settings, timeout: ProbeTimeout}
+	return &System{db: db, redis: redis, settings: settings, timeout: ProbeTimeout, registerEnabled: true}
+}
+
+// WithRegisterEnabled sets the registration switch reported by Config (default true, as in the configuration).
+func (s *System) WithRegisterEnabled(enabled bool) *System {
+	s.registerEnabled = enabled
+	return s
 }
 
 func (s *System) probe(ctx context.Context, p Pinger) ProbeResult {
@@ -121,7 +131,7 @@ func (s *System) Version(ctx context.Context) (VersionData, error) {
 
 // Config returns the public configuration summary.
 func (s *System) Config() ConfigData {
-	return ConfigData{Engine: common.APISourceGo, APIVersion: common.APIVersion, Service: common.ServiceName}
+	return ConfigData{Engine: common.APISourceGo, APIVersion: common.APIVersion, Service: common.ServiceName, RegisterEnabled: s.registerEnabled}
 }
 
 // Language returns the answering engine.

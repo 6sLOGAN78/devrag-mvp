@@ -1,0 +1,84 @@
+package dao
+
+import (
+	"context"
+	"errors"
+	"strings"
+	"time"
+
+	"gorm.io/gorm"
+
+	"devrag/internal/entity"
+)
+
+var (
+	// ErrNotFound means no row matched.
+	ErrNotFound = errors.New("not found")
+	// ErrEmailTaken means the unique email index rejected the insert.
+	ErrEmailTaken = errors.New("email already registered")
+)
+
+// NewAccount is everything registration writes in one transaction.
+type NewAccount struct {
+	User       entity.User
+	Tenant     entity.Tenant
+	Membership entity.UserTenant
+	Models     []entity.TenantLLM
+}
+
+// CreateAccount inserts the user, tenant, owner membership and any tenant_llm rows atomically.
+// Any failure rolls every insert back.
+func (d *DB) CreateAccount(ctx context.Context, a NewAccount) error {
+	return Transaction(ctx, d, func(tx *gorm.DB) error {
+		if err := tx.Create(&a.User).Error; err != nil {
+			if errors.Is(err, gorm.ErrDuplicatedKey) {
+				return ErrEmailTaken
+			}
+			return err
+		}
+		if err := tx.Create(&a.Tenant).Error; err != nil {
+			return err
+		}
+		if err := tx.Create(&a.Membership).Error; err != nil {
+			return err
+		}
+		if len(a.Models) > 0 {
+			return tx.Create(&a.Models).Error
+		}
+		return nil
+	})
+}
+
+// FindUserByEmail looks a user up by lowercase email.
+func (d *DB) FindUserByEmail(ctx context.Context, email string) (*entity.User, error) {
+	var u entity.User
+	err := d.gorm.WithContext(ctx).Where("email = ?", strings.ToLower(email)).Take(&u).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, ErrNotFound
+	}
+	return &u, err
+}
+
+// FindUserByID looks a user up by id.
+func (d *DB) FindUserByID(ctx context.Context, id string) (*entity.User, error) {
+	var u entity.User
+	err := d.gorm.WithContext(ctx).Where("id = ?", id).Take(&u).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, ErrNotFound
+	}
+	return &u, err
+}
+
+// SwapAccessToken is a compare-and-swap on user.access_token: it writes next only when the column
+// still equals old (NULL-safe). It reports whether this call won the swap.
+func (d *DB) SwapAccessToken(ctx context.Context, userID string, old *string, next string) (bool, error) {
+	res := d.gorm.WithContext(ctx).Model(&entity.User{}).
+		Where("id = ? AND access_token <=> ?", userID, old).
+		UpdateColumn("access_token", next)
+	return res.RowsAffected == 1, res.Error
+}
+
+// TouchLastLogin records a successful login time.
+func (d *DB) TouchLastLogin(ctx context.Context, userID string, at time.Time) error {
+	return d.gorm.WithContext(ctx).Model(&entity.User{}).Where("id = ?", userID).UpdateColumn("last_login_time", at).Error
+}
