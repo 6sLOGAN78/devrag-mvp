@@ -17,7 +17,8 @@ from test.testcases._routes import ROUTES_FILE, Probe, load_probes, ownership_mi
 pytestmark = pytest.mark.e2e
 
 PROBES = load_probes()
-COLLISIONS = ["/api/v1/system/tokens", "/api/v1/system/stats", "/api/v1/mcp/servers"]
+# /api/v1/system/tokens moved to Go in plan 02-08 (R-92); ownership is covered by test_declared_owner_answers.
+COLLISIONS = ["/api/v1/system/stats", "/api/v1/mcp/servers"]
 # Rules registered in Python that are intentionally outside a Python entry (documented in routes.yaml notes).
 PYTHON_EXCEPTIONS = {"/api/v1/language", "/api/v1/openapi.json"}
 
