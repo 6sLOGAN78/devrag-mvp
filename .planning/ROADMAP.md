@@ -147,7 +147,7 @@ Plans:
 **Wave 5** *(blocked on Wave 4 completion)*
 
 - [x] 02-10-PLAN.md - Go default-deny gate, cookie fallback, logout, user info
-- [ ] 02-27-PLAN.md - Existing pages and HTTP client copy migration, copy.ts removal, Vite proxy query fix (WR-20)
+- [x] 02-27-PLAN.md - Existing pages and HTTP client copy migration, copy.ts removal, Vite proxy query fix (WR-20)
 
 **Wave 6** *(blocked on Wave 5 completion)*
 

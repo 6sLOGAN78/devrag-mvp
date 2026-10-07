@@ -118,7 +118,7 @@ Each entry has: ID `B-NN`, Title, Status (`open` | `mitigated` | `closed`), Affe
 |---|---|---|
 | WR-06 health routes open four fresh backend connections per request | Needs a single-flight cached probe layer on the application pool; no Phase 1 must-have fails | Closed by plan 02-02 (single-flight cached probes, pool read/write timeouts) |
 | WR-10 Go schema verify compares type families only | Needs a full comparison against `conf/schema.json`; the claim is narrowed by R-86 meanwhile | Plan 02-07 (first Go DAO consumers are plans 02-09 onward) |
-| WR-20 Vite dev proxy misses Go exact paths that carry a query string | Dev server only; no Phase 1 Go exact route is called with a query string; production Nginx is correct | Plan 02-27 (Vite proxy key fix; no Phase 2 Go exact route is called with a query string, but `vite.config.ts` is touched there) |
+| WR-20 Vite dev proxy misses Go exact paths that carry a query string | Dev server only; no Phase 1 Go exact route is called with a query string; production Nginx is correct | Fixed by plan 02-27 (exact keys are now `^escaped-path(\?.*)?$`, built in `web/src/lib/vite-proxy.ts`; `web/src/vite-proxy.test.ts` covers every generated exact route and failed 13 of 16 on the old keys). Not re-verified against a running dev server (none started). The generated route JSON is unchanged, so the drift gate is unaffected |
 | WR-23 `check_secrets` blind spots | Tightening needs false-positive triage across env examples and fixtures; no real secret is committed | Closed by plan 02-02 (unquoted, Go `:=` and token-named secrets now detected) |
 | IN-01..IN-18 | Informational; out of scope for gap closure | Rolling backlog |
 
