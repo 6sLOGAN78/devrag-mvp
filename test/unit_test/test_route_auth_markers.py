@@ -14,7 +14,9 @@ from test.testcases._routes import ROUTES_FILE, load_probes
 pytestmark = pytest.mark.unit
 
 # Adding a public auth route needs a conscious edit here plus a DECISIONS row.
-EXPECTED_MARKED = {"/api/v1/system/status", "/api/v1/system/version"}
+# /api/v1/system/version left this set in plan 02-10 (D-19: the Go gate now authenticates it).
+# /api/v1/system/status stays until plan 02-14 gates the Python engine.
+EXPECTED_MARKED = {"/api/v1/system/status"}
 
 
 def marker_violations(path: Path = ROUTES_FILE) -> list[str]:
@@ -46,11 +48,21 @@ def test_marker_rules_hold_for_routes_yaml() -> None:
 
 def test_marker_removal_is_detected(tmp_path: Path) -> None:
     data = yaml.safe_load(ROUTES_FILE.read_text(encoding="utf-8"))
-    entry = next(e for e in data["routes"] if e["path"] == "/api/v1/system/version")
+    entry = next(e for e in data["routes"] if e["path"] == "/api/v1/system/status")
     entry.pop("public_until_phase", None)
     copy = tmp_path / "routes.yaml"
     copy.write_text(yaml.safe_dump(data), encoding="utf-8")
-    assert any("/api/v1/system/version" in v for v in marker_violations(copy))
+    assert any("/api/v1/system/status" in v for v in marker_violations(copy))
+
+
+def test_version_marker_must_not_return(tmp_path: Path) -> None:
+    data = yaml.safe_load(ROUTES_FILE.read_text(encoding="utf-8"))
+    entry = next(e for e in data["routes"] if e["path"] == "/api/v1/system/version")
+    entry["public_until_phase"] = 2
+    entry["note"] = "regression"
+    copy = tmp_path / "routes.yaml"
+    copy.write_text(yaml.safe_dump(data), encoding="utf-8")
+    assert any("/api/v1/system/version" in v and "unexpected" in v for v in marker_violations(copy))
 
 
 def test_marker_on_auth_none_route_is_rejected(tmp_path: Path) -> None:

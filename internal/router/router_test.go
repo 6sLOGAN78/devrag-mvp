@@ -4,11 +4,14 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"regexp"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
@@ -42,6 +45,23 @@ type settings struct {
 
 func (s settings) GetSetting(context.Context, string) (string, error) { return s.value, s.err }
 
+const stubToken = "test-only-router-token-0000000001"
+
+// stubResolver is a unit-tier PrincipalResolver that accepts one fixed fake token.
+type stubResolver struct{ err error }
+
+func (r stubResolver) ResolvePrincipal(_ context.Context, credential string, _ []string) (service.Principal, error) {
+	if r.err != nil {
+		return service.Principal{}, r.err
+	}
+	if credential == stubToken {
+		return service.Principal{UserID: "u1", TenantID: "u1", Role: "owner", AuthType: "jwt"}, nil
+	}
+	return service.Principal{}, service.ErrUnauthenticated
+}
+
+var authed = map[string]string{"Authorization": "Bearer " + stubToken}
+
 type env struct {
 	Code    int             `json:"code"`
 	Message string          `json:"message"`
@@ -52,6 +72,7 @@ func build(t *testing.T, db, rd service.Pinger, st service.SettingsReader, origi
 	t.Helper()
 	core, logs := observer.New(zapcore.DebugLevel)
 	svc := service.NewSystem(db, rd, st)
+	opts = append([]Option{WithAuth(stubResolver{})}, opts...)
 	return NewEngine(server.Config{AllowedOrigins: origins}, zap.New(common.WrapRedacting(core)), handler.NewSystem(svc), opts...), logs
 }
 
@@ -87,7 +108,7 @@ func TestFiveRoutesReturnEnvelopeWithSource(t *testing.T) {
 		"/api/v1/language":       `{"engine":"go"}`,
 	}
 	for path, want := range cases {
-		w := do(e, http.MethodGet, path, nil)
+		w := do(e, http.MethodGet, path, authed)
 		assert.Equal(t, http.StatusOK, w.Code, path)
 		assert.Equal(t, "go", w.Header().Get("X-API-Source"), path)
 		got := decode(t, w)
@@ -126,7 +147,8 @@ func TestHealthProbesAreCappedAtTwoSeconds(t *testing.T) {
 func TestVersionUnavailableWhenSettingMissingOrDBDown(t *testing.T) {
 	for name, st := range map[string]settings{"down": {err: errors.New("conn refused host=db")}, "missing": {err: dao.ErrSettingNotFound}} {
 		e, _ := build(t, pinger{}, pinger{}, st, nil)
-		w := do(e, http.MethodGet, "/api/v1/system/version", nil)
+		assert.Equal(t, http.StatusUnauthorized, do(e, http.MethodGet, "/api/v1/system/version", nil).Code, name+" unauthenticated")
+		w := do(e, http.MethodGet, "/api/v1/system/version", authed)
 		assert.Equal(t, http.StatusServiceUnavailable, w.Code, name)
 		assert.Equal(t, 503, decode(t, w).Code, name)
 		assert.Equal(t, "go", w.Header().Get("X-API-Source"))
@@ -137,6 +159,9 @@ func TestVersionUnavailableWhenSettingMissingOrDBDown(t *testing.T) {
 func TestNotFoundAndMethodNotAllowedEnvelopes(t *testing.T) {
 	e := healthy(t)
 	w := do(e, http.MethodGet, "/nope", nil)
+	assert.Equal(t, http.StatusUnauthorized, w.Code, "default deny: unknown path is 401 without credentials")
+	assert.Equal(t, `{"code":401,"message":"unauthorized","data":null}`, w.Body.String())
+	w = do(e, http.MethodGet, "/nope", authed)
 	assert.Equal(t, http.StatusNotFound, w.Code)
 	assert.Equal(t, `{"code":404,"message":"not found","data":null}`, w.Body.String())
 	assert.Equal(t, "go", w.Header().Get("X-API-Source"))
@@ -146,8 +171,9 @@ func TestNotFoundAndMethodNotAllowedEnvelopes(t *testing.T) {
 	assert.Equal(t, `{"code":405,"message":"method not allowed","data":null}`, w.Body.String())
 	assert.Equal(t, "go", w.Header().Get("X-API-Source"))
 
-	w = do(e, http.MethodGet, "/health/", nil)
+	w = do(e, http.MethodGet, "/health/", authed)
 	assert.Equal(t, http.StatusNotFound, w.Code, "no trailing-slash redirect")
+	assert.Equal(t, http.StatusUnauthorized, do(e, http.MethodGet, "/health/", nil).Code, "unregistered path is not public")
 }
 
 func TestPanicReturnsEnvelopeWithoutPanicText(t *testing.T) {
@@ -174,7 +200,7 @@ func TestRequestLogFields(t *testing.T) {
 
 func TestRequestLogTruncatesLongPath(t *testing.T) {
 	e, logs := build(t, pinger{}, pinger{}, settings{}, nil)
-	w := do(e, http.MethodGet, "/"+strings.Repeat("a", 8192), nil)
+	w := do(e, http.MethodGet, "/"+strings.Repeat("a", 8192), authed)
 	assert.Equal(t, http.StatusNotFound, w.Code)
 	entry := logs.FilterMessage("request").All()[0].ContextMap()
 	path, ok := entry["path"].(string)
@@ -292,4 +318,154 @@ func TestUnmarkedAuthRoutesNeverAnswer200Unauthenticated(t *testing.T) {
 		}
 	}
 	assert.GreaterOrEqual(t, checked, 2)
+}
+
+func TestVersionRequiresAuthentication(t *testing.T) {
+	e := healthy(t)
+	w := do(e, http.MethodGet, "/api/v1/system/version", nil)
+	assert.Equal(t, http.StatusUnauthorized, w.Code)
+	assert.Equal(t, `{"code":401,"message":"unauthorized","data":null}`, w.Body.String())
+	assert.Equal(t, "go", w.Header().Get("X-API-Source"))
+	assert.Equal(t, http.StatusOK, do(e, http.MethodGet, "/api/v1/system/version", authed).Code)
+}
+
+func TestEngineWithoutResolverDeniesEveryProtectedRoute(t *testing.T) {
+	core, _ := observer.New(zapcore.DebugLevel)
+	e := NewEngine(server.Config{}, zap.New(core), handler.NewSystem(service.NewSystem(pinger{}, pinger{}, settings{value: "0002"})))
+	assert.Equal(t, http.StatusUnauthorized, do(e, http.MethodGet, "/api/v1/system/version", authed).Code)
+	assert.Equal(t, http.StatusOK, do(e, http.MethodGet, "/health", nil).Code)
+}
+
+func TestInfrastructureErrorFromResolverIs503Not401(t *testing.T) {
+	e, _ := build(t, pinger{}, pinger{}, settings{value: "0002"}, nil, WithAuth(stubResolver{err: errors.New("sql: database is closed")}))
+	w := do(e, http.MethodGet, "/api/v1/system/version", authed)
+	assert.Equal(t, http.StatusServiceUnavailable, w.Code)
+	assert.Equal(t, `{"code":503,"message":"service unavailable","data":null}`, w.Body.String())
+}
+
+func TestRequestLogNeverContainsCredentials(t *testing.T) {
+	e, logs := build(t, pinger{}, pinger{}, settings{value: "0002"}, nil)
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/system/version", nil)
+	req.Header.Set("Authorization", "Bearer "+stubToken)
+	req.AddCookie(&http.Cookie{Name: handler.AuthCookieName, Value: "cookie-secret-value-0001"})
+	e.ServeHTTP(httptest.NewRecorder(), req)
+	require.NotEmpty(t, logs.All())
+	for _, entry := range logs.All() {
+		line := entry.Message
+		for k, v := range entry.ContextMap() {
+			line += " " + k + "=" + fmt.Sprint(v)
+		}
+		for _, secret := range []string{stubToken, "cookie-secret-value-0001", "Bearer", "Authorization"} {
+			assert.NotContains(t, line, secret)
+		}
+	}
+}
+
+// fullEngine registers every Go handler the production binary registers, with nil services:
+// unauthenticated probes never reach a handler body.
+func fullEngine(t *testing.T) *gin.Engine {
+	t.Helper()
+	e, _ := build(t, pinger{}, pinger{}, settings{value: "0002"}, nil,
+		WithAccount(handler.NewAccount(nil, time.Hour)), WithSession(handler.NewUser(nil, time.Hour)))
+	return e
+}
+
+type endpointRow struct {
+	Method      string `yaml:"method"`
+	Path        string `yaml:"path"`
+	Owner       string `yaml:"owner"`
+	Auth        string `yaml:"auth"`
+	Implemented bool   `yaml:"implemented"`
+}
+
+func loadEndpoints(t *testing.T) []endpointRow {
+	t.Helper()
+	raw, err := os.ReadFile("../../conf/routes.yaml")
+	require.NoError(t, err)
+	var doc struct {
+		Endpoints []endpointRow `yaml:"endpoints"`
+	}
+	require.NoError(t, yaml.Unmarshal(raw, &doc))
+	require.NotEmpty(t, doc.Endpoints)
+	return doc.Endpoints
+}
+
+func ginPath(p string) string {
+	return regexp.MustCompile(`\{([a-z_]+)\}`).ReplaceAllString(p, ":$1")
+}
+
+// TestEveryEngineRouteIsDeclaredAndGated iterates the real engine's routes (default-deny enumeration).
+func TestEveryEngineRouteIsDeclaredAndGated(t *testing.T) {
+	e := fullEngine(t)
+	declared := map[string]endpointRow{}
+	for _, r := range loadEndpoints(t) {
+		if r.Owner == "go" {
+			declared[r.Method+" "+ginPath(r.Path)] = r
+		}
+	}
+	engine := map[string]bool{}
+	var undeclared []string
+	for _, r := range e.Routes() {
+		key := r.Method + " " + r.Path
+		engine[key] = true
+		row, ok := declared[key]
+		if !ok || !row.Implemented {
+			undeclared = append(undeclared, key)
+			continue
+		}
+		if row.Auth == "none" {
+			continue
+		}
+		w := do(e, r.Method, strings.NewReplacer(":token", "t", ":tenant_id", "t", ":user_id", "u").Replace(r.Path), nil)
+		assert.Equal(t, http.StatusUnauthorized, w.Code, key)
+		assert.Equal(t, `{"code":401,"message":"unauthorized","data":null}`, w.Body.String(), key)
+	}
+	assert.Empty(t, undeclared, "engine routes without an implemented registry row")
+	for key, row := range declared {
+		if row.Implemented {
+			assert.True(t, engine[key], "registry row %s is marked implemented but the engine has no such route", key)
+		}
+	}
+	t.Logf("enumerated %d engine routes, %d undeclared", len(e.Routes()), len(undeclared))
+}
+
+func TestUndeclaredHandlerWouldBeCaught(t *testing.T) {
+	e, _ := build(t, pinger{}, pinger{}, settings{}, nil, WithExtraRoutes(func(e *gin.Engine) {
+		e.GET("/v1/user/sneaky", func(c *gin.Context) { common.OK(c, "leak") })
+	}))
+	assert.Equal(t, http.StatusUnauthorized, do(e, http.MethodGet, "/v1/user/sneaky", nil).Code, "a handler without a row is denied by default")
+	declared := map[string]bool{}
+	for _, r := range loadEndpoints(t) {
+		declared[r.Method+" "+ginPath(r.Path)] = true
+	}
+	found := false
+	for _, r := range e.Routes() {
+		if !declared[r.Method+" "+r.Path] {
+			found = true
+		}
+	}
+	assert.True(t, found, "the enumeration predicate must flag a route that has no registry row")
+}
+
+func TestEveryGoFamilyIsDeniedUnlessPublic(t *testing.T) {
+	raw, err := os.ReadFile("../../conf/routes.yaml")
+	require.NoError(t, err)
+	var doc struct {
+		Routes []routeEntry `yaml:"routes"`
+	}
+	require.NoError(t, yaml.Unmarshal(raw, &doc))
+	e := fullEngine(t)
+	checked := 0
+	for _, r := range doc.Routes {
+		if r.Owner != "go" || r.Auth == "none" {
+			continue
+		}
+		path := r.Path
+		if r.Match == "prefix" {
+			path += "prefixprobe-0b8f3c1e"
+		}
+		checked++
+		assert.Equal(t, http.StatusUnauthorized, do(e, http.MethodGet, path, nil).Code, "%s %s", r.Match, r.Path)
+	}
+	assert.GreaterOrEqual(t, checked, 8)
 }

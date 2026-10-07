@@ -36,6 +36,7 @@ type accountRig struct {
 	logs   *observer.ObservedLogs
 	raw    *gorm.DB
 	emails []string
+	db     *dao.DB
 }
 
 func newAccountRig(t *testing.T, mutate func(*server.Config), redisDown bool) *accountRig {
@@ -61,8 +62,10 @@ func newAccountRig(t *testing.T, mutate func(*server.Config), redisDown bool) *a
 	core, logs := observer.New(zapcore.DebugLevel)
 	sys := service.NewSystem(db, rd, db).WithRegisterEnabled(cfg.Auth.RegisterEnabled)
 	acct := service.NewAccount(db, service.NewLimiter(rd, "test-"+testutil.UniqueName("http")), cfg)
-	e := NewEngine(cfg, zap.New(common.WrapRedacting(core)), handler.NewSystem(sys), WithAccount(handler.NewAccount(acct, cfg.Security.TokenMaxAge)))
-	rig := &accountRig{engine: e, cfg: cfg, logs: logs, raw: raw}
+	auth := service.NewAuth(db, cfg.Security.SecretKey, cfg.Security.TokenMaxAge)
+	e := NewEngine(cfg, zap.New(common.WrapRedacting(core)), handler.NewSystem(sys),
+		WithAuth(auth), WithAccount(handler.NewAccount(acct, cfg.Security.TokenMaxAge)), WithSession(handler.NewUser(auth, cfg.Security.TokenMaxAge)))
+	rig := &accountRig{engine: e, cfg: cfg, logs: logs, raw: raw, db: db}
 	t.Cleanup(func() {
 		for _, em := range rig.emails {
 			var id string

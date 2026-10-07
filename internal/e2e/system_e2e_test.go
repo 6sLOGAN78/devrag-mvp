@@ -99,18 +99,28 @@ func TestIngressOwnership(t *testing.T) {
 
 func TestEnvelopeOnErrors(t *testing.T) {
 	waitReady(t)
+	cfg := testutil.RequireDB(t)
+	acc := testutil.RegisterAccount(t, baseURL())
+	defer testutil.DeleteAccount(t, cfg.MySQL, acc)
 	cases := []struct {
-		method, path string
-		status       int
-		source       string
+		method, path  string
+		status        int
+		source        string
+		authenticated bool
 	}{
-		{http.MethodGet, "/api/v1/e2e-missing-route", http.StatusNotFound, "python"},
-		{http.MethodGet, "/v1/user/e2e-missing-route", http.StatusNotFound, "go"},
-		{http.MethodPost, "/health", http.StatusMethodNotAllowed, "go"},
-		{http.MethodPost, "/api/v1/system/healthz", http.StatusMethodNotAllowed, "python"},
+		{http.MethodGet, "/api/v1/e2e-missing-route", http.StatusNotFound, "python", false},
+		// Go default deny: an unknown protected path is 401 without a token and 404 with one.
+		{http.MethodGet, "/v1/user/e2e-missing-route", http.StatusUnauthorized, "go", false},
+		{http.MethodGet, "/v1/user/e2e-missing-route", http.StatusNotFound, "go", true},
+		{http.MethodPost, "/health", http.StatusMethodNotAllowed, "go", false},
+		{http.MethodPost, "/api/v1/system/healthz", http.StatusMethodNotAllowed, "python", false},
 	}
 	for _, c := range cases {
-		resp, body := do(t, c.method, c.path)
+		token := ""
+		if c.authenticated {
+			token = acc.Token
+		}
+		resp, body := authed(t, c.method, c.path, token, nil)
 		if resp.StatusCode != c.status {
 			t.Errorf("%s %s: status %d, want %d", c.method, c.path, resp.StatusCode, c.status)
 		}
