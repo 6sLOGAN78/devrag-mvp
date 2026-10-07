@@ -3,6 +3,10 @@
 #   uv run python scripts/gen_routes.py --check  # CI drift gate
 # Fields: owner (go|python), match (exact|prefix), path, auth (none|jwt|beta|api),
 #         also (alias paths expanded into their own entries), public_until_phase, catch_all, note.
+# The `endpoints:` registry below lists individual endpoints (method, path, owner, auth, roles, scope, implemented).
+# Each row must agree with the family entry that serves its path; the generator also emits the Go and Python
+# policy resolvers (PolicyFor / policy_for): registry row, then exact family, then longest prefix, then default jwt.
+# `implemented: false` means the handler does not exist yet; the plan that lands it flips the flag.
 ports:
   python_api: 9380
   go_api: 9384
@@ -24,6 +28,16 @@ routes:
     auth: none
     note: Go-owned through the ingress (D-08, SYS-05). A Python diagnostic duplicate exists only on port 9380 and is not routed by Nginx.
   - {owner: go, match: exact, path: /api/v1/users, auth: none}
+  - owner: go
+    match: exact
+    path: /api/v1/auth/logout
+    auth: jwt
+    note: Exact entry beats the public /api/v1/auth/ prefix (T-02-28).
+  - owner: go
+    match: exact
+    path: /api/v1/system/tokens
+    auth: jwt
+    note: R-92 Go owns API tokens; exact `=` location beats the Python /api/ prefix.
   - {owner: go, match: exact, path: /api/v1/mcp, auth: beta}
 
   # --- Go-owned prefixes ---
@@ -31,6 +45,8 @@ routes:
   - {owner: go, match: prefix, path: /v1/user/, auth: jwt}
   - {owner: go, match: prefix, path: /v1/tenant/, auth: jwt}
   - {owner: go, match: prefix, path: /api/v1/searchbots/, auth: beta}
+  - {owner: go, match: prefix, path: /api/v1/system/tokens/, auth: jwt}
+  - {owner: go, match: prefix, path: /api/v1/tenants/, auth: jwt}
 
   # --- Python-owned exact matches ---
   - owner: python
@@ -48,5 +64,58 @@ routes:
     note: R-55 public until the auth phase lands.
 
   # --- Python catch-alls (/api/v1/system/tokens, /stats, /api/v1/mcp/servers etc. land here, D-04/D-06/D-07) ---
-  - {owner: python, match: prefix, path: /api/, auth: jwt, catch_all: true}
-  - {owner: python, match: prefix, path: /v1/, auth: jwt, catch_all: true}
+  - {owner: python, match: prefix, path: /api/, auth: api, catch_all: true}
+  - {owner: python, match: prefix, path: /v1/, auth: api, catch_all: true}
+
+# Per-endpoint registry (D-30, R-90). roles: owner|admin|normal|invite (pending invitee)|self; empty = any authenticated caller.
+# scope: tenant = the resource belongs to a tenant, non-members get 404 (R-93).
+endpoints:
+  # --- served today ---
+  - {method: GET, path: /health, owner: go, auth: none, roles: [], scope: none, implemented: true}
+  - {method: GET, path: /api/v1/system/ping, owner: go, auth: none, roles: [], scope: none, implemented: true}
+  - {method: GET, path: /api/v1/system/config, owner: go, auth: none, roles: [], scope: none, implemented: true}
+  - {method: GET, path: /api/v1/language, owner: go, auth: none, roles: [], scope: none, implemented: true}
+  - {method: GET, path: /api/v1/system/version, owner: go, auth: jwt, roles: [], scope: none, implemented: true,
+     note: public_until_phase marker on the family entry stays until plan 02-10}
+  - {method: GET, path: /api/v1/system/healthz, owner: python, auth: none, roles: [], scope: none, implemented: true}
+  - {method: GET, path: /system/healthz, owner: python, auth: none, roles: [], scope: none, implemented: true}
+  - {method: GET, path: /api/v1/system/status, owner: python, auth: jwt, roles: [], scope: none, implemented: true,
+     note: public_until_phase marker on the family entry stays until plan 02-14}
+  - {method: GET, path: /system/status, owner: python, auth: jwt, roles: [], scope: none, implemented: true,
+     note: public_until_phase marker on the family entry stays until plan 02-14}
+  - {method: GET, path: /api/v1/openapi.json, owner: python, auth: api, roles: [], scope: none, implemented: true,
+     note: R-113 requires authentication; frontend types come from the offline scripts/export_openapi.py}
+
+  # --- Phase 2, Go-owned, handlers not built yet ---
+  - {method: POST, path: /api/v1/users, owner: go, auth: none, roles: [], scope: none, implemented: false}
+  - {method: POST, path: /api/v1/auth/login, owner: go, auth: none, roles: [], scope: none, implemented: false}
+  - {method: POST, path: /api/v1/auth/logout, owner: go, auth: jwt, roles: [], scope: none, implemented: false}
+  - {method: POST, path: /api/v1/auth/password/forgot/otp, owner: go, auth: none, roles: [], scope: none, implemented: false,
+     note: rate limited}
+  - {method: POST, path: /api/v1/auth/password/forgot/otp/verify, owner: go, auth: none, roles: [], scope: none, implemented: false,
+     note: rate limited}
+  - {method: POST, path: /api/v1/auth/password/reset, owner: go, auth: none, roles: [], scope: none, implemented: false,
+     note: rate limited}
+  - {method: GET, path: /v1/user/info, owner: go, auth: jwt, roles: [], scope: none, implemented: false}
+  - {method: POST, path: /v1/user/setting, owner: go, auth: jwt, roles: [], scope: none, implemented: false}
+  - {method: POST, path: /v1/user/setting/password, owner: go, auth: jwt, roles: [], scope: none, implemented: false}
+  - {method: GET, path: /v1/user/tenant_info, owner: go, auth: jwt, roles: [], scope: none, implemented: false}
+  - {method: GET, path: /v1/tenant/list, owner: go, auth: jwt, roles: [], scope: none, implemented: false}
+  - {method: GET, path: /api/v1/system/tokens, owner: go, auth: jwt, roles: [], scope: tenant, implemented: false}
+  - {method: POST, path: /api/v1/system/tokens, owner: go, auth: jwt, roles: [], scope: tenant, implemented: false}
+  - {method: DELETE, path: "/api/v1/system/tokens/{token}", owner: go, auth: jwt, roles: [], scope: tenant, implemented: false,
+     note: the token is in the path; log the route template only}
+  - {method: GET, path: "/api/v1/tenants/{tenant_id}/users", owner: go, auth: jwt, roles: [owner, admin, normal], scope: tenant,
+     implemented: false}
+  - {method: POST, path: "/api/v1/tenants/{tenant_id}/users", owner: go, auth: jwt, roles: [owner], scope: tenant,
+     implemented: false, note: invite by email (D-13 and D-14)}
+  - {method: DELETE, path: "/api/v1/tenants/{tenant_id}/users", owner: go, auth: jwt, roles: [owner, self], scope: tenant,
+     implemented: false, note: owner removes a member or withdraws an invite; a member removes self; never the owner row (D-16)}
+  - {method: PATCH, path: "/api/v1/tenants/{tenant_id}", owner: go, auth: jwt, roles: [invite], scope: tenant,
+     implemented: false, note: accept or decline a pending invitation (D-15)}
+  - {method: PATCH, path: "/api/v1/tenants/{tenant_id}/users/{user_id}", owner: go, auth: jwt, roles: [owner], scope: tenant,
+     implemented: false, note: role change (R-92)}
+
+  # --- Phase 2, Go-owned search bots (beta token) ---
+  - {method: POST, path: /api/v1/searchbots/ask, owner: go, auth: beta, roles: [], scope: none, implemented: false}
+  - {method: POST, path: /api/v1/searchbots/retrieval_test, owner: go, auth: beta, roles: [], scope: none, implemented: false}

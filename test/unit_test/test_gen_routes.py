@@ -1,4 +1,5 @@
 """Ownership resolution and drift behaviour of the generated Nginx ingress (R-53, R-54)."""
+
 from __future__ import annotations
 
 import re
@@ -41,12 +42,32 @@ def conf() -> str:
 
 
 CASES = [
-    ("/health", "go"), ("/api/v1/system/ping", "go"), ("/api/v1/system/config", "go"), ("/api/v1/system/version", "go"),
-    ("/api/v1/system/tokens", "python"), ("/api/v1/system/stats", "python"), ("/api/v1/system/status", "python"),
-    ("/api/v1/system/healthz", "python"), ("/system/healthz", "python"), ("/system/status", "python"),
-    ("/api/v1/mcp", "go"), ("/api/v1/mcp/servers", "python"), ("/api/v1/users", "go"), ("/api/v1/auth/login", "go"),
-    ("/v1/user/info", "go"), ("/v1/tenant/list", "go"), ("/api/v1/searchbots/ask", "go"), ("/api/v1/language", "go"),
-    ("/api/v1/datasets", "python"), ("/v1/anything", "python"), ("/", "spa"), ("/datasets", "spa"),
+    ("/health", "go"),
+    ("/api/v1/system/ping", "go"),
+    ("/api/v1/system/config", "go"),
+    ("/api/v1/system/version", "go"),
+    ("/api/v1/system/tokens", "go"),
+    ("/api/v1/system/tokens/abc", "go"),
+    ("/api/v1/tenants/t1/users", "go"),
+    ("/api/v1/auth/logout", "go"),
+    ("/api/v1/openapi.json", "python"),
+    ("/api/v1/system/stats", "python"),
+    ("/api/v1/system/status", "python"),
+    ("/api/v1/system/healthz", "python"),
+    ("/system/healthz", "python"),
+    ("/system/status", "python"),
+    ("/api/v1/mcp", "go"),
+    ("/api/v1/mcp/servers", "python"),
+    ("/api/v1/users", "go"),
+    ("/api/v1/auth/login", "go"),
+    ("/v1/user/info", "go"),
+    ("/v1/tenant/list", "go"),
+    ("/api/v1/searchbots/ask", "go"),
+    ("/api/v1/language", "go"),
+    ("/api/v1/datasets", "python"),
+    ("/v1/anything", "python"),
+    ("/", "spa"),
+    ("/datasets", "spa"),
 ]
 
 
@@ -59,7 +80,7 @@ def test_no_regex_or_bare_prefix(conf: str) -> None:
     assert "location ~" not in conf
     bare = re.findall(r"location (?!=|\^~)(\S+) \{", conf)
     assert set(bare) <= {"/", "/assets/"}
-    assert "location ^~ /api/v1/system/" not in conf
+    assert "location ^~ /api/v1/system/ {" not in conf
 
 
 def run_gen(*args: str, root: Path | None = None) -> subprocess.CompletedProcess[str]:
@@ -88,14 +109,39 @@ def test_committed_outputs_have_no_drift() -> None:
 
 def test_duplicate_path_rejected(tmp_path: Path) -> None:
     (tmp_path / "conf").mkdir()
-    (tmp_path / "conf/routes.yaml").write_text(
-        "ports: {python_api: 1, go_api: 2}\nroutes:\n"
-        "  - {owner: go, match: exact, path: /a}\n  - {owner: python, match: exact, path: /a}\n")
+    (tmp_path / "conf/routes.yaml").write_text("ports: {python_api: 1, go_api: 2}\nroutes:\n  - {owner: go, match: exact, path: /a}\n  - {owner: python, match: exact, path: /a}\n")
     assert run_gen(root=tmp_path).returncode != 0
 
 
 def test_unknown_owner_rejected(tmp_path: Path) -> None:
     (tmp_path / "conf").mkdir()
-    (tmp_path / "conf/routes.yaml").write_text(
-        "ports: {python_api: 1, go_api: 2}\nroutes:\n  - {owner: rust, match: exact, path: /a}\n")
+    (tmp_path / "conf/routes.yaml").write_text("ports: {python_api: 1, go_api: 2}\nroutes:\n  - {owner: rust, match: exact, path: /a}\n")
     assert run_gen(root=tmp_path).returncode != 0
+
+
+def _registry_rows() -> list[dict]:
+    import yaml
+
+    return yaml.safe_load((REPO_ROOT / "conf/routes.yaml").read_text(encoding="utf-8"))["endpoints"]
+
+
+@pytest.mark.parametrize("conf_name", ["ragflow.conf", "ragflow.https.conf"])
+def test_registry_owner_agrees_with_nginx_location(conf_name: str) -> None:
+    import re as _re
+
+    text = (REPO_ROOT / "docker/nginx" / conf_name).read_text(encoding="utf-8")
+    rows = _registry_rows()
+    assert rows
+    for row in rows:
+        concrete = _re.sub(r"\{[^/{}]+\}", "x1", row["path"])
+        assert resolve(concrete, text) == row["owner"], f"{row['method']} {row['path']}"
+
+
+def test_phase2_ownership_locations_present(conf: str) -> None:
+    exact, prefix = parse(conf)
+    assert exact["/api/v1/system/tokens"] == "go"
+    assert exact["/api/v1/auth/logout"] == "go"
+    assert prefix["/api/v1/system/tokens/"] == "go"
+    assert prefix["/api/v1/tenants/"] == "go"
+    assert prefix["/api/"] == "python"
+    assert conf.rindex("location ^~ /api/ ") > conf.rindex("location ^~ /api/v1/tenants/")
