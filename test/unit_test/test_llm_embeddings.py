@@ -74,7 +74,7 @@ def test_openai_style_encode_returns_vectors_of_the_requested_length_and_provide
 def test_openai_compatible_and_openrouter_use_the_openai_driver(provider, fake_provider):  # noqa: F811
     embedder = make(provider, "m", fake_provider.base_url)
     assert isinstance(embedder, OpenAIEmbed)
-    assert len(embedder.encode(["x"])[0]) == 8
+    assert len(embedder.encode(["x"])[0][0]) == 8
 
 
 def test_the_returned_dimension_is_what_the_provider_sent_never_a_constant(fake_provider):  # noqa: F811
