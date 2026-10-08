@@ -15,8 +15,9 @@ import (
 )
 
 const (
-	// maxAccountBody caps register and login bodies (T-02-35).
-	maxAccountBody = 1 << 10
+	// maxAccountBody caps register and login bodies (T-02-35). The largest legal register body is about 1.1 KB (255-character
+	// email, 64-character nickname and 128-character password of 4-byte characters).
+	maxAccountBody = 2 << 10
 	// AuthCookieName carries the signed access token for requests without an Authorization header (D-21).
 	AuthCookieName = "ragflow_auth"
 )
