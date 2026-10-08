@@ -198,3 +198,52 @@ def test_guard_inspects_the_project_that_is_torn_down(tmp_path: Path) -> None:
     assert result.returncode == 3
     assert "down -v" not in "\n".join(_calls(log))
     assert not any("-p devrag-stack" in call for call in _calls(log))
+
+
+# --- Phase 2 exit gate (plan 02-26): mail profile, dev overlay, test environment --------------------------------
+
+R94_DEFAULTS = {
+    "RATE_LIMIT_REGISTER_PER_IP": "10",
+    "RATE_LIMIT_REGISTER_WINDOW_SECONDS": "3600",
+    "RATE_LIMIT_LOGIN_FAILURES_PER_EMAIL": "5",
+    "RATE_LIMIT_LOGIN_PER_IP": "30",
+    "RATE_LIMIT_LOGIN_WINDOW_SECONDS": "900",
+    "RATE_LIMIT_OTP_EMAIL_INTERVAL_SECONDS": "60",
+    "RATE_LIMIT_OTP_PER_EMAIL_PER_HOUR": "5",
+    "RATE_LIMIT_OTP_PER_IP_PER_HOUR": "20",
+    "RATE_LIMIT_OTP_WINDOW_SECONDS": "3600",
+}
+
+
+def _compose_line() -> str:
+    lines = [line for line in SCRIPT.read_text().splitlines() if line.startswith("COMPOSE=(")]
+    assert len(lines) == 1
+    return lines[0]
+
+
+def test_gate_stack_uses_the_mail_profile_and_the_dev_overlay() -> None:
+    line = _compose_line()
+    assert "--profile mail" in line, "password-reset e2e and live tests need the dev mail catcher"
+    assert "-f docker/docker-compose.dev.yml" in line, "the per-IP rate-limit overlay lives in the dev file"
+    assert "--profile cpu" in line and "--profile elasticsearch" in line
+
+
+def test_gate_exports_the_environment_host_run_tiers_need_without_printing_it() -> None:
+    text = SCRIPT.read_text()
+    # Without these the Go scratch-database tests skip and the fixture tests fail; a gate must run them for real.
+    assert 'export SERVICE_CONF="${SERVICE_CONF:-$ROOT/conf/service_conf.yaml}"' in text
+    assert "export MYSQL_ROOT_PASSWORD" in text
+    code = [line for line in text.splitlines() if not line.lstrip().startswith("#")]
+    assert not [line for line in code if "echo" in line and "MYSQL_ROOT_PASSWORD" in line and "missing" not in line]
+
+
+def test_production_compose_has_no_mail_service_and_r94_rate_limit_defaults() -> None:
+    import yaml
+
+    prod_text = (ROOT / "docker" / "docker-compose.yml").read_text()
+    for name in ("docker-compose.yml", "docker-compose-base.yml"):
+        services = yaml.safe_load((ROOT / "docker" / name).read_text()).get("services") or {}
+        assert "mailpit" not in services, name
+        assert not [svc for svc, body in services.items() if "mail" in (body.get("profiles") or [])], name
+    for key, default in R94_DEFAULTS.items():
+        assert f"{key}: ${{{key}:-{default}}}" in prod_text, key

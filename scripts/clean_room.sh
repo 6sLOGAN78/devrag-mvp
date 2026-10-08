@@ -44,7 +44,16 @@ WEB_PORT="${WEB_PORT:-8080}"
 export E2E_BASE_URL="${E2E_BASE_URL:-http://127.0.0.1:${WEB_PORT}}"
 export MANUAL_BASE_URL="${MANUAL_BASE_URL:-http://127.0.0.1:${WEB_PORT}}"
 export LIVE_BASE_URL="${LIVE_BASE_URL:-http://127.0.0.1:${WEB_PORT}}"
-COMPOSE=(docker compose -p "$PROJECT" --env-file docker/.env -f docker/docker-compose.yml -f docker/docker-compose.dev.yml --profile cpu --profile elasticsearch)
+# Host-run Go tiers read the rendered configuration and the administrative database account from the environment;
+# without them the scratch-database tests skip and the fixture tests fail. The value is read from the git-ignored
+# docker/.env and is never printed. Caller-set values win.
+export SERVICE_CONF="${SERVICE_CONF:-$ROOT/conf/service_conf.yaml}"
+if [ -z "${MYSQL_ROOT_PASSWORD:-}" ]; then
+  MYSQL_ROOT_PASSWORD="$(grep -E '^MYSQL_ROOT_PASSWORD=' docker/.env 2>/dev/null | tail -n1 | cut -d= -f2- || true)"
+fi
+export MYSQL_ROOT_PASSWORD
+# The mail profile (dev file only) gives the password-reset e2e and live tests a real SMTP sink.
+COMPOSE=(docker compose -p "$PROJECT" --env-file docker/.env -f docker/docker-compose.yml -f docker/docker-compose.dev.yml --profile cpu --profile elasticsearch --profile mail)
 
 step() { # step NAME CMD...
   local name="$1"
