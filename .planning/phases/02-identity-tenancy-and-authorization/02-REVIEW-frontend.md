@@ -278,3 +278,33 @@ These are documented and accepted designs: sign-up shows the server message for 
 _Reviewed: 2026-10-08_
 _Reviewer: Claude (gsd-code-reviewer)_
 _Depth: deep_
+
+## Fix status
+
+Fixed on 2026-10-08. Every fix landed test-first; the only pre-existing expectation changed is the session-expired toast text (WR-F04), corrected to the approved UI-SPEC copy. Frontend decisions are recorded as R-134 in `.planning/DECISIONS.md`.
+
+| Finding | Status | Commit or reference |
+|---|---|---|
+| WR-F01 | fixed: token storage never throws, in-memory fallback | 51e1e07 |
+| WR-F02 | fixed: cross-tab token change drops user store and query cache | 23cb5a5 |
+| WR-F03 | fixed: sign-out intent set before logout, a 401 on logout shows no toast and no `next` | 0a4e2d5 |
+| WR-F04 | fixed: toast copy matches UI-SPEC | 23a29cb |
+| WR-F05 | fixed: session recovery wraps the shell on the public Not Found page | d6d313d |
+| WR-F06 | fixed: server theme and language apply once per recovered user | 3f5a415 |
+| IN-F01 | deferred to B-30: the token in the DELETE path is mandated by docs and masked server-side (R-127, R-131); client telemetry must redact it | B-30 |
+| IN-F02 | deferred to B-30: localStorage is mandated by docs; a strict CSP is a Nginx hardening decision | B-30 |
+| IN-F03 | fixed | b7f3cf0 |
+| IN-F04 | fixed | 04b45a8 |
+| IN-F05 | fixed | c889cd4 |
+| IN-F06 | fixed | 53b6c80 |
+| IN-F07 | fixed | 68affb0 |
+| IN-F08 | fixed | 30288a9 |
+| IN-F09 | fixed | d4a7109 |
+| IN-F10 | deferred to B-30: a second tsconfig changes the `tsc -b` build graph | B-30 |
+| IN-F11 | fixed | d467a27 |
+| IN-F12 | no change: documented, accepted design (UI-SPEC flag 1, R-107, R-126) | none needed |
+| IN-F13 | deferred to B-30: the `aria-hidden` input and the mirrored store fields are pinned by existing tests | B-30 |
+
+Backend follow-through (R-129, R-130): the register form validates and canonicalises email like the server (583e658), and a 413 on profile or avatar save shows a translated sentence (8dc8202). 415 and 403 answers fall through to the generic or short server message and do not crash.
+
+Verification: `npm run test -- --run` (32 files, 621 tests), `npm run typecheck`, `npm run build`, live `npm run test:live` (36), `run_tests.py -m "integration or e2e"` (313, includes the real-browser SPA tests) and `go test -tags=integration,e2e ./...` all passed against the stack rebuilt from HEAD.

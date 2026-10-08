@@ -228,3 +228,10 @@ Also this phase: WR-16, WR-19, WR-26 (plan 02-02) and CR-02, WR-04, WR-24 (plan 
 - Needed from user: B-17 answer for the per-IP items; a production deployment profile for IN-04 and IN-06.
 - Workaround in repo: none needed for the Phase 2 gate.
 
+
+## B-30 Review items deferred after the Phase 2 frontend review (IN-F01, IN-F02, IN-F10, IN-F13 parts)
+- Status: open (info)
+- Affects: SPA hardening, no Phase 2 requirement
+- Evidence: see the Fix status table in 02-REVIEW-frontend.md. IN-F01: `DELETE /api/v1/system/tokens/{token}` puts a live API token in the URL path; `docs/04-api/system-api.md` mandates it and R-127 and R-131 mask it in server logs, so the residual exposure is browser devtools and any intermediary or future client telemetry that records full URLs. IN-F02: the access token lives in `localStorage` as `docs/02-frontend/api-client.md` requires, and `web/index.html` ships no Content-Security-Policy, so an XSS would exfiltrate the session; no XSS sink exists today. The copied API token also stays on the clipboard. IN-F10: `web/tsconfig.json` adds Node types to the whole `src` tree; splitting them into a tooling tsconfig touches the `tsc -b` build graph and was left alone. IN-F13 (part): the hidden avatar file input is not `aria-hidden` because an existing test asserts it has an accessible name, and `aria-hidden` removes the name; the language and colour fields mirrored into the user store are kept because tests assert them.
+- Needed from user: a decision on a strict CSP at the Nginx layer (script-src self, no inline scripts beyond the hashed theme bootstrap) in a hardening phase; whether the avatar-input test may be changed to match an `aria-hidden` input.
+- Workaround in repo: no `dangerouslySetInnerHTML`, no raw HTML rendering, strict avatar data-URL regex; client telemetry that records URLs must not be added without redacting `/system/tokens/`.
