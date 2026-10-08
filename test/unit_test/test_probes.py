@@ -56,12 +56,13 @@ async def test_language_direct_returns_python():
 
 
 def test_blueprint_urls_match_python_exact_routes():
-    entries = yaml.safe_load(ROUTES.read_text(encoding="utf-8"))["routes"]
+    data = yaml.safe_load(ROUTES.read_text(encoding="utf-8"))
+    # Exact families whose handlers do not exist yet (Phase 3 rows, implemented: false) are not served by the probe blueprint.
+    implemented = {e["path"] for e in data["endpoints"] if e["owner"] == "python" and e["implemented"]}
     expected: set[str] = set()
-    for entry in entries:
+    for entry in data["routes"]:
         if entry["owner"] == "python" and entry["match"] == "exact":
-            expected.add(entry["path"])
-            expected.update(entry.get("also", []))
+            expected.update(p for p in (entry["path"], *entry.get("also", [])) if p in implemented)
     assert set(HEALTH_PATHS) == expected
 
 
