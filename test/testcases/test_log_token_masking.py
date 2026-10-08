@@ -83,6 +83,14 @@ def test_token_in_path_is_logged_as_the_route_template_by_every_engine(ingress: 
     assert ingress.get(probe, headers={"Authorization": f"Bearer {api_token}", "User-Agent": agent}).status_code == 404
     assert ingress.delete(f"{FAMILY}{api_token}", headers=headers).status_code == 200
     assert ingress.delete(f"{FAMILY}{invalid}", headers=headers).status_code == 404
+    # other spellings of the same path (percent-encoded letter, merged slashes) are normalised by Nginx before it routes and logs
+    spelled = ["ragflow-" + uuid.uuid4().hex + uuid.uuid4().hex[:11] for _ in range(2)]
+    ingress.delete(f"/api/v1/system/%74okens/{spelled[0]}", headers=headers)
+    ingress.delete(f"/api/v1/system//tokens/{spelled[1]}", headers=headers)
+    # a mistyped endpoint with a real credential in it: Go-unmatched and Python-unmatched requests mask the credential-shaped segment
+    typo = "ragflow-" + uuid.uuid4().hex + uuid.uuid4().hex[:11]
+    ingress.delete(f"/api/v1/system/token/{typo}", headers=headers)
+    ingress.get(f"/v1/user/token/{typo}", headers=headers)
     assert ingress.get(probe, headers={"Authorization": f"Bearer {api_token}", "User-Agent": agent}).status_code == 401
 
     def logged() -> Streams | None:
@@ -90,13 +98,23 @@ def test_token_in_path_is_logged_as_the_route_template_by_every_engine(ingress: 
         mine = [line for line in now.nginx if agent in line]
         deletes = [line for line in mine if "DELETE" in line]
         go_now = sum(GO_TEMPLATE in line for line in now.go)
-        return now if len(deletes) >= 2 and go_now - go_before >= 2 and sum(probe in line for line in now.python) >= 2 else None
+        return now if len(deletes) >= 5 and go_now - go_before >= 2 and sum(probe in line for line in now.python) >= 2 else None
 
     now = wait_until(logged, timeout=60, interval=1.0, describe=lambda: "the request lines did not appear in the container logs")
     mine = [line for line in now.nginx if agent in line]
     deletes = [line for line in mine if "DELETE" in line]
-    assert all(NGINX_MASK in line for line in deletes), "the Nginx access log must record the masked path for a token-bearing URL"
-    for label, secret in (("the API token", api_token), ("its beta value", beta), ("the invalid token", invalid)):
+    family = [line for line in deletes if FAMILY in line]
+    assert len(family) >= 4 and all(NGINX_MASK in line for line in family), "the Nginx access log must record the masked path for a token-bearing URL"
+    assert any("/system/token/ragflow-***" in line for line in deletes), "a credential-shaped segment in a mistyped path is masked by Nginx"
+    checked = (
+        ("the API token", api_token),
+        ("its beta value", beta),
+        ("the invalid token", invalid),
+        ("an invalid token, encoded spelling", spelled[0]),
+        ("an invalid token, doubled slash", spelled[1]),
+        ("a token in a mistyped endpoint", typo),
+    )
+    for label, secret in checked:
         for engine, lines in (("nginx", now.nginx), ("go", now.go), ("python", now.python)):
             hits = occurrences("\n".join(lines), secret)
             assert hits == 0, f"{label} appears {hits} time(s) in the {engine} log"
