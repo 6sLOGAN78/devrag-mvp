@@ -29,8 +29,9 @@ _BARE = re.compile(rf"[^\s,;&}}]{{1,{_MAX_RUN}}}")
 _URL_SCHEME = re.compile(r"(?<![a-z0-9+.-])[a-z][a-z0-9+.-]*://", re.IGNORECASE)
 _AUTH_END = re.compile(r"[/?#\s]")
 # Stage 2: provider API key shapes (D-23, SEC-02) are masked wherever they appear in free text, such as an SDK message
-# "Incorrect API key provided: sk-...". Both quantifiers are bounded and the stage only sees text already capped at _MAX_INPUT.
-_KEY_SHAPE = re.compile(r"sk-or-v1-[A-Za-z0-9]{16,512}|sk-[A-Za-z0-9_-]{20,512}")
+# "Incorrect API key provided: sk-...". Both quantifiers are bounded and the stage only sees text already capped at _MAX_INPUT. The lookbehind makes "sk-" start a key,
+# not end an ordinary word: "logmask-probe-<hex>" or "task-force-..." is not a key, "x=sk-...", "/sk-..." and "id_sk-..." still are.
+_KEY_SHAPE = re.compile(r"(?<![A-Za-z0-9])(?:sk-or-v1-[A-Za-z0-9]{16,512}|sk-[A-Za-z0-9_-]{20,512})")
 _STANDARD = set(vars(logging.LogRecord("x", 0, "x", 0, "", None, None))) | {"message", "asctime", "taskName"}
 
 

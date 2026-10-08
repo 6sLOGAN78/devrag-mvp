@@ -36,7 +36,10 @@ var urlUserinfoPattern = regexp.MustCompile(`(?i)([a-z][a-z0-9+.-]*://[^\s:/@?#]
 
 // keyShapePattern matches provider API key shapes (OpenRouter sk-or-v1-..., OpenAI-style sk-...) anywhere in free text,
 // such as an SDK message "Incorrect API key provided: sk-..." (D-23, SEC-02). RE2 keeps it linear.
-var keyShapePattern = regexp.MustCompile(`sk-or-v1-[A-Za-z0-9]{16,}|sk-[A-Za-z0-9_-]{20,}`)
+//
+// "sk-" must start the key, not end an ordinary word ("logmask-probe-<hex>", "task-force-..."). RE2 has no lookbehind, so the
+// pattern consumes the single preceding non-alphanumeric byte (or the start of text) in group 1 and puts it back on replace.
+var keyShapePattern = regexp.MustCompile(`(^|[^A-Za-z0-9])(?:sk-or-v1-[A-Za-z0-9]{16,}|sk-[A-Za-z0-9_-]{20,})`)
 
 const (
 	// maxRedactInput bounds the text inspected by RedactString (parity with the Python engine).
@@ -74,7 +77,7 @@ func RedactString(s string) string {
 	if len(s) > maxRedactInput {
 		return RedactString(TruncateField(s, maxRedactInput-len(truncatedMarker)))
 	}
-	s = keyShapePattern.ReplaceAllString(s, RedactedValue)
+	s = keyShapePattern.ReplaceAllString(s, "${1}"+RedactedValue)
 	s = urlUserinfoPattern.ReplaceAllString(s, "${1}"+RedactedValue+"${2}")
 	s = redactWith(cookiePattern, s)
 	return redactWith(fragmentPattern, s)
