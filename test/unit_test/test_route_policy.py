@@ -157,6 +157,38 @@ def test_orphan_with_matching_family_is_accepted(tmp_path: Path) -> None:
     assert _mutate(tmp_path, add).returncode == 0
 
 
+def test_row_may_tighten_an_api_family_to_session_only_but_never_loosen(tmp_path: Path) -> None:
+    """Key-writing methods share a path with readable ones (plan 03-04): jwt over an api family is allowed, api over jwt is not."""
+
+    def tighten(d: dict[str, Any]) -> None:
+        d["endpoints"].append({"method": "POST", "path": "/api/v1/zzz", "owner": "python", "auth": "jwt", "roles": [], "scope": "none", "implemented": False})
+
+    def loosen(d: dict[str, Any]) -> None:
+        _row(d, "GET", "/api/v1/system/tokens").update(auth="api")
+
+    (tmp_path / "a").mkdir()
+    (tmp_path / "b").mkdir()
+    assert _mutate(tmp_path / "a", tighten).returncode == 0
+    assert _mutate(tmp_path / "b", loosen).returncode != 0
+
+
+def test_phase3_key_writing_rows_are_session_only_and_unimplemented() -> None:
+    """D-19, Pitfall 6: an API token must not reach the rows that write provider keys or default models."""
+    data = yaml.safe_load(ROUTES.read_text(encoding="utf-8"))
+    rows = {(e["method"], e["path"]): e for e in data["endpoints"]}
+    for key in [
+        ("PUT", "/api/v1/providers"),
+        ("DELETE", "/api/v1/providers/{provider}"),
+        ("POST", "/api/v1/providers/{provider}/instances"),
+        ("PATCH", "/api/v1/models/default"),
+    ]:
+        row = rows[key]
+        assert (row["owner"], row["auth"], row["scope"], row["implemented"]) == ("python", "jwt", "tenant", False), key
+        assert row["roles"] == ["owner", "admin"], key
+    for key in [("GET", "/api/v1/providers"), ("GET", "/api/v1/models"), ("POST", "/api/v1/datasets"), ("POST", "/api/v1/documents/upload")]:
+        assert rows[key]["auth"] == "api" and rows[key]["roles"] == ["owner", "admin", "normal"], key
+
+
 def test_check_fails_when_policy_modules_are_stale(tmp_path: Path) -> None:
     root = _copy_root(tmp_path)
     assert _gen(root).returncode == 0

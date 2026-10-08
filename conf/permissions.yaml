@@ -20,5 +20,7 @@ permissions:
   - {area: search_bots, action: ask, description: Ask Search Bot (/searchbots/ask), allow: [owner, admin, normal, beta_token, api_token], enforced_in: phase-8}
   - {area: mcp_server, action: tool_call, description: Handle MCP Tool Calls (/mcp), allow: [owner, admin, normal, beta_token, api_token], enforced_in: phase-8}
   - {area: tenant_settings, action: update_llm_keys, description: Update LLM Provider Keys, allow: [owner, admin], enforced_in: phase-3}
+  - {area: tenant_settings, action: view_models, description: View Configured Models, allow: [owner, admin, normal, api_token], enforced_in: phase-3}
+  - {area: tenant_settings, action: set_default_models, description: Set Default Models, allow: [owner, admin], enforced_in: phase-3}
   - {area: team_admin, action: manage_members, description: Invite Member / Change Role, allow: [owner], enforced_in: "02-22"}
   - {area: enterprise_admin, action: view_health, description: View System Health Metrics, allow: [owner, admin], enforced_in: phase-8}

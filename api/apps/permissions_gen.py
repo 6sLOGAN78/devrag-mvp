@@ -12,7 +12,9 @@ _ROWS: dict[tuple[str, str], tuple[str, ...]] = {
     ('mcp_server', 'tool_call'): ('owner', 'admin', 'normal', 'beta_token', 'api_token'),
     ('search_bots', 'ask'): ('owner', 'admin', 'normal', 'beta_token', 'api_token'),
     ('team_admin', 'manage_members'): ('owner',),
+    ('tenant_settings', 'set_default_models'): ('owner', 'admin'),
     ('tenant_settings', 'update_llm_keys'): ('owner', 'admin'),
+    ('tenant_settings', 'view_models'): ('owner', 'admin', 'normal', 'api_token'),
 }
 
 

@@ -13,6 +13,22 @@
       "port": 9384
     },
     {
+      "owner": "python",
+      "match": "exact",
+      "path": "/api/v1/datasets",
+      "auth": "api",
+      "publicUntilPhase": null,
+      "port": 9380
+    },
+    {
+      "owner": "python",
+      "match": "exact",
+      "path": "/api/v1/documents/upload",
+      "auth": "api",
+      "publicUntilPhase": null,
+      "port": 9380
+    },
+    {
       "owner": "go",
       "match": "exact",
       "path": "/api/v1/language",
@@ -27,6 +43,30 @@
       "auth": "beta",
       "publicUntilPhase": null,
       "port": 9384
+    },
+    {
+      "owner": "python",
+      "match": "exact",
+      "path": "/api/v1/models",
+      "auth": "api",
+      "publicUntilPhase": null,
+      "port": 9380
+    },
+    {
+      "owner": "python",
+      "match": "exact",
+      "path": "/api/v1/models/default",
+      "auth": "api",
+      "publicUntilPhase": null,
+      "port": 9380
+    },
+    {
+      "owner": "python",
+      "match": "exact",
+      "path": "/api/v1/providers",
+      "auth": "api",
+      "publicUntilPhase": null,
+      "port": 9380
     },
     {
       "owner": "go",
@@ -123,6 +163,22 @@
       "auth": "beta",
       "publicUntilPhase": null,
       "port": 9384
+    },
+    {
+      "owner": "python",
+      "match": "prefix",
+      "path": "/api/v1/providers/",
+      "auth": "api",
+      "publicUntilPhase": null,
+      "port": 9380
+    },
+    {
+      "owner": "python",
+      "match": "prefix",
+      "path": "/api/v1/datasets/",
+      "auth": "api",
+      "publicUntilPhase": null,
+      "port": 9380
     },
     {
       "owner": "go",

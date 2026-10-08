@@ -136,7 +136,10 @@ def load_endpoints(path: Path, routes: list[dict[str, Any]]) -> list[dict[str, A
             raise RouteError(f"endpoint {where} is matched by no route family")
         if family["owner"] != raw["owner"]:
             raise RouteError(f"endpoint {where} owner {raw['owner']} disagrees with family {family['path']}")
-        if family["auth"] != raw["auth"]:
+        # A row may tighten a family that accepts API or beta tokens to session-only (`jwt`), never loosen it:
+        # key-writing methods share a path with readable ones (plan 03-04, D-19).
+        tightens = raw["auth"] == "jwt" and family["auth"] in ("api", "beta")
+        if family["auth"] != raw["auth"] and not tightens:
             raise RouteError(f"endpoint {where} auth {raw['auth']} disagrees with family {family['path']}")
         rows.append({k: raw[k] for k in sorted(REQUIRED_FIELDS)})
     return rows

@@ -18,7 +18,9 @@ var permissionRows = []PermissionRow{
 	{"mcp_server", "tool_call", []string{"owner", "admin", "normal", "beta_token", "api_token"}},
 	{"search_bots", "ask", []string{"owner", "admin", "normal", "beta_token", "api_token"}},
 	{"team_admin", "manage_members", []string{"owner"}},
+	{"tenant_settings", "set_default_models", []string{"owner", "admin"}},
 	{"tenant_settings", "update_llm_keys", []string{"owner", "admin"}},
+	{"tenant_settings", "view_models", []string{"owner", "admin", "normal", "api_token"}},
 }
 
 // PermissionRows returns a copy of the generated matrix (tests compare it with the Python table).

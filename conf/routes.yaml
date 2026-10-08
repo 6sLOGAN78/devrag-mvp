@@ -6,7 +6,8 @@
 #         body_limit (Nginx client_max_body_size: Go default 16k, Python 1024m) and streaming (long upstream timeouts:
 #         Go default false, Python true) - WR-04.
 # The `endpoints:` registry below lists individual endpoints (method, path, owner, auth, roles, scope, implemented).
-# Each row must agree with the family entry that serves its path; the generator also emits the Go and Python
+# Each row must agree with the family entry that serves its path (owner always; auth too, except that a row may tighten
+# an `api` or `beta` family to `jwt`, so key-writing methods share a path with readable ones); the generator also emits the Go and Python
 # policy resolvers (PolicyFor / policy_for): registry row, then exact family, then longest prefix, then default jwt.
 # `implemented: false` means the handler does not exist yet; the plan that lands it flips the flag.
 ports:
@@ -63,6 +64,21 @@ routes:
     auth: jwt
     note: D-19 authenticated since plan 02-14 (R-55 public marker removed); the Python gate answers 401 without a token.
 
+  # --- Python-owned Phase 3 families (plan 03-04): JSON bodies are small, the upload route carries files ---
+  - owner: python
+    match: exact
+    path: /api/v1/documents/upload
+    auth: api
+    body_limit: 101m
+    streaming: true
+    note: multipart upload; 101m covers the 100 MB file cap plus multipart framing (D-23).
+  - {owner: python, match: exact, path: /api/v1/providers, auth: api, body_limit: 1m}
+  - {owner: python, match: prefix, path: /api/v1/providers/, auth: api, body_limit: 1m}
+  - {owner: python, match: exact, path: /api/v1/models, auth: api, body_limit: 1m}
+  - {owner: python, match: exact, path: /api/v1/models/default, auth: api, body_limit: 1m}
+  - {owner: python, match: exact, path: /api/v1/datasets, auth: api, body_limit: 1m}
+  - {owner: python, match: prefix, path: /api/v1/datasets/, auth: api, body_limit: 1m}
+
   # --- Python catch-alls (/api/v1/system/tokens, /stats, /api/v1/mcp/servers etc. land here, D-04/D-06/D-07) ---
   - {owner: python, match: prefix, path: /api/, auth: api, catch_all: true}
   - {owner: python, match: prefix, path: /v1/, auth: api, catch_all: true}
@@ -118,3 +134,39 @@ endpoints:
   # --- Phase 2, Go-owned search bots (beta token) ---
   - {method: POST, path: /api/v1/searchbots/ask, owner: go, auth: beta, roles: [], scope: none, implemented: false}
   - {method: POST, path: /api/v1/searchbots/retrieval_test, owner: go, auth: beta, roles: [], scope: none, implemented: false}
+
+  # --- Phase 3, Python-owned, handlers land in the plans named in each note ---
+  - {method: GET, path: "/api/v1/providers", owner: python, auth: api, roles: [owner, admin, normal], scope: tenant, implemented: false,
+     note: "plan 03-12 lists providers with configured flag and last4 only; the key never leaves the server"}
+  - {method: PUT, path: "/api/v1/providers", owner: python, auth: jwt, roles: [owner, admin], scope: tenant, implemented: false,
+     note: "plan 03-12 saves a provider key; session token only so an API token cannot change keys (D-19, Pitfall 6)"}
+  - {method: DELETE, path: "/api/v1/providers/{provider}", owner: python, auth: jwt, roles: [owner, admin], scope: tenant, implemented: false,
+     note: "plan 03-12 removes a provider and its instances; session token only (D-19)"}
+  - {method: GET, path: "/api/v1/providers/{provider}/models", owner: python, auth: api, roles: [owner, admin, normal], scope: tenant, implemented: false,
+     note: "plan 03-12 lists the models of one provider"}
+  - {method: POST, path: "/api/v1/providers/{provider}/instances", owner: python, auth: jwt, roles: [owner, admin], scope: tenant, implemented: false,
+     note: "plan 03-12 adds a provider instance with a key; session token only (D-19)"}
+  - {method: GET, path: "/api/v1/providers/{provider}/instances/{instance}", owner: python, auth: api, roles: [owner, admin], scope: tenant, implemented: false,
+     note: "plan 03-12 reads one instance without its key"}
+  - {method: GET, path: "/api/v1/models", owner: python, auth: api, roles: [owner, admin, normal], scope: tenant, implemented: false,
+     note: "plan 03-13 lists the workspace models"}
+  - {method: GET, path: "/api/v1/models/default", owner: python, auth: api, roles: [owner, admin, normal], scope: tenant, implemented: false,
+     note: "plan 03-13 reads the default model per type"}
+  - {method: PATCH, path: "/api/v1/models/default", owner: python, auth: jwt, roles: [owner, admin], scope: tenant, implemented: false,
+     note: "plan 03-13 sets the default models; session token only (D-07)"}
+  - {method: POST, path: "/api/v1/datasets", owner: python, auth: api, roles: [owner, admin, normal], scope: tenant, implemented: false,
+     note: "plan 03-14 creates a dataset; permission me or team (D-08)"}
+  - {method: GET, path: "/api/v1/datasets", owner: python, auth: api, roles: [owner, admin, normal], scope: tenant, implemented: false,
+     note: "plan 03-14 lists datasets; a me dataset is visible to its creator only (D-27)"}
+  - {method: GET, path: "/api/v1/datasets/{dataset_id}", owner: python, auth: api, roles: [owner, admin, normal], scope: tenant, implemented: false,
+     note: "plan 03-14 reads a dataset; invisible and foreign ids answer the one 404 (D-20)"}
+  - {method: PUT, path: "/api/v1/datasets/{dataset_id}", owner: python, auth: api, roles: [owner, admin, normal], scope: tenant, implemented: false,
+     note: "plan 03-18 updates a dataset; manage means creator, owner or admin (D-09)"}
+  - {method: DELETE, path: "/api/v1/datasets", owner: python, auth: api, roles: [owner, admin, normal], scope: tenant, implemented: false,
+     note: "plan 03-18 deletes datasets by id list; manage means creator, owner or admin (D-09)"}
+  - {method: POST, path: "/api/v1/documents/upload", owner: python, auth: api, roles: [owner, admin, normal], scope: tenant, implemented: false,
+     note: "plan 03-16 streams an upload into a dataset; the dataset must be visible to the caller (D-27)"}
+  - {method: GET, path: "/api/v1/datasets/{dataset_id}/documents", owner: python, auth: api, roles: [owner, admin, normal], scope: tenant, implemented: false,
+     note: "plan 03-17 lists documents of a visible dataset (D-27)"}
+  - {method: DELETE, path: "/api/v1/datasets/{dataset_id}/documents", owner: python, auth: api, roles: [owner, admin, normal], scope: tenant, implemented: false,
+     note: "plan 03-17 removes documents; the document creator, owner or admin (D-09)"}
