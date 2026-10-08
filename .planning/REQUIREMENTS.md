@@ -11,45 +11,45 @@ Requirements for initial release. Each maps to exactly one roadmap phase.
 
 ### AUTH — Authentication, sessions, tokens, API keys
 
-- [ ] **AUTH-01**: User can register with email, password, nickname via `POST /api/v1/users`; email format, nickname, and email uniqueness are validated
-- [ ] **AUTH-02**: Passwords are stored only as salted hashes and verified on login
-- [ ] **AUTH-03**: Registration atomically provisions a `tenant` row and a `user_tenant` link with `role='owner'`; failure rolls back all three inserts
-- [ ] **AUTH-04**: Registration initializes the tenant's default model configuration (`tenant_llm`)
-- [ ] **AUTH-05**: User can log in with email and password via `POST /api/v1/auth/login` and receives `access_token` plus user object; only users with valid status may log in
-- [ ] **AUTH-06**: Login resolves the user's tenant id, role, and tenant default models (chat, embedding, rerank)
-- [ ] **AUTH-07**: Protected routes on both servers accept `Authorization: Bearer <token>` and populate request user context (`g.user` / `c.Set("user")`)
-- [ ] **AUTH-08**: Token validation rejects empty/whitespace tokens, tokens shorter than 32 chars, and tokens beginning `INVALID_`
-- [ ] **AUTH-09**: User can log out; logout rewrites `user.access_token` to `INVALID_<hex>` so the old token returns 401 thereafter
-- [ ] **AUTH-10**: Requests without an `Authorization` header fall back to a Redis-backed server session cookie (`_user_id`)
-- [ ] **AUTH-11**: Login sets a signed `ragflow_auth` cookie
-- [ ] **AUTH-12**: Auth resolution order is beta token, then JWT, then API token, then session cookie; no match returns HTTP 401
-- [ ] **AUTH-13**: User can fetch own profile, avatar, tenant id and role via `GET /v1/user/info`
-- [ ] **AUTH-14**: User can update nickname, avatar, and language via `POST /v1/user/setting`
-- [ ] **AUTH-15**: User can change password by supplying old and new password via `POST /v1/user/setting/password`
-- [ ] **AUTH-16**: User can request a password-reset OTP via `POST /api/v1/auth/password/forgot/otp`
-- [ ] **AUTH-17**: User can verify the OTP via `POST /api/v1/auth/password/forgot/otp/verify`
-- [ ] **AUTH-18**: User can reset password with email, OTP, and new password via `POST /api/v1/auth/password/reset`
-- [ ] **AUTH-19**: User can create a programmatic API token via `POST /system/tokens`
-- [ ] **AUTH-20**: User can list API tokens via `GET /system/tokens`
-- [ ] **AUTH-21**: User can delete an API token via `DELETE /system/tokens/<token>`
-- [ ] **AUTH-22**: API clients can authenticate with an API token (`AUTH_API`) which resolves to the owning tenant
-- [ ] **AUTH-23**: Public bot, search-bot, and MCP routes authenticate with a beta token (`AUTH_BETA`, `BetaAuthMiddleware`)
+- [x] **AUTH-01**: User can register with email, password, nickname via `POST /api/v1/users`; email format, nickname, and email uniqueness are validated
+- [x] **AUTH-02**: Passwords are stored only as salted hashes and verified on login
+- [x] **AUTH-03**: Registration atomically provisions a `tenant` row and a `user_tenant` link with `role='owner'`; failure rolls back all three inserts
+- [x] **AUTH-04**: Registration initializes the tenant's default model configuration (`tenant_llm`) — *delivered as decided in D-22 (default model ids from optional config; `tenant_llm` rows only when a provider is configured); no provider is configured in this environment, so no `tenant_llm` row is written yet (B-09)*
+- [x] **AUTH-05**: User can log in with email and password via `POST /api/v1/auth/login` and receives `access_token` plus user object; only users with valid status may log in
+- [x] **AUTH-06**: Login resolves the user's tenant id, role, and tenant default models (chat, embedding, rerank) — *login returns tenant id, role and the three default model id fields; the model ids are empty strings until a default is configured (D-22, B-09)*
+- [x] **AUTH-07**: Protected routes on both servers accept `Authorization: Bearer <token>` and populate request user context (`g.user` / `c.Set("user")`)
+- [x] **AUTH-08**: Token validation rejects empty/whitespace tokens, tokens shorter than 32 chars, and tokens beginning `INVALID_`
+- [x] **AUTH-09**: User can log out; logout rewrites `user.access_token` to `INVALID_<hex>` so the old token returns 401 thereafter
+- [x] **AUTH-10**: Requests without an `Authorization` header fall back to a Redis-backed server session cookie (`_user_id`) — *delivered as decided in D-21 (HttpOnly ragflow_auth cookie fallback checked against Origin; the documented Redis-backed _user_id session is replaced, not built)*
+- [x] **AUTH-11**: Login sets a signed `ragflow_auth` cookie
+- [x] **AUTH-12**: Auth resolution order is beta token, then JWT, then API token, then session cookie; no match returns HTTP 401 — *delivered as a per-route credential policy (R-117, plans 02-14 and 02-20): beta rows take the beta value first, then access or API tokens; API rows take access or API tokens; the cookie is read on jwt rows only; no match is HTTP 401*
+- [x] **AUTH-13**: User can fetch own profile, avatar, tenant id and role via `GET /v1/user/info`
+- [x] **AUTH-14**: User can update nickname, avatar, and language via `POST /v1/user/setting`
+- [x] **AUTH-15**: User can change password by supplying old and new password via `POST /v1/user/setting/password`
+- [x] **AUTH-16**: User can request a password-reset OTP via `POST /api/v1/auth/password/forgot/otp` — *verified against the local mail catcher over SMTP in the gate; delivery through a real SMTP provider is a manual check (B-20)*
+- [x] **AUTH-17**: User can verify the OTP via `POST /api/v1/auth/password/forgot/otp/verify`
+- [x] **AUTH-18**: User can reset password with email, OTP, and new password via `POST /api/v1/auth/password/reset`
+- [x] **AUTH-19**: User can create a programmatic API token via `POST /system/tokens`
+- [x] **AUTH-20**: User can list API tokens via `GET /system/tokens`
+- [x] **AUTH-21**: User can delete an API token via `DELETE /system/tokens/<token>`
+- [x] **AUTH-22**: API clients can authenticate with an API token (`AUTH_API`) which resolves to the owning tenant
+- [x] **AUTH-23**: Public bot, search-bot, and MCP routes authenticate with a beta token (`AUTH_BETA`, `BetaAuthMiddleware`) — *delivered with blocker: proven on a test-registered route only; real bot, search-bot and MCP routes arrive in Phase 8 (B-19)*
 - [ ] **AUTH-24**: User can log in through third-party OAuth2 / OIDC (GitHub, Google, enterprise OIDC)
 - [ ] **AUTH-25**: Captcha generation for auth forms
 
 ### TEN — Multi-tenancy, roles, permissions
 
-- [ ] **TEN-01**: Every tenant-owned entity (dataset, document, task, dialog, canvas, file) carries `tenant_id` and every service/DAO query filters by the caller's tenant
-- [ ] **TEN-02**: Requesting another tenant's resource by id is denied (not found / permission error), never returned
+- [ ] **TEN-01**: Every tenant-owned entity (dataset, document, task, dialog, canvas, file) carries `tenant_id` and every service/DAO query filters by the caller's tenant — *partly delivered: `tenant_id` filtering is enforced and matrix-tested for every tenant-owned route that exists in Phase 2 (api tokens, memberships); datasets, documents, tasks, dialogs, canvases and files add theirs as their routes land, and the matrix guard fails a new tenant-scoped route that has no fixture (B-22)*
+- [x] **TEN-02**: Requesting another tenant's resource by id is denied (not found / permission error), never returned
 - [ ] **TEN-03**: Docstore queries and index names are tenant-scoped so vector search cannot leak across tenants
-- [ ] **TEN-04**: Users hold one of three roles per tenant (`owner`, `admin`, `normal`) stored in `user_tenant.role`
-- [ ] **TEN-05**: The documented permission matrix (10 functional areas by `owner`/`admin`/`normal`/beta token/API token) is enforced; disallowed actions return HTTP 403
-- [ ] **TEN-06**: User can retrieve tenant/workspace settings via `GET /v1/user/tenant_info`
-- [ ] **TEN-07**: User can list tenants they can access via `GET /v1/tenant/list`
-- [ ] **TEN-08**: User can list members of a tenant via `GET /tenants/<tenant_id>/users`
-- [ ] **TEN-09**: Owner can invite/add a member via `POST /tenants/<tenant_id>/users`
-- [ ] **TEN-10**: Invited user can accept membership via `PATCH /tenants/<tenant_id>`
-- [ ] **TEN-11**: Owner can change a member's role
+- [x] **TEN-04**: Users hold one of three roles per tenant (`owner`, `admin`, `normal`) stored in `user_tenant.role`
+- [ ] **TEN-05**: The documented permission matrix (10 functional areas by `owner`/`admin`/`normal`/beta token/API token) is enforced; disallowed actions return HTTP 403 — *partly delivered: the 10-area permission table is generated into Go and Python under a drift gate and oracle-tested, and enforced for team administration (owner only, 403 otherwise); the other areas are enforced as their routes land in Phases 3, 7 and 8 (B-22)*
+- [x] **TEN-06**: User can retrieve tenant/workspace settings via `GET /v1/user/tenant_info`
+- [x] **TEN-07**: User can list tenants they can access via `GET /v1/tenant/list`
+- [x] **TEN-08**: User can list members of a tenant via `GET /tenants/<tenant_id>/users`
+- [x] **TEN-09**: Owner can invite/add a member via `POST /tenants/<tenant_id>/users`
+- [x] **TEN-10**: Invited user can accept membership via `PATCH /tenants/<tenant_id>`
+- [x] **TEN-11**: Owner can change a member's role
 - [ ] **TEN-12**: Admin/owner can set the tenant's default chat and embedding models
 - [ ] **TEN-13**: Multiple users can share one tenant's datasets, documents, models, and agent workflows
 - [ ] **TEN-14**: Custom RBAC: admin can `CREATE ROLE`, `GRANT <permission> ON <resource> TO ROLE`, `REVOKE ... FROM ROLE`
@@ -507,14 +507,14 @@ Requirements for initial release. Each maps to exactly one roadmap phase.
 ### UI — Frontend SPA
 
 - [x] **UI-01**: SPA with lazy-loaded routes and layout wrappers (standard with header, full-bleed for canvas)
-- [ ] **UI-02**: Auth guard redirects unauthenticated users to the login route
+- [x] **UI-02**: Auth guard redirects unauthenticated users to the login route
 - [x] **UI-03**: HTTP client injects the bearer token, unwraps the envelope, surfaces non-zero codes as error notifications
-- [ ] **UI-04**: HTTP 401 clears the token and session cache and redirects to login
+- [x] **UI-04**: HTTP 401 clears the token and session cache and redirects to login
 - [ ] **UI-05**: SSE client streams tokens into UI state
-- [ ] **UI-06**: Login and registration page
-- [ ] **UI-07**: Session recovery on refresh by re-fetching user info
-- [ ] **UI-08**: Tiered state: global stores (user, agent, chat, document), server-state hooks with caching/polling, local state, URL search params
-- [ ] **UI-09**: Home dashboard
+- [x] **UI-06**: Login and registration page
+- [x] **UI-07**: Session recovery on refresh by re-fetching user info
+- [x] **UI-08**: Tiered state: global stores (user, agent, chat, document), server-state hooks with caching/polling, local state, URL search params — *all four tiers are in place and tested: user store (global; plan 02-12), user-info and system-config hooks (server state, plans 02-12 and 02-13), URL search params (`next`, `mode`; plans 02-12 and 02-13) and local form state (plan 02-13); the agent, chat and document stores arrive with their features*
+- [x] **UI-09**: Home dashboard
 - [ ] **UI-10**: Datasets gallery with card grid and create-dataset dialog
 - [ ] **UI-11**: Dataset workspace: document table with status badges
 - [ ] **UI-12**: Upload dialog: drag-and-drop, extension and size validation, progress bars
@@ -539,16 +539,16 @@ Requirements for initial release. Each maps to exactly one roadmap phase.
 - [ ] **UI-31**: Embedded code editor in the Code node form
 - [ ] **UI-32**: Public shared agent page (`/agent/share`)
 - [ ] **UI-33**: Search app pages (`next-search`, `next-searches`)
-- [ ] **UI-34**: User settings: profile
-- [ ] **UI-35**: User settings: API key management dialog
-- [ ] **UI-36**: User settings: team management
+- [x] **UI-34**: User settings: profile
+- [x] **UI-35**: User settings: API key management dialog
+- [x] **UI-36**: User settings: team management
 - [ ] **UI-37**: User settings: model provider credentials and default models
 - [ ] **UI-38**: Admin pages: users, services
 - [ ] **UI-39**: Compilation templates studio and pipeline operator tabs
 - [ ] **UI-40**: Knowledge-graph structure visualization
 - [ ] **UI-41**: Pages `files`, `skills`, `memory`, `memories`
-- [ ] **UI-42**: Internationalization with locale files (zh, en, es, fr, ja, ...)
-- [ ] **UI-43**: Dark / light theme
+- [ ] **UI-42**: Internationalization with locale files (zh, en, es, fr, ja, ...) — *partly delivered: en and zh delivered with a key-parity test; es, fr, ja deferred until reviewable (D-23); the Chinese text is a draft awaiting review (B-18, B-20)*
+- [x] **UI-43**: Dark / light theme
 - [ ] **UI-44**: Loading, error, and empty states on every data view; responsive layout
 
 ### DATA — Relational database layer
@@ -587,7 +587,7 @@ Requirements for initial release. Each maps to exactly one roadmap phase.
 
 ### SEC — Security
 
-- [ ] **SEC-01**: Every non-public endpoint is behind the auth decorator/middleware
+- [x] **SEC-01**: Every non-public endpoint is behind the auth decorator/middleware
 - [ ] **SEC-02**: API keys, access tokens, and LLM credentials are masked in API responses
 - [ ] **SEC-03**: LLM provider keys are encrypted at rest
 - [x] **SEC-04**: Secrets come from environment/config, never hard-coded, never logged
@@ -595,7 +595,7 @@ Requirements for initial release. Each maps to exactly one roadmap phase.
 - [ ] **SEC-06**: Upload safety: extension check, sanitized names, UUID object keys, no path traversal
 - [ ] **SEC-07**: Sandboxed code runs as non-root with memory cap, timeout, no-new-privileges, no network, seccomp filter
 - [ ] **SEC-08**: Native document parsing isolated in the `deepdoc` container
-- [ ] **SEC-09**: Tokens validated with an HMAC-signed secret key and expiry
+- [x] **SEC-09**: Tokens validated with an HMAC-signed secret key and expiry
 - [x] **SEC-10**: Input validation prevents SQL and command injection
 - [ ] **SEC-11**: Rate limiting backed by Redis
 
@@ -616,8 +616,8 @@ Requirements for initial release. Each maps to exactly one roadmap phase.
 
 ### E2E — Acceptance flows (must each pass against the real stack, no mocks)
 
-- [ ] **E2E-01**: User registration creates user, tenant, owner link — passes against the real stack with no mocks (covers AUTH-01..04; flow: `21-end-to-end-flows/user-registration.md`)
-- [ ] **E2E-02**: Login returns token, user, tenant, default models — passes against the real stack with no mocks (covers AUTH-05..07; flow: `21-.../login.md`)
+- [x] **E2E-01**: User registration creates user, tenant, owner link — passes against the real stack with no mocks (covers AUTH-01..04; flow: `21-end-to-end-flows/user-registration.md`)
+- [x] **E2E-02**: Login returns token, user, tenant, default models — passes against the real stack with no mocks (covers AUTH-05..07; flow: `21-.../login.md`) — *login returns token, user, tenant, role and the default model id fields through the real stack; the model ids are empty until configured (D-22, B-09)*
 - [ ] **E2E-03**: Create knowledge base provisions DB row and docstore index — passes against the real stack with no mocks (covers KB-01..03, IDX-05; flow: `21-.../create-knowledge-base.md`)
 - [ ] **E2E-04**: Upload document stores blob and creates UNSTART document — passes against the real stack with no mocks (covers DOC-01..07, STOR; flow: `21-.../upload-document.md`)
 - [ ] **E2E-05**: Document processing: parse request, queue, worker, DeepDoc, chunks — passes against the real stack with no mocks (covers DOC-09, ING, PARSE, CHUNK; flow: `21-.../document-processing.md`)
@@ -681,42 +681,42 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| AUTH-01 | Phase 2 | Pending |
-| AUTH-02 | Phase 2 | Pending |
-| AUTH-03 | Phase 2 | Pending |
-| AUTH-04 | Phase 2 | Pending |
-| AUTH-05 | Phase 2 | Pending |
-| AUTH-06 | Phase 2 | Pending |
-| AUTH-07 | Phase 2 | Pending |
-| AUTH-08 | Phase 2 | Pending |
-| AUTH-09 | Phase 2 | Pending |
-| AUTH-10 | Phase 2 | Pending |
-| AUTH-11 | Phase 2 | Pending |
-| AUTH-12 | Phase 2 | Pending |
-| AUTH-13 | Phase 2 | Pending |
-| AUTH-14 | Phase 2 | Pending |
-| AUTH-15 | Phase 2 | Pending |
-| AUTH-16 | Phase 2 | Pending |
-| AUTH-17 | Phase 2 | Pending |
-| AUTH-18 | Phase 2 | Pending |
-| AUTH-19 | Phase 2 | Pending |
-| AUTH-20 | Phase 2 | Pending |
-| AUTH-21 | Phase 2 | Pending |
-| AUTH-22 | Phase 2 | Pending |
-| AUTH-23 | Phase 2 | Pending |
+| AUTH-01 | Phase 2 | Complete |
+| AUTH-02 | Phase 2 | Complete |
+| AUTH-03 | Phase 2 | Complete |
+| AUTH-04 | Phase 2 | Complete (as decided, D-22) |
+| AUTH-05 | Phase 2 | Complete |
+| AUTH-06 | Phase 2 | Complete (as decided, D-22) |
+| AUTH-07 | Phase 2 | Complete |
+| AUTH-08 | Phase 2 | Complete |
+| AUTH-09 | Phase 2 | Complete |
+| AUTH-10 | Phase 2 | Complete (as decided, D-21) |
+| AUTH-11 | Phase 2 | Complete |
+| AUTH-12 | Phase 2 | Complete (as decided, R-117) |
+| AUTH-13 | Phase 2 | Complete |
+| AUTH-14 | Phase 2 | Complete |
+| AUTH-15 | Phase 2 | Complete |
+| AUTH-16 | Phase 2 | Complete (real SMTP manual, B-20) |
+| AUTH-17 | Phase 2 | Complete |
+| AUTH-18 | Phase 2 | Complete |
+| AUTH-19 | Phase 2 | Complete |
+| AUTH-20 | Phase 2 | Complete |
+| AUTH-21 | Phase 2 | Complete |
+| AUTH-22 | Phase 2 | Complete |
+| AUTH-23 | Phase 2 | Complete with blocker (B-19) |
 | AUTH-24 | Phase 8 | Pending |
 | AUTH-25 | Phase 8 | Pending |
-| TEN-01 | Phase 2 | Pending |
-| TEN-02 | Phase 2 | Pending |
+| TEN-01 | Phase 2 | Partial (Phase 2 routes; B-22) |
+| TEN-02 | Phase 2 | Complete |
 | TEN-03 | Phase 5 | Pending |
-| TEN-04 | Phase 2 | Pending |
-| TEN-05 | Phase 2 | Pending |
-| TEN-06 | Phase 2 | Pending |
-| TEN-07 | Phase 2 | Pending |
-| TEN-08 | Phase 2 | Pending |
-| TEN-09 | Phase 2 | Pending |
-| TEN-10 | Phase 2 | Pending |
-| TEN-11 | Phase 2 | Pending |
+| TEN-04 | Phase 2 | Complete |
+| TEN-05 | Phase 2 | Partial (team admin; B-22) |
+| TEN-06 | Phase 2 | Complete |
+| TEN-07 | Phase 2 | Complete |
+| TEN-08 | Phase 2 | Complete |
+| TEN-09 | Phase 2 | Complete |
+| TEN-10 | Phase 2 | Complete |
+| TEN-11 | Phase 2 | Complete |
 | TEN-12 | Phase 3 | Pending |
 | TEN-13 | Phase 3 | Pending |
 | TEN-14 | Phase 8 | Pending |
@@ -1108,14 +1108,14 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CLI-17 | Phase 8 | Pending |
 | CLI-18 | Phase 8 | Pending |
 | UI-01 | Phase 1 | Complete |
-| UI-02 | Phase 2 | Pending |
+| UI-02 | Phase 2 | Complete |
 | UI-03 | Phase 1 | Complete |
-| UI-04 | Phase 2 | Pending |
+| UI-04 | Phase 2 | Complete |
 | UI-05 | Phase 5 | Pending |
-| UI-06 | Phase 2 | Pending |
-| UI-07 | Phase 2 | Pending |
-| UI-08 | Phase 2 | Pending |
-| UI-09 | Phase 2 | Pending |
+| UI-06 | Phase 2 | Complete |
+| UI-07 | Phase 2 | Complete |
+| UI-08 | Phase 2 | Complete (tiers established) |
+| UI-09 | Phase 2 | Complete |
 | UI-10 | Phase 3 | Pending |
 | UI-11 | Phase 3 | Pending |
 | UI-12 | Phase 3 | Pending |
@@ -1140,16 +1140,16 @@ Which phases cover which requirements. Updated during roadmap creation.
 | UI-31 | Phase 7 | Pending |
 | UI-32 | Phase 7 | Pending |
 | UI-33 | Phase 8 | Pending |
-| UI-34 | Phase 2 | Pending |
-| UI-35 | Phase 2 | Pending |
-| UI-36 | Phase 2 | Pending |
+| UI-34 | Phase 2 | Complete |
+| UI-35 | Phase 2 | Complete |
+| UI-36 | Phase 2 | Complete |
 | UI-37 | Phase 3 | Pending |
 | UI-38 | Phase 8 | Pending |
 | UI-39 | Phase 8 | Pending |
 | UI-40 | Phase 8 | Pending |
 | UI-41 | Phase 8 | Pending |
-| UI-42 | Phase 2 | Pending |
-| UI-43 | Phase 2 | Pending |
+| UI-42 | Phase 2 | Partial (en, zh; B-18) |
+| UI-43 | Phase 2 | Complete |
 | UI-44 | Phase 8 | Pending |
 | DATA-01 | Phase 1 | Complete |
 | DATA-02 | Phase 1 | Complete |
@@ -1179,7 +1179,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DEPLOY-19 | Phase 8 | Pending |
 | DEPLOY-20 | Phase 8 | Pending |
 | DEPLOY-21 | Phase 8 | Pending |
-| SEC-01 | Phase 2 | Pending |
+| SEC-01 | Phase 2 | Complete |
 | SEC-02 | Phase 3 | Pending |
 | SEC-03 | Phase 3 | Pending |
 | SEC-04 | Phase 1 | Complete |
@@ -1187,7 +1187,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SEC-06 | Phase 3 | Pending |
 | SEC-07 | Phase 7 | Pending |
 | SEC-08 | Phase 6 | Pending |
-| SEC-09 | Phase 2 | Pending |
+| SEC-09 | Phase 2 | Complete |
 | SEC-10 | Phase 1 | Complete |
 | SEC-11 | Phase 8 | Pending |
 | TEST-01 | Phase 1 | Complete |
@@ -1202,8 +1202,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | TEST-10 | Phase 1 | Complete |
 | TEST-11 | Phase 4 | Pending |
 | TEST-12 | Phase 8 | Pending |
-| E2E-01 | Phase 2 | Pending |
-| E2E-02 | Phase 2 | Pending |
+| E2E-01 | Phase 2 | Complete |
+| E2E-02 | Phase 2 | Complete (as decided, D-22) |
 | E2E-03 | Phase 3 | Pending |
 | E2E-04 | Phase 3 | Pending |
 | E2E-05 | Phase 4 | Pending |
@@ -1232,4 +1232,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-10-05*
-*Last updated: 2026-10-05 after roadmap creation*
+*Last updated: 2026-10-08 after the Phase 2 exit gate (plan 02-26): 48 Phase 2 requirements assessed; 37 complete, 7 complete as decided or annotated, 1 complete with blocker (AUTH-23), 3 partial and left unticked (TEN-01, TEN-05, UI-42)*
