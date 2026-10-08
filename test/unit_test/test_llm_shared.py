@@ -160,10 +160,10 @@ def test_sync_sleep_uses_retry_after():
 async def test_async_retries_then_succeeds_with_an_injected_async_sleep():
     script, sleeps = Script(_retryable(LLMErrorCode.ERROR_TIMEOUT), _retryable(), "fine"), []
 
-    async def sleep(delay):
+    async def record_delay(delay):
         sleeps.append(delay)
 
-    assert await arun_with_retries(script.acall, max_retries=3, sleep=sleep) == "fine"
+    assert await arun_with_retries(script.acall, max_retries=3, sleep=record_delay) == "fine"
     assert script.calls == 3 and len(sleeps) == 2
 
 
