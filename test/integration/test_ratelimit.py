@@ -11,8 +11,8 @@ from collections.abc import Iterator
 
 import pytest
 import valkey
-from common.ratelimit import FixedWindowLimiter, RateLimited, RateLimitUnavailable
 
+from common.ratelimit import FixedWindowLimiter, RateLimited, RateLimitUnavailable
 from common.settings import RedisSettings, load_settings
 
 pytestmark = pytest.mark.integration

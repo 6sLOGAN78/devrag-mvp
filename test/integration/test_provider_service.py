@@ -16,15 +16,15 @@ from collections.abc import Iterator
 
 import pytest
 import valkey
-from api.db.services.provider_service import ModelRequest, SaveRequest
-from common.ratelimit import FixedWindowLimiter
 
 from api.db.services import provider_service as svc
 from api.db.services import tenant_llm_service as store
 from api.db.services import tenant_model_service as structure
+from api.db.services.provider_service import ModelRequest, SaveRequest
 from api.db.services.service_errors import Kind, ServiceError
 from api.utils import reasons
 from common.model_ref import ModelRef
+from common.ratelimit import FixedWindowLimiter
 from common.security.secretbox import mask_last4
 from common.settings import RateLimitSettings, RedisSettings, Settings, load_settings
 from rag.llm import PROVIDER_SPECS, resolve_provider

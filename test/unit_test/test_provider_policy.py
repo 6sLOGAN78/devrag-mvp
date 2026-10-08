@@ -7,8 +7,8 @@ The save-time test flow runs against the real MySQL, Valkey and the loopback pro
 from __future__ import annotations
 
 import pytest
-from api.db.services.provider_service import ModelRequest, SaveRequest, check_model_names, check_request
 
+from api.db.services.provider_service import ModelRequest, SaveRequest, check_model_names, check_request
 from api.db.services.service_errors import Kind, ServiceError
 from api.db.services.tenant_model_service import InstanceInfo
 from api.utils import reasons
