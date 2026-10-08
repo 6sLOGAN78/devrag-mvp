@@ -248,22 +248,28 @@ func (a *Account) authenticate(user *entity.User, password string) error {
 func (a *Account) complete(ctx context.Context, user *entity.User) (LoginResult, error) {
 	inner, err := a.sharedInner(ctx, user)
 	if err != nil {
-		return LoginResult{}, err
+		return LoginResult{}, dbFailure("access token", err)
 	}
 	token, err := common.DumpAccessToken(inner, a.cfg.Security.SecretKey, a.now())
 	if err != nil {
 		return LoginResult{}, err
 	}
 	m, err := a.store.FindOwnMembership(ctx, user.ID)
+	if errors.Is(err, dao.ErrNotFound) {
+		return LoginResult{}, ErrNoTenant
+	}
 	if err != nil {
-		return LoginResult{}, err
+		return LoginResult{}, dbFailure("membership lookup", err)
 	}
 	t, err := a.store.FindTenant(ctx, m.TenantID)
+	if errors.Is(err, dao.ErrNotFound) {
+		return LoginResult{}, ErrNoTenant
+	}
 	if err != nil {
-		return LoginResult{}, err
+		return LoginResult{}, dbFailure("tenant lookup", err)
 	}
 	if err := a.store.TouchLastLogin(ctx, user.ID, a.now().UTC()); err != nil {
-		return LoginResult{}, err
+		return LoginResult{}, dbFailure("last login", err)
 	}
 	return LoginResult{
 		Token: token, Role: m.Role, LLMID: t.LLMID, EmbdID: t.EmbdID, RerankID: t.RerankID,

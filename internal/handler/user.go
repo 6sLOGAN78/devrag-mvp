@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"errors"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -41,12 +40,7 @@ func (h *User) Info(c *gin.Context) {
 	}
 	info, err := h.svc.UserInfo(c.Request.Context(), p)
 	if err != nil {
-		if errors.Is(err, service.ErrUnauthenticated) {
-			deny(c)
-			return
-		}
-		_ = c.Error(err)
-		common.Fail(c, http.StatusInternalServerError, common.CodeServerError, "internal error")
+		fail(c, err)
 		return
 	}
 	common.OK(c, UserInfoDTO{
@@ -63,8 +57,7 @@ func (h *User) Logout(c *gin.Context) {
 		return
 	}
 	if err := h.svc.Logout(c.Request.Context(), p.UserID); err != nil {
-		_ = c.Error(err)
-		common.Fail(c, http.StatusInternalServerError, common.CodeServerError, "internal error")
+		fail(c, err)
 		return
 	}
 	http.SetCookie(c.Writer, &http.Cookie{

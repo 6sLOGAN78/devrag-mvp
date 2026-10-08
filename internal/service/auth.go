@@ -195,7 +195,10 @@ func (a *Auth) Logout(ctx context.Context, userID string) error {
 	if err != nil {
 		return err
 	}
-	return a.store.SetAccessToken(ctx, userID, token)
+	if err := a.store.SetAccessToken(ctx, userID, token); err != nil {
+		return dbFailure("sign out", err)
+	}
+	return nil
 }
 
 // UserInfo is the session payload of GET /v1/user/info.
@@ -211,7 +214,7 @@ func (a *Auth) UserInfo(ctx context.Context, p Principal) (UserInfo, error) {
 		return UserInfo{}, ErrUnauthenticated
 	}
 	if err != nil {
-		return UserInfo{}, err
+		return UserInfo{}, dbFailure("profile lookup", err)
 	}
 	info := UserInfo{
 		ID: u.ID, Nickname: u.Nickname, Email: u.Email, Avatar: deref(u.Avatar), Language: NormaliseLanguage(deref(u.Language)),
@@ -220,7 +223,7 @@ func (a *Auth) UserInfo(ctx context.Context, p Principal) (UserInfo, error) {
 	if p.TenantID != "" {
 		t, err := a.store.FindTenant(ctx, p.TenantID)
 		if err != nil && !errors.Is(err, dao.ErrNotFound) {
-			return UserInfo{}, err
+			return UserInfo{}, dbFailure("tenant lookup", err)
 		}
 		if err == nil {
 			info.TenantName = deref(t.Name)
