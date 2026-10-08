@@ -112,6 +112,12 @@ def delete_accounts(accounts: list[Account]) -> None:
             cur.execute(f"USE `{_DB_NAME}`")
             for acc in accounts:
                 cur.execute("DELETE FROM `api_token` WHERE `tenant_id` = %s", (acc.tenant_id,))
+                # Model structure rows are reached through the tenant's provider ids (plan 03-09).
+                cur.execute("SELECT `id` FROM `tenant_model_provider` WHERE `tenant_id` = %s", (acc.tenant_id,))
+                for (provider_id,) in cur.fetchall():
+                    cur.execute("DELETE FROM `tenant_model` WHERE `provider_id` = %s", (provider_id,))
+                    cur.execute("DELETE FROM `tenant_model_instance` WHERE `provider_id` = %s", (provider_id,))
+                cur.execute("DELETE FROM `tenant_model_provider` WHERE `tenant_id` = %s", (acc.tenant_id,))
                 cur.execute("DELETE FROM `tenant_llm` WHERE `tenant_id` = %s", (acc.tenant_id,))
                 cur.execute("DELETE FROM `user_tenant` WHERE `user_id` = %s", (acc.user_id,))
                 cur.execute("DELETE FROM `tenant` WHERE `id` = %s", (acc.tenant_id,))
