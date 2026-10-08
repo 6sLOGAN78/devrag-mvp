@@ -178,6 +178,21 @@ func TestLoadConfigRegisterEnabledParsing(t *testing.T) {
 	assert.Contains(t, err.Error(), "auth.register_enabled")
 }
 
+// IN-07: Go accepts exactly the booleans Python accepts (1/0/true/false, any case); strconv.ParseBool also
+// took t, T, f and F, which Python refuses at start-up.
+func TestLoadConfigRegisterEnabledAcceptsOnlyTheSharedBooleanSet(t *testing.T) {
+	for _, raw := range []string{"t", "T", "f", "F", "yes", "no", "on", "2"} {
+		_, err := LoadConfig(write(t, strings.Replace(baseConf, "register_enabled: '1'", "register_enabled: '"+raw+"'", 1)))
+		require.Error(t, err, raw)
+		assert.Contains(t, err.Error(), "auth.register_enabled", raw)
+	}
+	for raw, want := range map[string]bool{"True": true, "FALSE": false, " 1 ": true} {
+		cfg, err := LoadConfig(write(t, strings.Replace(baseConf, "register_enabled: '1'", "register_enabled: '"+raw+"'", 1)))
+		require.NoError(t, err, raw)
+		assert.Equal(t, want, cfg.Auth.RegisterEnabled, raw)
+	}
+}
+
 func TestLoadConfigOTPTTLBounds(t *testing.T) {
 	for _, bad := range []string{"0", "-1", "3601", "abc"} {
 		_, err := LoadConfig(write(t, strings.Replace(baseConf, "otp_ttl_seconds: 600", "otp_ttl_seconds: "+bad, 1)))

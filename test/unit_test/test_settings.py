@@ -131,6 +131,14 @@ def test_register_enabled_parsing(tmp_path, conf, raw, expected):
     assert load_settings(path).auth.register_enabled is expected
 
 
+@pytest.mark.parametrize("raw", ["t", "T", "f", "F", "yes", "no", "on", "2"])
+def test_register_enabled_rejects_what_go_rejects(tmp_path, conf, raw):
+    """IN-07: the accepted boolean set is identical in both engines."""
+    path = _with(conf, tmp_path, lambda d: d["auth"].__setitem__("register_enabled", raw))
+    with pytest.raises(ConfigError, match=r"auth\.register_enabled"):
+        load_settings(path)
+
+
 def test_register_enabled_invalid(tmp_path, conf):
     path = _with(conf, tmp_path, lambda d: d["auth"].__setitem__("register_enabled", "maybe"))
     with pytest.raises(ConfigError, match=r"auth\.register_enabled"):

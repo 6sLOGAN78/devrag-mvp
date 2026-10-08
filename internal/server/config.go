@@ -181,11 +181,15 @@ func loadPhase2(v *viper.Viper, cfg *Config) error {
 	cfg.Security = SecurityConfig{SecretKey: key, TokenMaxAge: TokenMaxAge, PasswordIterations: PasswordIterations}
 	cfg.Auth.RegisterEnabled = true
 	if raw := strings.TrimSpace(v.GetString("auth.register_enabled")); raw != "" {
-		enabled, err := strconv.ParseBool(raw)
-		if err != nil {
+		// The same accepted set as common/settings.py (1, 0, true, false in any case); strconv.ParseBool is wider.
+		switch strings.ToLower(raw) {
+		case "1", "true":
+			cfg.Auth.RegisterEnabled = true
+		case "0", "false":
+			cfg.Auth.RegisterEnabled = false
+		default:
 			return errors.New("invalid value for config key: auth.register_enabled")
 		}
-		cfg.Auth.RegisterEnabled = enabled
 	}
 	cfg.Auth.SuperuserEmail = strings.TrimSpace(v.GetString("auth.superuser_email"))
 	cfg.Auth.SuperuserPassword = v.GetString("auth.superuser_password")
