@@ -110,9 +110,18 @@ def test_every_error_code_is_covered_by_the_mapping():
 
 def test_the_error_carries_no_provider_exception_text_or_cause():
     source = ModelException(LLMErrorCode.ERROR_AUTHENTICATION, message=f"bad key {KEY}")
-    error = bundle_error(source)
+    error = bundle_error(source, lambda text: text.replace(KEY, "***"))
     assert KEY not in error.message and KEY not in str(error) and KEY not in repr(error)
     assert error.__cause__ is None
+
+
+def test_a_scrubber_masks_a_key_the_redactor_cannot_recognise():
+    odd_key = "plainly-not-a-key-shape"
+    source = ModelException(LLMErrorCode.ERROR_AUTHENTICATION, message=f"bad key {odd_key} given")
+    unscrubbed = bundle_error(source)
+    scrubbed = bundle_error(source, lambda text: text.replace(odd_key, "***"))
+    assert odd_key in unscrubbed.message
+    assert odd_key not in scrubbed.message and "***" in scrubbed.message
 
 
 def test_an_unsupported_model_type_is_a_programming_error():

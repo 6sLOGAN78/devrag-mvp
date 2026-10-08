@@ -443,6 +443,23 @@ def test_repr_and_logs_never_hold_the_key_or_the_envelope(settings, account, fak
     assert line.estimated is False
 
 
+def test_a_usage_write_that_fails_does_not_lose_the_answer(settings, account, fake, caplog, monkeypatch):
+    import peewee
+
+    from api.db.services import tenant_llm_service
+
+    seed(settings, account, fake, fake_key())
+
+    def broken(*_args, **_kwargs):
+        raise peewee.OperationalError("counter store is down")
+
+    monkeypatch.setattr(tenant_llm_service, "add_used_tokens", broken)
+    caplog.set_level(logging.INFO)
+    assert bundle(settings, account).chat("s", HISTORY) == CHAT_TEXT
+    assert any(r.getMessage() == "llm usage not recorded" for r in caplog.records)
+    assert "counter store is down" not in caplog.text
+
+
 # ----------------------------------------------------------------------------- async variants
 
 
