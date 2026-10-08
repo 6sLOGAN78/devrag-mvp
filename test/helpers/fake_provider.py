@@ -164,7 +164,16 @@ def _embedding_response(state: FakeProvider, model: str, texts: list[str]) -> di
     if state.shuffle_embeddings:
         rows.reverse()
     tokens = sum(len(t.split()) or 1 for t in texts)
-    return {"object": "list", "data": rows, "model": model, "usage": {"prompt_tokens": tokens, "total_tokens": tokens}}
+    body: dict[str, Any] = {"object": "list", "data": rows, "model": model, "usage": {"prompt_tokens": tokens, "total_tokens": tokens}}
+    if model == "fake-no-usage":
+        del body["usage"]
+    return body
+
+
+def _redirect() -> Response:
+    response = Response(status=302)
+    response.headers["Location"] = "/v1/redirect-target"
+    return response
 
 
 def _inputs(body: Any) -> list[str]:
@@ -230,6 +239,8 @@ def build_app(state: FakeProvider) -> Quart:
         body = await request.get_json(force=True, silent=True) or {}
         model = str(body.get("model", ""))
         failure = _scripted_failure(state, model)
+        if model == "fake-redirect":
+            return _redirect()
         return failure if failure is not None else _json(_embedding_response(state, model, _inputs(body)))
 
     def azure_guard() -> Response | None:
@@ -279,9 +290,12 @@ def build_app(state: FakeProvider) -> Quart:
         failure = _scripted_failure(state, model)
         if failure is not None:
             return failure
+        if model == "fake-redirect":
+            return _redirect()
         texts = _inputs(body)
         vectors = [[round((i + 1) / 10 + j / 100, 4) for j in range(state.embedding_dim)] for i, _ in enumerate(texts)]
-        return _json({"model": model, "embeddings": vectors, "prompt_eval_count": sum(len(t.split()) or 1 for t in texts)})
+        counts = {} if model == "fake-no-usage" else {"prompt_eval_count": sum(len(t.split()) or 1 for t in texts)}
+        return _json({"model": model, "embeddings": vectors, **counts})
 
     return app
 
