@@ -102,7 +102,7 @@ def test_ratelimit_defaults_equal_r94_numbers(conf):
     assert load_settings(conf).ratelimit == RateLimitSettings(
         register_per_ip=10, register_window_seconds=3600, login_failures_per_email=5, login_per_ip=30,
         login_window_seconds=900, otp_email_interval_seconds=60, otp_per_email_per_hour=5,
-        otp_per_ip_per_hour=20, otp_window_seconds=3600,
+        otp_per_ip_per_hour=20, otp_window_seconds=3600, provider_test_per_tenant=10, provider_test_window_seconds=300,
     )
     assert RateLimitSettings() == load_settings(conf).ratelimit
 
@@ -195,3 +195,111 @@ def test_repr_masks_secret_key_superuser_and_smtp_passwords(tmp_path, monkeypatc
         assert value not in dumped
     assert not re.search(r"fake-(repr|su|smtp)", dumped)
     assert "***" in dumped
+
+
+# --- Phase 3 sections: llm, storage, upload and two rate-limit fields (03-01, D-11, D-13, D-23, D-28, SEC-03) ---
+import base64  # noqa: E402
+import dataclasses  # noqa: E402
+
+BUILT_IN_EXTENSIONS = ("pdf", "docx", "pptx", "xlsx", "txt", "md", "markdown", "csv", "json", "html", "htm", "epub", "jpg", "jpeg", "png", "mp3", "wav")
+FAKE_ENC_KEY = base64.urlsafe_b64encode(b"fake-llm-key-for-tests-0123456789"[:32].ljust(32, b"0")).decode()
+
+
+def test_phase3_sections_typed_defaults(conf):
+    s = load_settings(conf)
+    assert s.llm.encryption_key == "" and s.llm.key_id == "k1"
+    assert s.llm.allow_private_base_urls is False
+    assert (s.llm.chat_timeout_seconds, s.llm.embedding_timeout_seconds, s.llm.key_test_timeout_seconds, s.llm.max_retries) == (60, 30, 20, 3)
+    assert (s.storage.impl, s.storage.local_base_dir) == ("MINIO", "/ragflow/data/storage")
+    assert s.upload.max_file_bytes == 104857600
+    assert s.upload.max_files_per_request == 20
+    assert s.upload.max_documents_per_dataset == 10000
+    assert s.upload.body_timeout_seconds == 600
+    assert s.upload.allowed_extensions == BUILT_IN_EXTENSIONS
+    assert (s.ratelimit.provider_test_per_tenant, s.ratelimit.provider_test_window_seconds) == (10, 300)
+
+
+def test_built_in_extensions_exclude_unsupported_image_types():
+    for gone in ("gif", "bmp", "tiff", "webp"):
+        assert gone not in BUILT_IN_EXTENSIONS
+
+
+def test_old_settings_construction_still_works(conf):
+    s = load_settings(conf)
+    required = {f.name: getattr(s, f.name) for f in dataclasses.fields(s) if f.default is dataclasses.MISSING and f.default_factory is dataclasses.MISSING}
+    from common.settings import Settings
+
+    rebuilt = Settings(**required)
+    assert rebuilt.llm.encryption_key == "" and rebuilt.upload.max_files_per_request == 20 and rebuilt.storage.impl == "MINIO"
+
+
+def test_llm_repr_and_str_never_contain_the_key(tmp_path, conf):
+    path = _with(conf, tmp_path, lambda d: d["llm"].__setitem__("encryption_key", FAKE_ENC_KEY))
+    settings = load_settings(path)
+    assert settings.llm.encryption_key == FAKE_ENC_KEY
+    dumped = repr(settings) + str(settings) + repr(settings.llm) + str(settings.llm)
+    assert FAKE_ENC_KEY not in dumped
+    assert "***" in dumped
+
+
+@pytest.mark.parametrize("bad", ["not base64 !!", "short", base64.urlsafe_b64encode(b"x" * 31).decode(), base64.urlsafe_b64encode(b"x" * 33).decode(), "a" * 43 + "$"])
+def test_bad_encryption_key_rejected_without_echo(tmp_path, conf, bad):
+    path = _with(conf, tmp_path, lambda d: d["llm"].__setitem__("encryption_key", bad))
+    with pytest.raises(ConfigError, match=r"llm\.encryption_key") as err:
+        load_settings(path)
+    assert bad not in str(err.value)
+
+
+def test_empty_encryption_key_parses(tmp_path, conf):
+    path = _with(conf, tmp_path, lambda d: d["llm"].__setitem__("encryption_key", ""))
+    assert load_settings(path).llm.encryption_key == ""
+
+
+@pytest.mark.parametrize(("key", "value"), [("max_file_bytes", 104857601), ("max_file_bytes", 0), ("max_files_per_request", 101), ("max_files_per_request", 0), ("max_documents_per_dataset", 1000001), ("max_documents_per_dataset", "abc")])
+def test_upload_bounds(tmp_path, conf, key, value):
+    path = _with(conf, tmp_path, lambda d: d["upload"].__setitem__(key, value))
+    with pytest.raises(ConfigError, match=rf"upload\.{key}"):
+        load_settings(path)
+
+
+def test_upload_max_file_bytes_upper_bound_is_accepted(tmp_path, conf):
+    path = _with(conf, tmp_path, lambda d: d["upload"].__setitem__("max_file_bytes", 104857600))
+    assert load_settings(path).upload.max_file_bytes == 104857600
+
+
+@pytest.mark.parametrize(("value", "expected"), [("", BUILT_IN_EXTENSIONS), ("PDF, Md ,txt", ("pdf", "md", "txt"))])
+def test_allowed_extensions_parsing(tmp_path, conf, value, expected):
+    path = _with(conf, tmp_path, lambda d: d["upload"].__setitem__("allowed_extensions", value))
+    assert load_settings(path).upload.allowed_extensions == expected
+
+
+@pytest.mark.parametrize("bad", ["pdf,.md", "pdf,a b", "pdf,toolongextension", "pdf;txt"])
+def test_allowed_extensions_rejects_malformed_entries(tmp_path, conf, bad):
+    path = _with(conf, tmp_path, lambda d: d["upload"].__setitem__("allowed_extensions", bad))
+    with pytest.raises(ConfigError, match=r"upload\.allowed_extensions"):
+        load_settings(path)
+
+
+@pytest.mark.parametrize("impl", ["MINIO", "LOCAL"])
+def test_storage_impl_accepts_minio_and_local(tmp_path, conf, impl):
+    path = _with(conf, tmp_path, lambda d: d["storage"].__setitem__("impl", impl))
+    assert load_settings(path).storage.impl == impl
+
+
+@pytest.mark.parametrize("impl", ["S3", "AZURE", "minio2"])
+def test_storage_impl_rejects_other_values(tmp_path, conf, impl):
+    path = _with(conf, tmp_path, lambda d: d["storage"].__setitem__("impl", impl))
+    with pytest.raises(ConfigError, match=r"storage\.impl"):
+        load_settings(path)
+
+
+@pytest.mark.parametrize(("key", "value"), [("max_retries", 6), ("chat_timeout_seconds", 0), ("key_test_timeout_seconds", "abc")])
+def test_llm_numeric_bounds(tmp_path, conf, key, value):
+    path = _with(conf, tmp_path, lambda d: d["llm"].__setitem__(key, value))
+    with pytest.raises(ConfigError, match=rf"llm\.{key}"):
+        load_settings(path)
+
+
+def test_llm_zero_retries_is_allowed(tmp_path, conf):
+    path = _with(conf, tmp_path, lambda d: d["llm"].__setitem__("max_retries", 0))
+    assert load_settings(path).llm.max_retries == 0

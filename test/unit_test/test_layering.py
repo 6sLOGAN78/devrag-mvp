@@ -47,3 +47,19 @@ def test_detector_flags_a_violation(tmp_path, monkeypatch):
     bad = tmp_path / "x.py"
     bad.write_text("from api.db.models.base import BaseModel\nimport peewee\n")
     assert {"api.db.models.base.BaseModel", "peewee"} <= _imports(bad)
+
+
+# --- Phase 3 packages (03-01): rag/ and the adapters stay free of the web framework and the API layer ---
+def test_rag_package_is_independent_of_the_api_layer_and_the_web_framework():
+    assert _violations("rag", ("api.apps", "api.db", "quart", "quart_schema", "quart_cors")) == []
+
+
+def test_doc_store_and_net_do_not_import_api_rag_or_quart():
+    forbidden = ("api", "rag", "quart", "quart_schema", "quart_cors")
+    assert _violations("common/doc_store", forbidden) == []
+    assert _violations("common/net", forbidden) == []
+
+
+def test_new_packages_exist():
+    for package in ("rag", "rag/utils", "common/doc_store", "common/net"):
+        assert (ROOT / package / "__init__.py").is_file(), package

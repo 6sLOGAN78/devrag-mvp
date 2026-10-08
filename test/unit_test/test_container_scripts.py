@@ -241,3 +241,25 @@ def test_plain_mode_still_refuses_existing_env_and_leaves_operator_secret_empty(
     text = target.read_text()
     assert "SMTP_PASSWORD=\n" in text
     assert len(dict(line.split("=", 1) for line in text.splitlines() if "=" in line)["SECRET_KEY"]) == 64
+
+
+# --- Phase 3: LLM_KEY_ENCRYPTION_KEY generation, OPENROUTER_API_KEY stays operator-supplied, image carries rag/ (03-01, D-23) ---
+def test_init_env_generates_a_32_byte_urlsafe_base64_encryption_key_and_leaves_openrouter_empty(tmp_path: Path) -> None:
+    import base64
+
+    example = tmp_path / "env.example"
+    example.write_text("# secret\nLLM_KEY_ENCRYPTION_KEY=\n# secret\nOPENROUTER_API_KEY=\nLLM_KEY_ID=k1\n")
+    target = tmp_path / "env"
+    env = {**os.environ, "ENV_EXAMPLE": str(example), "ENV_TARGET": str(target)}
+    result = subprocess.run(["bash", str(INIT_ENV)], capture_output=True, text=True, env=env, check=False)
+    assert result.returncode == 0, result.stderr
+    values = dict(line.split("=", 1) for line in target.read_text().splitlines() if "=" in line)
+    key = values["LLM_KEY_ENCRYPTION_KEY"]
+    assert len(base64.urlsafe_b64decode(key + "=" * (-len(key) % 4))) == 32
+    assert key not in result.stdout + result.stderr
+    assert values["OPENROUTER_API_KEY"] == ""
+    assert values["LLM_KEY_ID"] == "k1"
+
+
+def test_dockerfile_copies_the_rag_package() -> None:
+    assert "COPY rag ./rag" in (ROOT / "Dockerfile").read_text().splitlines()
