@@ -248,9 +248,9 @@ Requirements for initial release. Each maps to exactly one roadmap phase.
 
 - [x] **LLM-01**: Chat driver base interface: `chat`, `async_chat`, `chat_streamly`, `async_chat_streamly`
 - [x] **LLM-02**: LiteLLM-backed driver with provider prefix routing and default base URLs
-- [ ] **LLM-03**: OpenAI chat and embeddings
-- [ ] **LLM-04**: Azure OpenAI deployment mapping
-- [ ] **LLM-05**: Ollama chat and embeddings with user-supplied base URL (no `/v1` suffix)
+- [x] **LLM-03**: OpenAI chat and embeddings
+- [x] **LLM-04**: Azure OpenAI deployment mapping
+- [x] **LLM-05**: Ollama chat and embeddings with user-supplied base URL (no `/v1` suffix)
 - [ ] **LLM-06**: DeepSeek with `<think>` reasoning-block extraction
 - [ ] **LLM-07**: Provider registry of 40+ providers (Tongyi/DashScope, Zhipu, Moonshot, Anthropic, Gemini, Bedrock, Cohere, Groq, TogetherAI, xAI, NVIDIA, MiniMax, Hunyuan, SiliconFlow, OpenRouter, ...)
 - [ ] **LLM-08**: Embedding drivers: OpenAI, Azure, Qwen, Zhipu, Ollama, HuggingFace/builtin, Jina, SiliconFlow
@@ -266,7 +266,7 @@ Requirements for initial release. Each maps to exactly one roadmap phase.
 - [x] **LLM-18**: Reasoning models (o1/o3) suppress `temperature` and use `max_completion_tokens`
 - [x] **LLM-19**: Provider errors map to `LLMErrorCode`; rate-limit and timeout errors are retried
 - [x] **LLM-20**: Stream sanitizer strips malformed fragments and control tokens
-- [ ] **LLM-21**: Token usage is counted for streaming and non-streaming calls and recorded
+- [x] **LLM-21**: Token usage is counted for streaming and non-streaming calls and recorded
 - [x] **LLM-22**: Model metadata registry: context window, max completion tokens, vision flag, input/output price
 - [x] **LLM-23**: User can list providers via `GET /providers`
 - [ ] **LLM-24**: Admin/owner can add or update a provider's credentials via `PUT /providers`
@@ -888,9 +888,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | RETR-23 | Phase 5 | Pending |
 | LLM-01 | Phase 3 | Complete |
 | LLM-02 | Phase 3 | Complete |
-| LLM-03 | Phase 3 | Pending |
-| LLM-04 | Phase 3 | Pending |
-| LLM-05 | Phase 3 | Pending |
+| LLM-03 | Phase 3 | Complete |
+| LLM-04 | Phase 3 | Complete |
+| LLM-05 | Phase 3 | Complete |
 | LLM-06 | Phase 8 | Pending |
 | LLM-07 | Phase 8 | Pending |
 | LLM-08 | Phase 8 | Pending |
@@ -906,7 +906,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | LLM-18 | Phase 3 | Complete |
 | LLM-19 | Phase 3 | Complete |
 | LLM-20 | Phase 3 | Complete |
-| LLM-21 | Phase 3 | Pending |
+| LLM-21 | Phase 3 | Complete |
 | LLM-22 | Phase 3 | Complete |
 | LLM-23 | Phase 3 | Complete |
 | LLM-24 | Phase 3 | Pending |

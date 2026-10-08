@@ -225,7 +225,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 03-06-PLAN.md — Embedding drivers
+- [x] 03-06-PLAN.md — Embedding drivers
 - [ ] 03-09-PLAN.md — Encrypted credential store, model structure rows, composite ids and defaults
 
 **Wave 4** *(blocked on Wave 3 completion)*

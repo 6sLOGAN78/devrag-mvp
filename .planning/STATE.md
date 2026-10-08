@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 03-08-PLAN.md
-last_updated: "2026-10-08T21:08:41.327Z"
+stopped_at: Completed 03-06-PLAN.md
+last_updated: "2026-10-08T21:15:40.025Z"
 last_activity: 2026-10-08
 progress:
   total_phases: 8
   completed_phases: 2
   total_plans: 83
-  completed_plans: 59
+  completed_plans: 60
   percent: 25
 ---
 
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-10-05)
 ## Current Position
 
 Phase: 3 (Models, Knowledge Bases and Upload) — EXECUTING
-Plan: 8 of 31
+Plan: 9 of 31
 Status: Ready to execute
 Last activity: 2026-10-08
 
-Progress: [███████░░░] 71%
+Progress: [███████░░░] 72%
 
 ## Performance Metrics
 
@@ -71,6 +71,7 @@ Progress: [███████░░░] 71%
 | Phase 03 P05 | 75min | 3 tasks | 11 files |
 | Phase 03 P07 | 25min | 3 tasks | 7 files |
 | Phase 03 P08 | 50min | 3 tasks | 6 files |
+| Phase 03 P06 | 35min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -104,6 +105,7 @@ Recent decisions affecting current work:
 - [Phase 03]: 03-05: 402 maps to ERROR_INVALID_REQUEST (provider_status kept); extra_headers dropped unless trust_extra_headers; per-call no-redirect httpx client with captured error body; pytest ignores two third-party pydantic warnings from litellm
 - [Phase 03]: 03-07: StorageNotFound added as StorageError subclass; unknown storage.impl raises ConfigError; presigned URLs implemented but not routed in Phase 3 — callers must tell absent objects from failures; matches the settings loader; URL carries internal MinIO endpoint
 - [Phase 03]: 03-08: one shared index ragflow_{tenant_id}; search hits carry id and _score; insert refuses a missing index so the engine never auto-creates it unmapped
+- [Phase 03]: 03-06: embedding token limit is min(8191, model_meta.max_tokens) for all providers; target validation (incl. Ollama /v1) surfaces as ERROR_INVALID_REQUEST on the first encode(), not in the constructor — uniform input bound; construction stays I/O-free
 
 ### Pending Todos
 
@@ -139,6 +141,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-10-08T21:08:41.312Z
-Stopped at: Completed 03-08-PLAN.md
+Last session: 2026-10-08T21:15:40.013Z
+Stopped at: Completed 03-06-PLAN.md
 Resume file: None
