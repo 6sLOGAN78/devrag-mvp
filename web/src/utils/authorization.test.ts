@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { getAuthorization, removeAuthorization, setAuthorization, subscribeAuthorization } from "./authorization";
 
 describe("unit authorization util", () => {
@@ -37,5 +37,49 @@ describe("unit authorization subscription", () => {
     window.dispatchEvent(new StorageEvent("storage", { key: "theme" }));
     expect(listener).toHaveBeenCalledTimes(1);
     unsubscribe();
+  });
+});
+
+function blockStorage(): void {
+  const denied = () => {
+    throw new DOMException("The operation is insecure.", "SecurityError");
+  };
+  vi.spyOn(Storage.prototype, "getItem").mockImplementation(denied);
+  vi.spyOn(Storage.prototype, "setItem").mockImplementation(denied);
+  vi.spyOn(Storage.prototype, "removeItem").mockImplementation(denied);
+}
+
+describe("unit authorization with blocked storage (WR-F01)", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+    removeAuthorization();
+  });
+
+  it("reads null instead of throwing when storage access is denied", () => {
+    blockStorage();
+    expect(() => getAuthorization()).not.toThrow();
+    expect(getAuthorization()).toBeNull();
+  });
+
+  it("keeps the token in memory for the tab's lifetime when storage cannot be written", () => {
+    blockStorage();
+    const listener = vi.fn();
+    const unsubscribe = subscribeAuthorization(listener);
+    expect(() => setAuthorization("tok")).not.toThrow();
+    expect(getAuthorization()).toBe("tok");
+    expect(listener).toHaveBeenCalledTimes(1);
+    expect(() => removeAuthorization()).not.toThrow();
+    expect(getAuthorization()).toBeNull();
+    unsubscribe();
+  });
+
+  it("keeps the token in memory when only the write is refused (quota or policy)", () => {
+    vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
+      throw new DOMException("quota", "QuotaExceededError");
+    });
+    setAuthorization("tok");
+    expect(getAuthorization()).toBe("tok");
+    removeAuthorization();
+    expect(getAuthorization()).toBeNull();
   });
 });

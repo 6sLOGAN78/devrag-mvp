@@ -168,6 +168,37 @@ describe("the root entry redirect (UI-02)", () => {
   });
 });
 
+describe("blocked browser storage (WR-F01)", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  function blockStorage(): void {
+    const denied = () => {
+      throw new DOMException("The operation is insecure.", "SecurityError");
+    };
+    vi.spyOn(Storage.prototype, "getItem").mockImplementation(denied);
+    vi.spyOn(Storage.prototype, "setItem").mockImplementation(denied);
+    vi.spyOn(Storage.prototype, "removeItem").mockImplementation(denied);
+  }
+
+  it("renders the sign-in page and the root redirect instead of the error boundary", async () => {
+    blockStorage();
+    const root = renderAt("/");
+    expect(await screen.findByTestId("login-page")).toBeInTheDocument();
+    expect(root.router.state.location.pathname).toBe("/login");
+    expect(screen.queryByRole("heading", { name: "Something went wrong" })).toBeNull();
+  });
+
+  it("lets a visitor sign in for the lifetime of the tab: the token lives in memory and recovery succeeds", async () => {
+    blockStorage();
+    setAuthorization("tok-memory");
+    renderAt("/home");
+    expect(await screen.findByRole("heading", { name: "Welcome, Ada" })).toBeInTheDocument();
+    expect(screen.getByTestId("layout-standard")).toBeInTheDocument();
+  });
+});
+
 describe("route table", () => {
   it("renders every registry route inside its declared layout", async () => {
     signIn();
