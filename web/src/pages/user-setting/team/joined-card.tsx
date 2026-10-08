@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useLastDefined } from "@/hooks/use-last-defined";
 import { useLeaveWorkspace } from "@/hooks/use-team-request";
 import { notifySuccess } from "@/services/notify";
 import type { Membership } from "@/services/team-service";
@@ -26,6 +27,8 @@ export function JoinedCard({ workspaces, userId, onLeft }: JoinedCardProps) {
   const { t } = useTranslation();
   const leave = useLeaveWorkspace();
   const [target, setTarget] = useState<Membership | null>(null);
+  // The dialog clears `target` as it closes but is still animating out: keep the last workspace for its text.
+  const shownTarget = useLastDefined(target);
   const left = useRef(false);
   const opener = useRef<HTMLElement | null>(null);
 
@@ -81,8 +84,8 @@ export function JoinedCard({ workspaces, userId, onLeft }: JoinedCardProps) {
         onOpenChange={(open) => {
           if (!open) setTarget(null);
         }}
-        title={t("team.leave.title", { workspace: target?.tenantName ?? "" })}
-        description={t("team.leave.body", { workspace: target?.tenantName ?? "" })}
+        title={t("team.leave.title", { workspace: shownTarget?.tenantName ?? "" })}
+        description={t("team.leave.body", { workspace: shownTarget?.tenantName ?? "" })}
         keepLabel={t("team.leave.keep")}
         confirmLabel={t("team.leave.confirm")}
         destructive

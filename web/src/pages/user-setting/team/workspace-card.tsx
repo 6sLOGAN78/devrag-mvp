@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { ErrorState } from "@/components/error-state";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useLastDefined } from "@/hooks/use-last-defined";
 import { useChangeMemberRole, useMembersRequest, useRemoveMember } from "@/hooks/use-team-request";
 import type { SessionUser } from "@/interfaces/user";
 import { notifySuccess } from "@/services/notify";
@@ -120,7 +121,8 @@ export function WorkspaceCard({ user, cardRef }: { user: SessionUser; cardRef: R
     );
   }
 
-  const dialog = describe(pending, user.tenantName, t);
+  const shown = useLastDefined(pending);
+  const dialog = describe(shown, user.tenantName, t);
   return (
     <Card ref={cardRef} tabIndex={-1} data-testid="workspace-card" className="focus-visible:outline-none">
       <CardHeader>
@@ -154,7 +156,7 @@ export function WorkspaceCard({ user, cardRef }: { user: SessionUser; cardRef: R
         description={dialog.description}
         keepLabel={dialog.keep}
         confirmLabel={dialog.confirm}
-        destructive={pending?.kind !== "role"}
+        destructive={shown?.kind !== "role"}
         pending={changeRole.isPending || remove.isPending}
         onConfirm={() => void confirm()}
         opener={opener}
