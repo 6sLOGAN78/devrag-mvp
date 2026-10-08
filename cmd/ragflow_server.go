@@ -25,7 +25,23 @@ const (
 	startupTimeout    = 5 * time.Second
 	shutdownTimeout   = 10 * time.Second
 	readHeaderTimeout = 5 * time.Second
+	// The whole request (headers and the largest body, a 400 KB profile update) must arrive within readTimeout.
+	readTimeout = 30 * time.Second
+	// writeTimeout bounds a response. A route that streams (MCP, search bots, chat) extends its own deadline with
+	// http.ResponseController.SetWriteDeadline; no such route exists yet.
+	writeTimeout   = 60 * time.Second
+	idleTimeout    = 120 * time.Second
+	maxHeaderBytes = 64 << 10
 )
+
+// newHTTPServer builds the server with every timeout set (IN-05).
+func newHTTPServer(addr string, h http.Handler) *http.Server {
+	return &http.Server{
+		Addr: addr, Handler: h,
+		ReadHeaderTimeout: readHeaderTimeout, ReadTimeout: readTimeout, WriteTimeout: writeTimeout,
+		IdleTimeout: idleTimeout, MaxHeaderBytes: maxHeaderBytes,
+	}
+}
 
 func main() {
 	os.Exit(execute(os.Args[1:], runAPI, os.Stderr))
@@ -61,9 +77,9 @@ func runAPI() error {
 	defer func() { _ = rd.Close() }()
 
 	svc := service.NewSystem(db, rd, db).WithRegisterEnabled(cfg.Auth.RegisterEnabled)
-	accounts := service.NewAccount(db, service.NewLimiter(rd, "rl"), cfg)
-	auth := service.NewAuth(db, cfg.Security.SecretKey, cfg.Security.TokenMaxAge).WithTokens(db)
 	limiter := service.NewLimiter(rd, "rl")
+	accounts := service.NewAccount(db, limiter, cfg)
+	auth := service.NewAuth(db, cfg.Security.SecretKey, cfg.Security.TokenMaxAge).WithTokens(db)
 	mailQueue, closeMail, err := newMailQueue(cfg, logger)
 	if err != nil {
 		return err
@@ -76,12 +92,12 @@ func runAPI() error {
 		router.WithAccount(handler.NewAccount(accounts, cfg.Security.TokenMaxAge)),
 		router.WithSession(handler.NewUser(auth)),
 		router.WithPasswordReset(handler.NewPasswordReset(reset)),
-		router.WithTokens(handler.NewToken(service.NewToken(db, service.NewLimiter(rd, "rl"), service.DefaultTokenLimits()))),
+		router.WithTokens(handler.NewToken(service.NewToken(db, limiter, service.DefaultTokenLimits()))),
 		router.WithProfile(
-			handler.NewSettings(service.NewUser(db, service.NewLimiter(rd, "rl"), cfg)),
+			handler.NewSettings(service.NewUser(db, limiter, cfg)),
 			tenants),
 		router.WithTeam(tenants))
-	srv := &http.Server{Addr: cfg.Addr(), Handler: engine, ReadHeaderTimeout: readHeaderTimeout}
+	srv := newHTTPServer(cfg.Addr(), engine)
 
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
