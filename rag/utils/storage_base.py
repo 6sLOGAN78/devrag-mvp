@@ -13,6 +13,7 @@ from collections.abc import Iterator
 from typing import BinaryIO
 
 TENANT_ID_RE = re.compile(r"[0-9a-f]{32}")
+BUCKET_RE = re.compile(r"[a-z0-9][a-z0-9.-]{2,62}")
 MAX_KEY_LENGTH = 255
 DEFAULT_PRESIGN_SECONDS = 3600
 DEFAULT_CHUNK_SIZE = 1 << 20
@@ -35,6 +36,12 @@ def new_object_key(tenant_id: str) -> str:
     if not isinstance(tenant_id, str) or TENANT_ID_RE.fullmatch(tenant_id) is None:
         raise StorageError("invalid tenant id for object key")
     return f"{tenant_id}/{uuid.uuid4().hex}"
+
+
+def validate_bucket(bucket: str) -> None:
+    """Reject bucket names that are not 3 to 63 lowercase letters, digits, dots or hyphens (no ``..``)."""
+    if not isinstance(bucket, str) or BUCKET_RE.fullmatch(bucket) is None or ".." in bucket:
+        raise StorageError("invalid bucket name")
 
 
 def validate_key(key: str) -> None:

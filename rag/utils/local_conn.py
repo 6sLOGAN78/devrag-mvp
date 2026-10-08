@@ -8,15 +8,13 @@ from __future__ import annotations
 
 import errno
 import os
-import re
 import uuid
 from collections.abc import Iterator
 from pathlib import Path
 from typing import BinaryIO
 
-from rag.utils.storage_base import DEFAULT_CHUNK_SIZE, Storage, StorageError, StorageNotFound, StorageNotSupported, validate_key
+from rag.utils.storage_base import DEFAULT_CHUNK_SIZE, Storage, StorageError, StorageNotFound, StorageNotSupported, validate_bucket, validate_key
 
-BUCKET_RE = re.compile(r"[a-z0-9][a-z0-9.-]{2,62}")
 DIR_MODE = 0o700
 FILE_MODE = 0o600
 
@@ -29,8 +27,7 @@ class LocalStorage(Storage):
 
     def sanitize_path(self, bucket: str, key: str | None = None) -> Path:
         """Resolved absolute path for ``bucket`` (and ``key``), guaranteed to be inside the base directory."""
-        if not isinstance(bucket, str) or BUCKET_RE.fullmatch(bucket) is None or ".." in bucket:
-            raise StorageError("invalid bucket name")
+        validate_bucket(bucket)
         if key is not None:
             validate_key(key)
         base = self._base.resolve()
