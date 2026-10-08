@@ -36,6 +36,7 @@ from rag.llm.errors import LLMErrorCode, ModelException
 from rag.llm.model_meta import REASONING_MODEL
 from rag.llm.retry import arun_with_retries
 from rag.llm.stream import StreamSanitizer, Usage, strip_control, usage_from
+from rag.llm.sync_loop import PrivateLoop
 
 logger = logging.getLogger(__name__)
 
@@ -220,23 +221,30 @@ class Base:
 
     def chat(self, system: str, history: list[dict[str, Any]], gen_conf: Mapping[str, Any] | None = None) -> tuple[str, int]:
         self._require_no_loop()
-        return asyncio.run(self.async_chat(system, history, gen_conf))
+        loop = PrivateLoop()
+        try:
+            return loop.run(self.async_chat(system, history, gen_conf))
+        finally:
+            loop.close()
 
     def chat_streamly(self, system: str, history: list[dict[str, Any]], gen_conf: Mapping[str, Any] | None = None) -> Iterator[str]:
+        """Sync facade over ``async_chat_streamly``. The stream is closed on end, error and consumer early exit (generator close)."""
         self._require_no_loop()
-        loop = asyncio.new_event_loop()
+        loop = PrivateLoop()
         agen = self.async_chat_streamly(system, history, gen_conf)
         try:
             while True:
                 try:
-                    yield loop.run_until_complete(agen.__anext__())
+                    piece = loop.run(agen.__anext__())
                 except StopAsyncIteration:
                     return
+                yield piece
         finally:
-            with contextlib.suppress(Exception):
-                loop.run_until_complete(agen.aclose())  # type: ignore[attr-defined]
-                loop.run_until_complete(loop.shutdown_asyncgens())
-            loop.close()
+            try:
+                with contextlib.suppress(Exception):
+                    loop.run(agen.aclose())  # type: ignore[attr-defined]  # runs the driver's finally: stream.aclose(), client close
+            finally:
+                loop.close()  # separate step: a failing aclose must not skip closing the loop and its leftover generators
 
 
 class _Session:
