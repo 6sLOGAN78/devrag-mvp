@@ -269,10 +269,10 @@ Requirements for initial release. Each maps to exactly one roadmap phase.
 - [x] **LLM-21**: Token usage is counted for streaming and non-streaming calls and recorded
 - [x] **LLM-22**: Model metadata registry: context window, max completion tokens, vision flag, input/output price
 - [x] **LLM-23**: User can list providers via `GET /providers`
-- [ ] **LLM-24**: Admin/owner can add or update a provider's credentials via `PUT /providers`
-- [ ] **LLM-25**: Admin/owner can delete a provider via `DELETE /providers/<provider_id_or_name>`
+- [x] **LLM-24**: Admin/owner can add or update a provider's credentials via `PUT /providers`
+- [x] **LLM-25**: Admin/owner can delete a provider via `DELETE /providers/<provider_id_or_name>`
 - [ ] **LLM-26**: User can list a provider's models via `GET /providers/<provider>/models`
-- [ ] **LLM-27**: Admin/owner can create and view provider instances via `POST /providers/<provider>/instances` and `GET .../instances/<instance>`
+- [x] **LLM-27**: Admin/owner can create and view provider instances via `POST /providers/<provider>/instances` and `GET .../instances/<instance>`
 - [x] **LLM-28**: User can list configured models and tenant defaults via `GET /models`, `GET /models/default`
 - [x] **LLM-29**: Tenant model entities: `TenantModelProvider`, `TenantModelInstance`, `TenantModel`, `TenantModelGroup`, `TenantModelGroupMapping`
 - [ ] **LLM-30**: Per-tenant Langfuse keys: set via `POST`/`PUT /langfuse/api-key`, delete via `DELETE /langfuse/api-key`
@@ -588,7 +588,7 @@ Requirements for initial release. Each maps to exactly one roadmap phase.
 ### SEC — Security
 
 - [x] **SEC-01**: Every non-public endpoint is behind the auth decorator/middleware
-- [ ] **SEC-02**: API keys, access tokens, and LLM credentials are masked in API responses
+- [x] **SEC-02**: API keys, access tokens, and LLM credentials are masked in API responses
 - [x] **SEC-03**: LLM provider keys are encrypted at rest
 - [x] **SEC-04**: Secrets come from environment/config, never hard-coded, never logged
 - [x] **SEC-05**: Restricted unpickler allows only whitelisted modules (`numpy`, `rag_flow`)
@@ -909,10 +909,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | LLM-21 | Phase 3 | Complete |
 | LLM-22 | Phase 3 | Complete |
 | LLM-23 | Phase 3 | Complete |
-| LLM-24 | Phase 3 | Pending |
-| LLM-25 | Phase 3 | Pending |
+| LLM-24 | Phase 3 | Complete |
+| LLM-25 | Phase 3 | Complete |
 | LLM-26 | Phase 3 | Pending |
-| LLM-27 | Phase 3 | Pending |
+| LLM-27 | Phase 3 | Complete |
 | LLM-28 | Phase 3 | Complete |
 | LLM-29 | Phase 3 | Complete |
 | LLM-30 | Phase 8 | Pending |
@@ -1180,7 +1180,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DEPLOY-20 | Phase 8 | Pending |
 | DEPLOY-21 | Phase 8 | Pending |
 | SEC-01 | Phase 2 | Complete |
-| SEC-02 | Phase 3 | Pending |
+| SEC-02 | Phase 3 | Complete |
 | SEC-03 | Phase 3 | Complete |
 | SEC-04 | Phase 1 | Complete |
 | SEC-05 | Phase 1 | Complete |

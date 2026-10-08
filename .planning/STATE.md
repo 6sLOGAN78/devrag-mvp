@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 03-09-PLAN.md
-last_updated: "2026-10-08T21:23:02.417Z"
+stopped_at: Completed 03-10-PLAN.md
+last_updated: "2026-10-08T21:43:10.268Z"
 last_activity: 2026-10-08
 progress:
   total_phases: 8
   completed_phases: 2
   total_plans: 83
-  completed_plans: 61
+  completed_plans: 62
   percent: 25
 ---
 
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-10-05)
 ## Current Position
 
 Phase: 3 (Models, Knowledge Bases and Upload) — EXECUTING
-Plan: 10 of 31
+Plan: 11 of 31
 Status: Ready to execute
 Last activity: 2026-10-08
 
-Progress: [███████░░░] 73%
+Progress: [████████░░] 75%
 
 ## Performance Metrics
 
@@ -73,6 +73,7 @@ Progress: [███████░░░] 73%
 | Phase 03 P08 | 50min | 3 tasks | 6 files |
 | Phase 03 P06 | 35min | 2 tasks | 4 files |
 | Phase 03 P09 | 70min | 3 tasks | 9 files |
+| Phase 03 P10 | 45min | 3 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -110,6 +111,7 @@ Recent decisions affecting current work:
 - [Phase 03]: Composite model ids are bounded at 128 characters in total; save_instance/add_models refuse longer ones with models_invalid (03-09)
 - [Phase 03]: save_instance stores api_base/api_version exactly as given; Change key must resend the stored address (03-09)
 - [Phase 03]: Existing models keep max_tokens on re-save; embedding models require a recorded dimension (03-09)
+- [Phase 03]: 03-10: one limiter hit per provider save or add; address equality treats no address and the documented default as equal; tests overriding Settings must rename service hosts so the fake provider is not on the deny list
 
 ### Pending Todos
 
@@ -145,6 +147,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-10-08T21:23:02.407Z
-Stopped at: Completed 03-09-PLAN.md
+Last session: 2026-10-08T21:43:10.251Z
+Stopped at: Completed 03-10-PLAN.md
 Resume file: None

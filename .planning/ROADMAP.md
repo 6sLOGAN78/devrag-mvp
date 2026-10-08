@@ -230,7 +230,7 @@ Plans:
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-- [ ] 03-10-PLAN.md — Provider service: test before save, SSRF and rate guards
+- [x] 03-10-PLAN.md — Provider service: test before save, SSRF and rate guards
 - [ ] 03-11-PLAN.md — LLMBundle with usage recording
 - [ ] 03-15-PLAN.md — Upload safety rules
 
