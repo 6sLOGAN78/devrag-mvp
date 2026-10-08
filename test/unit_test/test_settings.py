@@ -255,7 +255,17 @@ def test_empty_encryption_key_parses(tmp_path, conf):
     assert load_settings(path).llm.encryption_key == ""
 
 
-@pytest.mark.parametrize(("key", "value"), [("max_file_bytes", 104857601), ("max_file_bytes", 0), ("max_files_per_request", 101), ("max_files_per_request", 0), ("max_documents_per_dataset", 1000001), ("max_documents_per_dataset", "abc")])
+@pytest.mark.parametrize(
+    ("key", "value"),
+    [
+        ("max_file_bytes", 104857601),
+        ("max_file_bytes", 0),
+        ("max_files_per_request", 101),
+        ("max_files_per_request", 0),
+        ("max_documents_per_dataset", 1000001),
+        ("max_documents_per_dataset", "abc"),
+    ],
+)
 def test_upload_bounds(tmp_path, conf, key, value):
     path = _with(conf, tmp_path, lambda d: d["upload"].__setitem__(key, value))
     with pytest.raises(ConfigError, match=rf"upload\.{key}"):
