@@ -50,7 +50,7 @@ func WithSession(h *handler.User) Option {
 }
 
 // NewEngine builds the engine. Only exact routes owned by Go in conf/routes.yaml are registered here;
-// Go never proxies to Python (D-05, D-06). The auth gate runs after CORS (so preflight is answered
+// Go never proxies to Python (D-05, D-06). The body limit and the auth gate run after CORS (so preflight is answered
 // first) and before routing, including NoRoute: an unknown path is 401 unauthenticated, 404 authenticated.
 func NewEngine(cfg server.Config, logger *zap.Logger, sys *handler.System, opts ...Option) *gin.Engine {
 	st := &engineOptions{resolver: handler.DenyAll()}
@@ -63,7 +63,7 @@ func NewEngine(cfg server.Config, logger *zap.Logger, sys *handler.System, opts 
 	e.RedirectFixedPath = false
 	_ = e.SetTrustedProxies(nil)
 
-	e.Use(sourceHeader(), requestLogger(logger), recovery(logger), cors(cfg.AllowedOrigins), handler.AuthGate(st.resolver, cfg.AllowedOrigins))
+	e.Use(sourceHeader(), requestLogger(logger), recovery(logger), cors(cfg.AllowedOrigins), handler.BodyLimitMiddleware(), handler.AuthGate(st.resolver, cfg.AllowedOrigins))
 	e.NoRoute(func(c *gin.Context) {
 		common.Fail(c, http.StatusNotFound, common.CodeNotFound, "not found")
 	})

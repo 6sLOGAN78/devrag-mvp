@@ -19,6 +19,17 @@ OWNERS = {"go", "python"}
 MATCHES = {"exact", "prefix"}
 AUTHS = {"none", "jwt", "beta", "api"}
 WEB_ROOT = "/ragflow/web/dist"
+# Request-size and timeout policy of the generated locations (WR-04, R-130). Go-owned routes take small JSON documents and
+# answer quickly; a route lists `body_limit` (for example /v1/user/ for the 256 KB avatar) or `streaming: true` to opt out.
+# Python-owned locations keep the upload allowance and long timeouts until upload routes exist and narrow them.
+GO_BODY_LIMIT = "16k"
+PY_BODY_LIMIT = "1024m"
+SHORT_TIMEOUT = "60s"
+LONG_TIMEOUT = "3600s"
+BODY_LIMIT_RE = re.compile(r"^[1-9][0-9]{0,5}[km]$")
+# Keys of an expanded route that only Nginx uses; they stay out of the Vite proxy JSON.
+NGINX_ONLY = ("bodyLimit", "streaming")
+
 METHODS = {"GET", "POST", "PATCH", "PUT", "DELETE"}
 SCOPES = {"none", "tenant"}
 ROLES = {"owner", "admin", "normal", "invite", "self"}
@@ -66,8 +77,17 @@ def load(path: Path) -> tuple[dict[str, int], list[dict[str, Any]]]:
             if key in seen:
                 raise RouteError(f"duplicate route {match} {p}")
             seen.add(key)
+            body_limit = raw.get("body_limit", GO_BODY_LIMIT if owner == "go" else PY_BODY_LIMIT)
+            if not isinstance(body_limit, str) or not BODY_LIMIT_RE.fullmatch(body_limit):
+                raise RouteError(f"body_limit must look like 16k or 1024m for {p}")
+            streaming = raw.get("streaming", owner == "python")
+            if not isinstance(streaming, bool):
+                raise RouteError(f"streaming must be a boolean for {p}")
             expanded.append(
-                {"owner": owner, "match": match, "path": p, "auth": auth, "publicUntilPhase": raw.get("public_until_phase"), "port": ports["python_api"] if owner == "python" else ports["go_api"]}
+                {
+                    "owner": owner, "match": match, "path": p, "auth": auth, "publicUntilPhase": raw.get("public_until_phase"),
+                    "port": ports["python_api"] if owner == "python" else ports["go_api"], "bodyLimit": body_limit, "streaming": streaming,
+                }
             )
     return ports, expanded
 
@@ -408,11 +428,21 @@ def _ordered(routes: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return exact + prefix
 
 
+def _location(r: dict[str, Any]) -> str:
+    op = "=" if r["match"] == "exact" else "^~"
+    timeout = LONG_TIMEOUT if r["streaming"] else SHORT_TIMEOUT
+    lines = [
+        f"        proxy_pass http://127.0.0.1:{r['port']};",
+        f"        client_max_body_size {r['bodyLimit']};",
+        f"        proxy_read_timeout {timeout};",
+        f"        proxy_send_timeout {timeout};",
+    ]
+    lines.append("        include proxy.conf;")
+    return f"    location {op} {r['path']} {{\n" + "\n".join(lines) + "\n    }\n"
+
+
 def _locations(routes: list[dict[str, Any]]) -> str:
-    out: list[str] = []
-    for r in _ordered(routes):
-        op = "=" if r["match"] == "exact" else "^~"
-        out.append(f"    location {op} {r['path']} {{\n        proxy_pass http://127.0.0.1:{r['port']};\n        include proxy.conf;\n    }}\n")
+    out: list[str] = [_location(r) for r in _ordered(routes)]
     out.append(f"""    location /assets/ {{
         root {WEB_ROOT};
         expires 1y;
@@ -436,8 +466,19 @@ def _locations(routes: list[dict[str, Any]]) -> str:
     return "\n".join(out)
 
 
+# Nginx answers an oversized body with an HTML page; API clients expect the envelope (code 400, as the Go server sends).
+PAYLOAD_TOO_LARGE = """    error_page 413 @payload_too_large;
+
+    location @payload_too_large {
+        default_type application/json;
+        return 413 '{"code":400,"message":"payload too large","data":null}';
+    }
+
+"""
+
+
 def render_http(routes: list[dict[str, Any]]) -> str:
-    return f"{HEADER}server {{\n    listen 80;\n    server_name _;\n\n{_locations(routes)}}}\n"
+    return f"{HEADER}server {{\n    listen 80;\n    server_name _;\n\n{PAYLOAD_TOO_LARGE}{_locations(routes)}}}\n"
 
 
 def render_https(routes: list[dict[str, Any]]) -> str:
@@ -445,12 +486,13 @@ def render_https(routes: list[dict[str, Any]]) -> str:
         f"{HEADER}server {{\n    listen 80;\n    server_name _;\n    return 301 https://$host$request_uri;\n}}\n\n"
         f"server {{\n    listen 443 ssl;\n    server_name _;\n"
         f"    ssl_certificate /etc/nginx/certs/server.crt;\n    ssl_certificate_key /etc/nginx/certs/server.key;\n"
-        f"    ssl_protocols TLSv1.2 TLSv1.3;\n\n{_locations(routes)}}}\n"
+        f"    ssl_protocols TLSv1.2 TLSv1.3;\n\n{PAYLOAD_TOO_LARGE}{_locations(routes)}}}\n"
     )
 
 
 def render_json(ports: dict[str, int], routes: list[dict[str, Any]]) -> str:
-    return json.dumps({"ports": ports, "routes": _ordered(routes)}, indent=2) + "\n"
+    public = [{k: v for k, v in r.items() if k not in NGINX_ONLY} for r in _ordered(routes)]
+    return json.dumps({"ports": ports, "routes": public}, indent=2) + "\n"
 
 
 def outputs(root: Path, out_root: Path) -> dict[Path, str]:

@@ -79,7 +79,7 @@ def test_resolution(conf: str, path: str, owner: str) -> None:
 def test_no_regex_or_bare_prefix(conf: str) -> None:
     assert "location ~" not in conf
     bare = re.findall(r"location (?!=|\^~)(\S+) \{", conf)
-    assert set(bare) <= {"/", "/assets/"}
+    assert set(bare) <= {"/", "/assets/", "@payload_too_large"}  # the named location only renders the 413 envelope
     assert "location ^~ /api/v1/system/ {" not in conf
 
 

@@ -2,7 +2,9 @@
 #   uv run python scripts/gen_routes.py          # regenerate
 #   uv run python scripts/gen_routes.py --check  # CI drift gate
 # Fields: owner (go|python), match (exact|prefix), path, auth (none|jwt|beta|api),
-#         also (alias paths expanded into their own entries), catch_all, note.
+#         also (alias paths expanded into their own entries), catch_all, note,
+#         body_limit (Nginx client_max_body_size: Go default 16k, Python 1024m) and streaming (long upstream timeouts:
+#         Go default false, Python true) - WR-04.
 # The `endpoints:` registry below lists individual endpoints (method, path, owner, auth, roles, scope, implemented).
 # Each row must agree with the family entry that serves its path; the generator also emits the Go and Python
 # policy resolvers (PolicyFor / policy_for): registry row, then exact family, then longest prefix, then default jwt.
@@ -37,13 +39,13 @@ routes:
     path: /api/v1/system/tokens
     auth: jwt
     note: R-92 Go owns API tokens; exact `=` location beats the Python /api/ prefix.
-  - {owner: go, match: exact, path: /api/v1/mcp, auth: beta}
+  - {owner: go, match: exact, path: /api/v1/mcp, auth: beta, streaming: true}
 
   # --- Go-owned prefixes ---
   - {owner: go, match: prefix, path: /api/v1/auth/, auth: none}
-  - {owner: go, match: prefix, path: /v1/user/, auth: jwt}
+  - {owner: go, match: prefix, path: /v1/user/, auth: jwt, body_limit: 512k}
   - {owner: go, match: prefix, path: /v1/tenant/, auth: jwt}
-  - {owner: go, match: prefix, path: /api/v1/searchbots/, auth: beta}
+  - {owner: go, match: prefix, path: /api/v1/searchbots/, auth: beta, streaming: true}
   - {owner: go, match: prefix, path: /api/v1/system/tokens/, auth: jwt}
   - {owner: go, match: prefix, path: /api/v1/tenants/, auth: jwt}
 
