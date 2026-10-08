@@ -70,7 +70,8 @@ def seal(key: bytes, kid: str, plaintext: str, aad: str, *, _nonce: bytes | None
     cipher = AES.new(key, AES.MODE_GCM, nonce=nonce)
     cipher.update(aad.encode("utf-8"))
     ciphertext, tag = cipher.encrypt_and_digest(plaintext.encode("utf-8"))
-    blob = base64.urlsafe_b64encode(nonce + ciphertext + tag).decode("ascii")
+    # The documented alphabet has no "=": padding is dropped here and restored by open_ (a padded blob could never be opened).
+    blob = base64.urlsafe_b64encode(nonce + ciphertext + tag).decode("ascii").rstrip("=")
     return f"{VERSION}:{kid}:{blob}"
 
 

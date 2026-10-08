@@ -41,6 +41,15 @@ def test_envelope_shape():
     assert len(raw) == 12 + len(PLAIN.encode()) + 16
 
 
+@pytest.mark.parametrize("length", range(0, 70))
+def test_every_key_length_round_trips_and_matches_the_documented_alphabet(length):
+    """Regression (plan 03-12): 28 + len(key) bytes only needs no base64 padding when len % 3 == 2; the others used to fail to open."""
+    plain = "k" * length
+    env = seal(KEY, "k1", plain, AAD)
+    assert ENVELOPE_RE.match(env) and "=" not in env
+    assert open_({"k1": KEY}, env, AAD) == plain
+
+
 def test_two_seals_differ():
     assert seal(KEY, "k1", PLAIN, AAD) != seal(KEY, "k1", PLAIN, AAD)
 
