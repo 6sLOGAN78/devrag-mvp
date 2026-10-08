@@ -669,14 +669,20 @@ info = es.indices.get_field_mapping(index=index_name, fields=f"q_{dim}_vec")
 | A14 | Presigned URLs not exposed through a route this phase | Pattern 8 | If a download/preview route is wanted now, Nginx must front MinIO or Python must stream |
 | A15 | Provider/model_type value case: keep lower-case in `tenant_llm` | Runtime State Inventory | A docs-literal reading (upper-case) needs a Phase 2 writer change |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Acting tenant for joined workspaces (A3).** What we know: the Python principal has only the own workspace; the SPA has no workspace switcher; D-07, D-09 and success criterion 2 need joined-workspace access. Unclear: whether a workspace selector is in scope for this phase's UI. Recommendation: adopt Pattern 7 (resource-derived tenant for ids, optional `tenant_id` for the rest) and have `/gsd-ui-phase 3` decide the selector; ask the user only if they want the narrower "own workspace only" reading.
+   RESOLVED: D-26 puts joined-workspace access in scope; the server resolves the acting tenant (resource id, else explicit `tenant_id`) and the SPA gets a workspace selector (plans 03-03, 03-04, 03-12).
 2. **Which table is the credential system of record (A2).** Docs name both `tenant_llm` (LLM-16) and `tenant_model_*` (LLM-29). Recommendation in Pattern 4; the planner records it in `DECISIONS.md`.
+   RESOLVED: Pattern 4 adopted; `tenant_llm` holds the ciphertext and `tenant_model_provider/instance/model` the structure and recorded dimension (plan 03-09), recorded as R-137 by plan 03-28.
 3. **Can owners/admins see another member's `me` dataset (A4).** D-08 says "only its creator". Recommendation: strictly private; ask if the user expects an admin override.
+   RESOLVED: D-27, `me` datasets are strictly private with no admin override (plans 03-04 `dataset_visible`, 03-14, 03-18).
 4. **Variable name for the live key.** The user must add it to `docker/.env`. Recommendation: `OPENROUTER_API_KEY`, with chat/embedding model names in non-secret variables (`LIVE_CHAT_MODEL`, `LIVE_EMBED_MODEL`). The checkpoint text must tell the user the exact name; the agent must not read the value.
+   RESOLVED: D-25 fixes the names `OPENROUTER_API_KEY`, `LIVE_CHAT_MODEL` and `LIVE_EMBED_MODEL`; D-29 allows agents to read `docker/.env` when a task needs it, still without printing or committing the value (plan 03-27).
 5. **Package approval (D-21).** Six packages (five new downloads, 202 MB). A `checkpoint:human-verify` must precede any `uv add`.
+   RESOLVED: D-24 gives the package approval (`litellm==1.103.2`, `openai>=2.20,<3`, `ollama`, `xxhash`, `tiktoken`, `pycryptodome`), which supersedes the checkpoint recommendation above; `uv add` and the `uv.lock` change happen in plan 03-01 without a checkpoint, and plan 03-28 records the pin (R-138).
 6. **Image types beyond jpg/jpeg/png.** D-12 says "images"; the docs name only JPG and PNG explicitly. Default excludes gif/bmp/tiff/webp.
+   RESOLVED: D-28, `jpg`, `jpeg` and `png` only; `gif`, `bmp`, `tiff` and `webp` are refused with HTTP 400 (plan 03-15).
 
 ## Environment Availability
 

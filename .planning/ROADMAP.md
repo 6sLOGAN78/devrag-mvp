@@ -207,7 +207,109 @@ Scope notes: the cross-language token and password-hash contract (R-33, R-34) ne
   4. Upload rejects a disallowed extension with HTTP 400, an oversized file, a path-traversal filename, and a dataset the caller cannot access; nothing is stored in any of these cases
   5. Deleting a document removes its rows, and the blob is garbage-collected only when no other document still references it
 
-**Plans**: TBD
+**Plans**: 31 plans
+
+Plans:
+**Wave 1**
+
+- [ ] 03-01-PLAN.md — Packages, settings sections, secret box, env and Dockerfile
+- [ ] 03-02-PLAN.md — Key-shape log redaction (Python, Go, Nginx) and the base-URL guard
+- [ ] 03-03-PLAN.md — Workspace switcher and store
+- [ ] 03-04-PLAN.md — Registry rows, permission rows, Nginx limits and acting-tenant resolution
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 03-05-PLAN.md — Provider registry, shared error, retry and stream modules, chat driver and recording fake provider
+- [ ] 03-07-PLAN.md — Storage interface, MinIO and local drivers
+- [ ] 03-08-PLAN.md — DocStoreConnection port and Elasticsearch adapter with contract suite
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 03-06-PLAN.md — Embedding drivers
+- [ ] 03-09-PLAN.md — Encrypted credential store, model structure rows, composite ids and defaults
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [ ] 03-10-PLAN.md — Provider service: test before save, SSRF and rate guards
+- [ ] 03-11-PLAN.md — LLMBundle with usage recording
+- [ ] 03-15-PLAN.md — Upload safety rules
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
+- [ ] 03-12-PLAN.md — Provider routes with e2e, matrix and leak sweep
+
+**Wave 6** *(blocked on Wave 5 completion)*
+
+- [ ] 03-13-PLAN.md — Models and default-model routes
+
+**Wave 7** *(blocked on Wave 6 completion)*
+
+- [ ] 03-14-PLAN.md — Dataset create, list and detail with index provisioning (E2E-03)
+
+**Wave 8** *(blocked on Wave 7 completion)*
+
+- [ ] 03-16-PLAN.md — Upload service and route (E2E-04)
+
+**Wave 9** *(blocked on Wave 8 completion)*
+
+- [ ] 03-17-PLAN.md — Document list and delete with blob garbage collection
+
+**Wave 10** *(blocked on Wave 9 completion)*
+
+- [ ] 03-18-PLAN.md — Dataset update and permanent delete
+
+**Wave 11** *(blocked on Wave 10 completion)*
+
+- [ ] 03-19-PLAN.md — Role, visibility and key-leak proof across all Phase 3 routes
+
+**Wave 12** *(blocked on Wave 11 completion)*
+
+- [ ] 03-27-PLAN.md — live_model tier, gate step and key presence check
+
+**Wave 13** *(blocked on Wave 12 completion)*
+
+- [ ] 03-20-PLAN.md — Models page: data layer, providers view and nav
+
+**Wave 14** *(blocked on Wave 13 completion)*
+
+- [ ] 03-21-PLAN.md — Provider dialogs
+
+**Wave 15** *(blocked on Wave 14 completion)*
+
+- [ ] 03-22-PLAN.md — Default models card and live Models-page journey
+
+**Wave 16** *(blocked on Wave 15 completion)*
+
+- [ ] 03-23-PLAN.md — Datasets UI parts, dataset service and workspace-scoped hooks
+
+**Wave 17** *(blocked on Wave 16 completion)*
+
+- [ ] 03-24-PLAN.md — Upload dialog
+
+**Wave 18** *(blocked on Wave 17 completion)*
+
+- [ ] 03-30-PLAN.md — Datasets gallery, create dialog, route and nav entry
+
+**Wave 19** *(blocked on Wave 18 completion)*
+
+- [ ] 03-25-PLAN.md — Dataset settings, delete dataset and delete document dialogs, gallery actions menu
+
+**Wave 20** *(blocked on Wave 19 completion)*
+
+- [ ] 03-31-PLAN.md — Dataset workspace page, document table and workspace binding
+
+**Wave 21** *(blocked on Wave 20 completion)*
+
+- [ ] 03-26-PLAN.md — Live and real-Chrome journeys
+
+**Wave 22** *(blocked on Wave 21 completion)*
+
+- [ ] 03-28-PLAN.md — Decision records, litellm pin in CLAUDE.md, B-09 closure
+
+**Wave 23** *(blocked on Wave 22 completion)*
+
+- [ ] 03-29-PLAN.md — Traceability test and phase exit gate (three clean-room runs)
+
 **UI hint**: yes
 
 Scope notes: the `DocStoreConnection` port and the Elasticsearch adapter are pulled forward from research stage 4 so that dataset creation (KB-03, E2E-03) is verified against a real index; the port's `search` signature must be defined here so Phase 5 does not reshape it. A real model source (R-50) must be chosen before this phase is planned. Docs to read first: `11-llm`, `09-storage`, `06-document-processing/upload.md`, `05-rag-pipeline/indexing.md`, `17-integrations`, `21-end-to-end-flows/create-knowledge-base.md`, `upload-document.md`.
