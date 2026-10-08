@@ -171,8 +171,8 @@ def test_cross_tenant_matrix_ids_in_other_positions_and_own_tenant_reach_nothing
             for kwargs in ({}, {"query": smuggle_query, "extra_body": smuggle_body}):
                 resp = target.send(client, world.b.token, ids, **kwargs)
                 assert resp.status_code < 500, (row.key, resp.status_code)
-                for value in world.a_identifiers():
-                    assert value not in resp.text, f"{row.key} with B's own tenant revealed a value of tenant A"
+                leaked = [v for v in world.a_identifiers() if v in resp.text]
+                assert not leaked, f"{row.key} with B's own tenant revealed {len(leaked)} value(s) of tenant A"
     assert world.snapshot() == before, f"{row.key} changed tenant A's data"
 
 
