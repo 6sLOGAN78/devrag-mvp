@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AxiosError, AxiosHeaders, type AxiosAdapter } from "axios";
 import { createMemoryRouter, RouterProvider } from "react-router";
@@ -7,10 +7,10 @@ import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vite
 import { routes, type RouteEntry } from "@/constants/routes";
 import { ShellError } from "@/pages/route-error";
 import { buildRoutes } from "@/routes";
-import { http } from "@/services/http";
+import { http, registerNavigate } from "@/services/http";
 import { useUserStore } from "@/stores/user-store";
 import { waitUntil } from "@/test/wait-until";
-import { setAuthorization } from "@/utils/authorization";
+import { getAuthorization, setAuthorization } from "@/utils/authorization";
 
 const originalAdapter = http.defaults.adapter;
 const userDto = {
@@ -26,10 +26,17 @@ const userDto = {
   is_superuser: false,
 };
 let infoGate: Promise<void> = Promise.resolve();
+let infoStatus = 200;
+let infoCalls = 0;
 /** Session recovery answers with a real user; every other request is refused like a downed engine. */
 const refuse: AxiosAdapter = async (config) => {
   if (config.url === "/v1/user/info") {
+    infoCalls += 1;
     await infoGate;
+    if (infoStatus !== 200) {
+      const response = { data: { code: infoStatus, message: "no", data: null }, status: infoStatus, statusText: String(infoStatus), headers: new AxiosHeaders(), config };
+      throw new AxiosError(`status ${infoStatus}`, "ERR_BAD_RESPONSE", config, null, response as never);
+    }
     return { data: { code: 0, message: "", data: userDto }, status: 200, statusText: "200", headers: new AxiosHeaders(), config } as never;
   }
   throw new AxiosError("Network Error", "ERR_NETWORK", config);
@@ -41,6 +48,8 @@ beforeAll(() => {
 });
 beforeEach(() => {
   infoGate = Promise.resolve();
+  infoStatus = 200;
+  infoCalls = 0;
   useUserStore.getState().reset();
   http.defaults.adapter = refuse;
 });
@@ -103,6 +112,48 @@ describe("auth guard in the route table (UI-02, UI-07)", () => {
     renderAt("/nope");
     expect(await screen.findByRole("heading", { name: "Page not found" })).toBeInTheDocument();
     expect(screen.getByTestId("layout-standard")).toBeInTheDocument();
+  });
+
+  it("recovers the session behind a signed-in visitor's Not Found page: account menu, nickname in the store (WR-F05)", async () => {
+    signIn();
+    renderAt("/nope");
+    expect(await screen.findByRole("heading", { name: "Page not found" })).toBeInTheDocument();
+    expect(screen.getByTestId("layout-standard")).toBeInTheDocument();
+    expect(await screen.findByTestId("user-menu")).toBeInTheDocument();
+    expect(useUserStore.getState().user?.nickname).toBe("Ada");
+    expect(infoCalls).toBe(1);
+  });
+
+  it("signs out from the Not Found page through the account menu (WR-F05)", async () => {
+    signIn();
+    const { router } = renderAt("/nope");
+    fireEvent.pointerDown(await screen.findByTestId("user-menu"), { button: 0, ctrlKey: false, pointerType: "mouse" });
+    fireEvent.click(await screen.findByTestId("user-menu-signout"));
+    await waitUntil(() => router.state.location.pathname === "/login", { describe: "navigated to /login" });
+    expect(router.state.location.search).toBe("");
+    expect(getAuthorization()).toBeNull();
+  });
+
+  it("detects a revoked token on the Not Found page: purges and sends the visitor to /login with next (WR-F05)", async () => {
+    signIn();
+    infoStatus = 401;
+    const { router } = renderAt("/nope");
+    registerNavigate({
+      navigate: (to) => router.navigate(to, { replace: true }),
+      currentPath: () => `${router.state.location.pathname}${router.state.location.search}`,
+    });
+    await waitUntil(() => router.state.location.pathname === "/login", { describe: "redirected to /login" });
+    registerNavigate(null);
+    expect(router.state.location.search).toBe("?next=%2Fnope");
+    expect(getAuthorization()).toBeNull();
+    expect(screen.queryByTestId("layout-standard")).toBeNull();
+  });
+
+  it("does not run session recovery or guard Not Found for a signed-out visitor (WR-F05)", async () => {
+    renderAt("/nope");
+    expect(await screen.findByRole("heading", { name: "Page not found" })).toBeInTheDocument();
+    expect(screen.getByTestId("layout-bare")).toBeInTheDocument();
+    expect(infoCalls).toBe(0);
   });
 
   it("never flashes the shell or the page before session recovery resolves", async () => {

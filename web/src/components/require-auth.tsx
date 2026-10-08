@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { Navigate, Outlet, useLocation, useNavigate } from "react-router";
 import { ErrorState } from "@/components/error-state";
@@ -26,8 +26,11 @@ function SessionError({ onRetry, onSignIn }: { onRetry: () => void; onSignIn: ()
   );
 }
 
-/** Runs only with a stored token: content renders once the server has confirmed the user (UI-07). */
-function SessionRecovery({ path }: { path: string }) {
+/**
+ * Runs only with a stored token: content renders once the server has confirmed the user (UI-07). Renders the matched
+ * child route unless `children` are given (the public layout wraps its own shell this way, WR-F05).
+ */
+export function SessionRecovery({ path, children }: { path: string; children?: ReactNode }) {
   const query = useUserInfoRequest();
   const navigate = useNavigate();
   const user = useUserStore((state) => state.user);
@@ -57,7 +60,7 @@ function SessionRecovery({ path }: { path: string }) {
       />
     );
   }
-  if (data && user !== null && user.id === data.id) return <Outlet />;
+  if (data && user !== null && user.id === data.id) return children ?? <Outlet />;
   return <SessionSkeleton />;
 }
 
