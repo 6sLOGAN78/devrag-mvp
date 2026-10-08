@@ -261,7 +261,7 @@ Requirements for initial release. Each maps to exactly one roadmap phase.
 - [ ] **LLM-13**: OCR model type
 - [ ] **LLM-14**: `LLMBundle` resolves tenant credentials, instantiates the driver, resets/reports usage
 - [ ] **LLM-15**: Composite model ids `model@instance@provider` and `model@provider` *(Python implementation in v1; Go mirror deferred to v2)*
-- [ ] **LLM-16**: Per-tenant provider credentials (`tenant_llm`: factory, model type, API key, API base) stored encrypted
+- [x] **LLM-16**: Per-tenant provider credentials (`tenant_llm`: factory, model type, API key, API base) stored encrypted
 - [x] **LLM-17**: Generation parameters are whitelisted (`ALLOWED_GEN_CONF_KEYS`) before provider calls
 - [x] **LLM-18**: Reasoning models (o1/o3) suppress `temperature` and use `max_completion_tokens`
 - [x] **LLM-19**: Provider errors map to `LLMErrorCode`; rate-limit and timeout errors are retried
@@ -274,7 +274,7 @@ Requirements for initial release. Each maps to exactly one roadmap phase.
 - [ ] **LLM-26**: User can list a provider's models via `GET /providers/<provider>/models`
 - [ ] **LLM-27**: Admin/owner can create and view provider instances via `POST /providers/<provider>/instances` and `GET .../instances/<instance>`
 - [x] **LLM-28**: User can list configured models and tenant defaults via `GET /models`, `GET /models/default`
-- [ ] **LLM-29**: Tenant model entities: `TenantModelProvider`, `TenantModelInstance`, `TenantModel`, `TenantModelGroup`, `TenantModelGroupMapping`
+- [x] **LLM-29**: Tenant model entities: `TenantModelProvider`, `TenantModelInstance`, `TenantModel`, `TenantModelGroup`, `TenantModelGroupMapping`
 - [ ] **LLM-30**: Per-tenant Langfuse keys: set via `POST`/`PUT /langfuse/api-key`, delete via `DELETE /langfuse/api-key`
 - [ ] **LLM-31**: LLM calls emit Langfuse observations when keys are configured
 - [ ] **LLM-32**: Prompt generators: keyword extraction, question proposal, content tagging, metadata generation, chunk formatting
@@ -589,7 +589,7 @@ Requirements for initial release. Each maps to exactly one roadmap phase.
 
 - [x] **SEC-01**: Every non-public endpoint is behind the auth decorator/middleware
 - [ ] **SEC-02**: API keys, access tokens, and LLM credentials are masked in API responses
-- [ ] **SEC-03**: LLM provider keys are encrypted at rest
+- [x] **SEC-03**: LLM provider keys are encrypted at rest
 - [x] **SEC-04**: Secrets come from environment/config, never hard-coded, never logged
 - [x] **SEC-05**: Restricted unpickler allows only whitelisted modules (`numpy`, `rag_flow`)
 - [ ] **SEC-06**: Upload safety: extension check, sanitized names, UUID object keys, no path traversal
@@ -901,7 +901,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | LLM-13 | Phase 6 | Pending |
 | LLM-14 | Phase 3 | Pending |
 | LLM-15 | Phase 3 | Pending |
-| LLM-16 | Phase 3 | Pending |
+| LLM-16 | Phase 3 | Complete |
 | LLM-17 | Phase 3 | Complete |
 | LLM-18 | Phase 3 | Complete |
 | LLM-19 | Phase 3 | Complete |
@@ -914,7 +914,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | LLM-26 | Phase 3 | Pending |
 | LLM-27 | Phase 3 | Pending |
 | LLM-28 | Phase 3 | Complete |
-| LLM-29 | Phase 3 | Pending |
+| LLM-29 | Phase 3 | Complete |
 | LLM-30 | Phase 8 | Pending |
 | LLM-31 | Phase 8 | Pending |
 | LLM-32 | Phase 6 | Pending |
@@ -1181,7 +1181,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DEPLOY-21 | Phase 8 | Pending |
 | SEC-01 | Phase 2 | Complete |
 | SEC-02 | Phase 3 | Pending |
-| SEC-03 | Phase 3 | Pending |
+| SEC-03 | Phase 3 | Complete |
 | SEC-04 | Phase 1 | Complete |
 | SEC-05 | Phase 1 | Complete |
 | SEC-06 | Phase 3 | Pending |
