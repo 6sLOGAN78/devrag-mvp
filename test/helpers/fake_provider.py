@@ -1,12 +1,15 @@
 """Loopback stand-in for a third-party model provider (plan 03-05, D-03, D-15).
 
-A real Quart app served by Hypercorn on an ephemeral 127.0.0.1 port, in its own thread and event loop. It is not a stub of any
+A real Quart app served by Hypercorn on an ephemeral port, in its own thread and event loop. It is not a stub of any
 devRag code: it is the *other end* of the wire, so driver tests exercise the real HTTP client. It records every request
 (method, path, query, headers, parsed JSON body) and serves OpenAI, Azure and Ollama shaped chat and embedding endpoints plus
 scripted failures chosen by the requested model name.
 
 Use the ``fake_provider`` fixture (one fresh server per test) or the ``running_fake_provider`` context manager (module scope).
-No fixed sleeps: readiness is polled with ``wait_until``; ``/slow`` waits on an ``asyncio.Event`` that teardown releases.
+The stack variants (``fake_provider_stack`` and ``running_stack_fake_provider``) bind 0.0.0.0 on two ephemeral ports that share one
+recorder, so a test that drives the dockerised app can hand it ``stack_base_url`` (``host.docker.internal``, dev compose only) and
+read what the app sent. They exist for the lifetime of the test only and serve fake answers and fake keys.
+No fixed waits: readiness is polled with ``wait_until``; ``/slow`` waits on an ``asyncio.Event`` that teardown releases.
 """
 from __future__ import annotations
 
@@ -34,6 +37,7 @@ CHAT_PIECES = ("Hel", "lo ", "from ", "the fake")
 CHAT_TEXT = "".join(CHAT_PIECES)
 PROMPT_TOKENS = 11
 COMPLETION_TOKENS = 5
+STACK_HOST = "host.docker.internal"  # how the dev app container reaches the host (extra_hosts in docker-compose.dev.yml)
 
 
 @dataclass
@@ -43,6 +47,7 @@ class Recorded:
     query: dict[str, str]
     headers: dict[str, str]
     body: Any
+    port: int = 0  # the listener that received it (the stack fixture serves two ports into one recorder)
 
 
 @dataclass
@@ -54,10 +59,35 @@ class FakeProvider:
     _counters: dict[str, int] = field(default_factory=dict)
     _loop: asyncio.AbstractEventLoop | None = None
     _release: asyncio.Event | None = None
+    secondary: FakeProvider | None = None  # stack mode only: the second listener, same recorder
 
     @property
     def root(self) -> str:
         return f"http://127.0.0.1:{self.port}"
+
+    @property
+    def stack_root(self) -> str:
+        return f"http://{STACK_HOST}:{self.port}"
+
+    @property
+    def stack_base_url(self) -> str:
+        return f"{self.stack_root}/v1"
+
+    @property
+    def stack_azure_url(self) -> str:
+        return self.stack_root
+
+    @property
+    def stack_ollama_url(self) -> str:
+        return self.stack_root
+
+    @property
+    def stack_ollama_url_b(self) -> str:
+        assert self.secondary is not None, "stack_ollama_url_b needs the stack fixture"
+        return self.secondary.stack_root
+
+    def requests_on(self, port: int) -> list[Recorded]:
+        return [r for r in self.requests if r.port == port]
 
     @property
     def base_url(self) -> str:
@@ -187,7 +217,7 @@ def build_app(state: FakeProvider) -> Quart:
     @app.before_request
     async def record() -> None:
         body = await request.get_json(force=True, silent=True)
-        state.requests.append(Recorded(request.method, request.path, dict(request.args), {k.lower(): v for k, v in request.headers}, body))
+        state.requests.append(Recorded(request.method, request.path, dict(request.args), {k.lower(): v for k, v in request.headers}, body, state.port))
 
     @app.get("/health")
     async def health() -> Response:
@@ -319,11 +349,13 @@ def _serve_in_thread(state: FakeProvider, sock: socket.socket, ready: threading.
 
 
 @contextlib.contextmanager
-def running_fake_provider() -> Iterator[FakeProvider]:
+def _serving(bind_host: str, shared: FakeProvider | None = None) -> Iterator[FakeProvider]:
+    """One listener. ``shared`` makes it record into another listener's request list and counters."""
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.bind(("127.0.0.1", 0))
+    sock.bind((bind_host, 0))
     sock.listen(64)
-    state = FakeProvider(port=sock.getsockname()[1])
+    port = sock.getsockname()[1]
+    state = FakeProvider(port=port) if shared is None else FakeProvider(port=port, requests=shared.requests, _counters=shared._counters)
     ready = threading.Event()
     stop_box: list[Any] = []
     thread = threading.Thread(target=_serve_in_thread, args=(state, sock, ready, stop_box), daemon=True, name="fake-provider")
@@ -350,7 +382,31 @@ def running_fake_provider() -> Iterator[FakeProvider]:
             sock.close()
 
 
+@contextlib.contextmanager
+def running_fake_provider() -> Iterator[FakeProvider]:
+    with _serving("127.0.0.1") as state:
+        yield state
+
+
+@contextlib.contextmanager
+def running_stack_fake_provider() -> Iterator[FakeProvider]:
+    """Two listeners on every interface (the dockerised app reaches the host through it), one shared recorder.
+
+    Test-only: ephemeral ports, fake answers, closed when the context ends (plan 03-12, T-03-12-08).
+    """
+    with _serving("0.0.0.0") as primary, _serving("0.0.0.0", shared=primary) as secondary:  # noqa: S104
+        primary.secondary = secondary
+        primary.reset()
+        yield primary
+
+
 @pytest.fixture
 def fake_provider() -> Iterator[FakeProvider]:
     with running_fake_provider() as provider:
+        yield provider
+
+
+@pytest.fixture
+def fake_provider_stack() -> Iterator[FakeProvider]:
+    with running_stack_fake_provider() as provider:
         yield provider
