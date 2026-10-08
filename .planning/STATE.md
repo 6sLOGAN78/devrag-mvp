@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 02-23-PLAN.md
-last_updated: "2026-10-08T08:18:23.419Z"
+stopped_at: Completed 02-25-PLAN.md
+last_updated: "2026-10-08T08:48:24.072Z"
 last_activity: 2026-10-08
 progress:
   total_phases: 8
   completed_phases: 1
   total_plans: 52
-  completed_plans: 50
+  completed_plans: 51
   percent: 13
 ---
 
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-10-05)
 ## Current Position
 
 Phase: 2 (Identity, Tenancy and Authorization) — EXECUTING
-Plan: 25 of 28 (next incomplete; 02-27 and 02-28 already done)
+Plan: 26 of 28 (next incomplete; 02-27 and 02-28 already done)
 Status: Ready to execute
 Last activity: 2026-10-08
 
-Progress: [██████████] 96%
+Progress: [██████████] 98%
 
 ## Performance Metrics
 
@@ -62,6 +62,7 @@ Progress: [██████████] 96%
 | Phase 02 P20 | single session | 3 tasks | 25 files |
 | Phase 02 P22 | single session | 3 tasks | 26 files |
 | Phase 02 P21 | single session | 3 tasks | 24 files |
+| Phase 02 P25 | single session | 3 tasks | 14 files |
 
 ## Accumulated Context
 
@@ -85,6 +86,7 @@ Recent decisions affecting current work:
 - [Phase 02]: Plan 02-20 (R-121): API token management is owner-session only; cap 50 and 20 creations/hour per tenant; exact BINARY matching; token principals never superuser; route-template request log
 - [Phase 02]: R-123: permission matrix keyed (area, action); invite never membership; one 404 for invisible tenants; owner-only invite rate limited
 - [Phase 02]: R-124: API tokens page - tokens.action.* labels, owner-only forbidden state and home card, own 409/429/403 messages, aria-disabled pending, caption focus after delete
+- [Phase 02]: R-127: matrix rows generated from routes.yaml with a fixture guard; Nginx access log masks token paths and drops query and Referer; Go and Python loggers mask credential spellings
 
 ### Pending Todos
 
@@ -120,6 +122,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-10-08T08:18:23.406Z
-Stopped at: Completed 02-23-PLAN.md
+Last session: 2026-10-08T08:48:24.058Z
+Stopped at: Completed 02-25-PLAN.md
 Resume file: None

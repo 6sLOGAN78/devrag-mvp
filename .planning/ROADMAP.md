@@ -183,7 +183,7 @@ Plans:
 **Wave 12** *(blocked on Wave 11 completion)*
 
 - [x] 02-24-PLAN.md - Team page and dashboard cards
-- [ ] 02-25-PLAN.md - Cross-tenant matrix, leak sweep, token log masking
+- [x] 02-25-PLAN.md - Cross-tenant matrix, leak sweep, token log masking
 
 **Wave 13** *(blocked on Wave 12 completion)*
 
