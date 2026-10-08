@@ -259,8 +259,8 @@ Requirements for initial release. Each maps to exactly one roadmap phase.
 - [ ] **LLM-11**: Speech-to-text (ASR) model type
 - [ ] **LLM-12**: Text-to-speech (TTS) model type
 - [ ] **LLM-13**: OCR model type
-- [ ] **LLM-14**: `LLMBundle` resolves tenant credentials, instantiates the driver, resets/reports usage
-- [ ] **LLM-15**: Composite model ids `model@instance@provider` and `model@provider` *(Python implementation in v1; Go mirror deferred to v2)*
+- [x] **LLM-14**: `LLMBundle` resolves tenant credentials, instantiates the driver, resets/reports usage
+- [x] **LLM-15**: Composite model ids `model@instance@provider` and `model@provider` *(Python implementation in v1; Go mirror deferred to v2)*
 - [x] **LLM-16**: Per-tenant provider credentials (`tenant_llm`: factory, model type, API key, API base) stored encrypted
 - [x] **LLM-17**: Generation parameters are whitelisted (`ALLOWED_GEN_CONF_KEYS`) before provider calls
 - [x] **LLM-18**: Reasoning models (o1/o3) suppress `temperature` and use `max_completion_tokens`
@@ -899,8 +899,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | LLM-11 | Phase 6 | Pending |
 | LLM-12 | Phase 8 | Pending |
 | LLM-13 | Phase 6 | Pending |
-| LLM-14 | Phase 3 | Pending |
-| LLM-15 | Phase 3 | Pending |
+| LLM-14 | Phase 3 | Complete |
+| LLM-15 | Phase 3 | Complete |
 | LLM-16 | Phase 3 | Complete |
 | LLM-17 | Phase 3 | Complete |
 | LLM-18 | Phase 3 | Complete |
