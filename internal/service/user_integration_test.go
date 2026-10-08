@@ -4,7 +4,10 @@ package service
 
 import (
 	"context"
+	"errors"
 	"strings"
+	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -235,4 +238,36 @@ func TestChangePasswordFailsClosedWithoutRedis(t *testing.T) {
 	err := down.ChangePassword(ctx, p.ID, ChangePasswordInput{Current: testutil.FixtureCredential(), New: "brand-new-pass-0002"})
 	assert.ErrorIs(t, err, ErrUnavailable)
 	assert.True(t, common.VerifyPassword(testutil.FixtureCredential(), *e.row(t, p.ID).Password), "nothing was changed")
+}
+
+// WR-01 for the password change: parallel wrong current passwords are verified at most the cap times.
+func TestParallelWrongCurrentPasswordsNeverExceedTheCap(t *testing.T) {
+	const cap, burst = 3, 24
+	e := newUserEnv(t, func(c *server.Config) { c.RateLimit.LoginFailuresPerEmail = cap })
+	p := e.register(t, testutil.UniqueEmail("pwburst"), testutil.FixtureCredential())
+	var wrong, limited, other atomic.Int64
+	var wg sync.WaitGroup
+	start := make(chan struct{})
+	for i := 0; i < burst; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			<-start
+			err := e.user.ChangePassword(context.Background(), p.ID, ChangePasswordInput{Current: "wrong-current-pass", New: "brand-new-pass-0002"})
+			var rl *RateLimitedError
+			switch {
+			case errors.Is(err, ErrCurrentPasswordIncorrect):
+				wrong.Add(1)
+			case errors.As(err, &rl):
+				limited.Add(1)
+			default:
+				other.Add(1)
+			}
+		}()
+	}
+	close(start)
+	wg.Wait()
+	assert.EqualValues(t, cap, wrong.Load())
+	assert.EqualValues(t, burst-cap, limited.Load())
+	assert.Zero(t, other.Load())
 }

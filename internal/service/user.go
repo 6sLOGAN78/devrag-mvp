@@ -163,13 +163,15 @@ func deref(s *string) string {
 // verifications count against a per-user limit that uses the login-failure numbers of the RateLimit
 // configuration; the limiter fails closed. Hash work goes through the shared PBKDF2 semaphore.
 func (u *User) ChangePassword(ctx context.Context, userID string, in ChangePasswordInput) error {
-	rl := u.cfg.RateLimit
-	key := "pwchange:user:" + userID
-	if err := u.limiter.Check(ctx, key, rl.LoginFailuresPerEmail); err != nil {
-		return err
-	}
 	if err := common.ValidatePasswordLength(in.New); err != nil {
 		return &ValidationError{Msg: "new " + err.Error()}
+	}
+	rl := u.cfg.RateLimit
+	key := "pwchange:user:" + userID
+	// The attempt is counted atomically before the password is checked, so parallel guesses cannot
+	// exceed the cap (WR-01); a success clears the counter below.
+	if err := u.limiter.Hit(ctx, key, rl.LoginFailuresPerEmail, window(rl.LoginWindowSeconds)); err != nil {
+		return err
 	}
 	user, err := u.store.FindUserByID(ctx, userID)
 	if errors.Is(err, dao.ErrNotFound) {
@@ -179,9 +181,6 @@ func (u *User) ChangePassword(ctx context.Context, userID string, in ChangePassw
 		return err
 	}
 	if user.Password == nil || in.Current == "" || !common.VerifyPassword(in.Current, *user.Password) {
-		if ferr := u.limiter.Fail(ctx, key, window(rl.LoginWindowSeconds)); ferr != nil {
-			return ferr
-		}
 		return ErrCurrentPasswordIncorrect
 	}
 	hash, err := common.HashPassword(in.New)

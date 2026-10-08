@@ -7,6 +7,7 @@ import (
 	"errors"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -234,7 +235,9 @@ func TestLoginReplacesInvalidatedToken(t *testing.T) {
 }
 
 func TestParallelFirstLoginsConvergeOnOneToken(t *testing.T) {
-	e := newAccountEnv(t, nil)
+	// Each attempt is counted before it is checked (WR-01), so the per-account cap would refuse some of
+	// eight simultaneous logins; this test is about token convergence, so the cap is out of its way.
+	e := newAccountEnv(t, func(c *server.Config) { c.RateLimit.LoginFailuresPerEmail = 100 })
 	email := testutil.UniqueEmail("par")
 	p := e.register(t, email, testutil.FixtureCredential())
 	const n = 8
@@ -355,4 +358,38 @@ func TestLoginFailsClosedWhenRedisIsDown(t *testing.T) {
 	assert.True(t, errors.Is(err, ErrUnavailable), "the right password must not log in while the limiter is blind: %v", err)
 	_, err = svc.Register(ctx, RegisterInput{Email: testutil.UniqueEmail("down2"), Password: testutil.FixtureCredential(), Nickname: "n", ClientIP: "198.51.100.30"})
 	assert.ErrorIs(t, err, ErrUnavailable)
+}
+
+// WR-01: the failure counter is reserved atomically before the password is checked, so a burst of
+// parallel wrong guesses is verified at most LoginFailuresPerEmail times, against real Valkey.
+func TestParallelWrongGuessesNeverExceedTheFailureCap(t *testing.T) {
+	const cap, burst = 3, 24
+	e := newAccountEnv(t, func(c *server.Config) { c.RateLimit.LoginFailuresPerEmail = cap })
+	email := testutil.UniqueEmail("burst")
+	e.register(t, email, testutil.FixtureCredential())
+	var wrong, limited, other atomic.Int64
+	var wg sync.WaitGroup
+	start := make(chan struct{})
+	for i := 0; i < burst; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			<-start
+			_, err := login(e, email, "wrong-password-1")
+			var rl *RateLimitedError
+			switch {
+			case errors.Is(err, ErrInvalidCredentials):
+				wrong.Add(1)
+			case errors.As(err, &rl):
+				limited.Add(1)
+			default:
+				other.Add(1)
+			}
+		}()
+	}
+	close(start)
+	wg.Wait()
+	assert.EqualValues(t, cap, wrong.Load(), "exactly the cap of guesses reached the password check")
+	assert.EqualValues(t, burst-cap, limited.Load())
+	assert.Zero(t, other.Load())
 }

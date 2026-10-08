@@ -200,7 +200,8 @@ func qualified(model, factory string) string {
 // Login verifies the credentials and returns the shared access token (D-10).
 //
 // The failure counter is keyed on the resolved account (accountSubject), not on the typed spelling,
-// so collation-equal spellings of one address share it (CR-01).
+// and each attempt is counted atomically BEFORE the password is checked, so neither collation-equal
+// spellings nor parallel guesses can exceed the cap (CR-01, WR-01). A success clears the counter.
 func (a *Account) Login(ctx context.Context, in LoginInput) (LoginResult, error) {
 	email := common.CanonicalEmail(in.Email)
 	if email == "" || in.Password == "" {
@@ -219,15 +220,10 @@ func (a *Account) Login(ctx context.Context, in LoginInput) (LoginResult, error)
 		user = nil
 	}
 	ek := "login:email:" + emailKey(accountSubject(user, email))
-	if err := a.limiter.Check(ctx, ek, rl.LoginFailuresPerEmail); err != nil {
+	if err := a.limiter.Hit(ctx, ek, rl.LoginFailuresPerEmail, win); err != nil {
 		return LoginResult{}, err
 	}
 	if err := a.authenticate(user, in.Password); err != nil {
-		if errors.Is(err, ErrInvalidCredentials) {
-			if ferr := a.limiter.Fail(ctx, ek, win); ferr != nil {
-				return LoginResult{}, ferr
-			}
-		}
 		return LoginResult{}, err
 	}
 	if err := a.limiter.Reset(ctx, ek); err != nil {
