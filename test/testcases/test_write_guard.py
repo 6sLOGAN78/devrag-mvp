@@ -41,3 +41,18 @@ def test_login_without_origin_and_with_the_sites_own_origin_still_works(ingress:
     finally:
         registry.cleanup()
 
+
+def test_out_of_range_pages_are_400_not_503(ingress: httpx.Client) -> None:
+    """WR-06 through Nginx: member and token lists with absurd page numbers answer the envelope 400."""
+    registry = AccountRegistry(BASE_URL)
+    try:
+        acc = registry.register(prefix="pages")
+        auth = {"Authorization": f"Bearer {acc.token}"}
+        for base in (f"/api/v1/tenants/{acc.tenant_id}/users", "/api/v1/system/tokens"):
+            for query in ("page=9223372036854775807&page_size=100", "page=100001&page_size=1", "page=99999999999999999999", "page=0"):
+                resp = ingress.get(f"{base}?{query}", headers=auth)
+                assert resp.status_code == 400, f"{base}?{query}: {resp.status_code} {resp.text[:120]}"
+                assert resp.json()["code"] == 101
+            assert ingress.get(f"{base}?page=100000&page_size=100", headers=auth).status_code == 200
+    finally:
+        registry.cleanup()

@@ -23,3 +23,7 @@ func emailKey(subject string) string {
 	sum := sha256.Sum256([]byte(subject))
 	return hex.EncodeToString(sum[:16])
 }
+
+// MaxListPage bounds the 1-based page number of every paged list (WR-06). With the page sizes at most 100, the
+// SQL offset (page-1)*size stays below 10,000,000, so the product cannot overflow into a negative OFFSET.
+const MaxListPage = 100_000

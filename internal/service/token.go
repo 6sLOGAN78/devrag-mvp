@@ -149,7 +149,7 @@ func (s *Token) List(ctx context.Context, p Principal, page, pageSize int) ([]AP
 	if err != nil {
 		return nil, err
 	}
-	if page < 1 || pageSize < 1 || pageSize > MaxTokenPageSize {
+	if page < 1 || page > MaxListPage || pageSize < 1 || pageSize > MaxTokenPageSize {
 		return nil, &ValidationError{Msg: "invalid page or page_size"}
 	}
 	rows, err := s.store.ListAPITokens(ctx, tenant, pageSize, (page-1)*pageSize)

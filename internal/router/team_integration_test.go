@@ -227,3 +227,17 @@ func TestRoleChangeFailsClosedWith503WhenRedisIsDown(t *testing.T) {
 	w = r.do(http.MethodDelete, "/api/v1/tenants/"+id+"/users", token, map[string]string{"user_id": testutil.UniqueName("x")})
 	assert.Equal(t, http.StatusServiceUnavailable, w.Code, w.Body.String())
 }
+
+// WR-06: an out-of-range page is a 400 envelope for the member list, never a 503 from an overflowed offset.
+func TestOutOfRangePagesAreBadRequestsNotUnavailable(t *testing.T) {
+	r := newTeamRig(t, 50, false)
+	_, id, token := r.account(t)
+	for _, base := range []string{"/api/v1/tenants/" + id + "/users"} {
+		for _, q := range []string{"?page=9223372036854775807&page_size=100", "?page=100001&page_size=1", "?page=99999999999999999999", "?page=0", "?page=-5&page_size=10"} {
+			w := r.do(http.MethodGet, base+q, token, nil)
+			assert.Equal(t, http.StatusBadRequest, w.Code, base+q)
+			assert.Contains(t, w.Body.String(), `"code":101`, base+q)
+		}
+		assert.Equal(t, http.StatusOK, r.do(http.MethodGet, base+"?page=100000&page_size=100", token, nil).Code, base)
+	}
+}

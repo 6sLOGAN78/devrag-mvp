@@ -103,7 +103,7 @@ func memberStoreFailure(what string, err error) error {
 // ListMembers returns one page (page is 1-based) of the tenant's members to any active member. Only the
 // owner also sees pending invitations. A non-member gets ErrNotFound.
 func (t *Tenant) ListMembers(ctx context.Context, p Principal, tenantID string, page, pageSize int) ([]Member, error) {
-	if page < 1 || pageSize < 1 || pageSize > MaxMemberPageSize {
+	if page < 1 || page > MaxListPage || pageSize < 1 || pageSize > MaxMemberPageSize {
 		return nil, &ValidationError{Msg: "invalid page or page_size"}
 	}
 	role, err := t.memberRole(ctx, p, tenantID)
