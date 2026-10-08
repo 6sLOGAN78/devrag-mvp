@@ -15,6 +15,7 @@ from __future__ import annotations
 import asyncio
 import logging
 from collections.abc import Callable
+from concurrent.futures import ThreadPoolExecutor
 from urllib.parse import urlsplit
 
 from quart import Quart, Response, g, request
@@ -30,6 +31,12 @@ logger = logging.getLogger(__name__)
 
 AUTH_COOKIE_NAME = "ragflow_auth"
 LOOKUP_TIMEOUT_SECONDS = 5.0
+# Credential lookups run on their own small pool (WR-07, R-133). A timed-out request cancels only the await: the
+# worker thread stays inside the MySQL driver until its read timeout (30 s). On the loop's shared default executor a
+# database stall would therefore park every worker and starve the other to_thread callers (health probes, the
+# superuser seed); here it can park at most these threads, and a queued lookup of a cancelled request is dropped.
+AUTH_LOOKUP_WORKERS = 16
+AUTH_LOOKUP_EXECUTOR = ThreadPoolExecutor(max_workers=AUTH_LOOKUP_WORKERS, thread_name_prefix="auth-lookup")
 SAFE_METHODS = frozenset({"GET", "HEAD", "OPTIONS"})
 # Credential types a route's auth value accepts. `jwt` is the access token only; `api` adds API tokens;
 # `beta` adds the beta token (and, as in the reference, access and API tokens).
@@ -75,7 +82,8 @@ def _same_origin(allowed: tuple[str, ...]) -> bool:
 async def _resolve(resolver: Resolver, credential: str, types: tuple[str, ...]) -> tuple[Principal | None, str | None]:
     """Run the blocking resolver off the event loop. Returns ``(principal, failure_category)``."""
     try:
-        principal = await asyncio.wait_for(asyncio.to_thread(resolver, credential, types), LOOKUP_TIMEOUT_SECONDS)
+        lookup = asyncio.get_running_loop().run_in_executor(AUTH_LOOKUP_EXECUTOR, resolver, credential, types)
+        principal = await asyncio.wait_for(lookup, LOOKUP_TIMEOUT_SECONDS)
     except TimeoutError:
         return None, "timeout"
     except AuthInfrastructureError:

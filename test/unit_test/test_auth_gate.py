@@ -606,3 +606,35 @@ def test_loopback_peer_rule_matches_the_go_rule(addr, expected):
 
 def test_the_api_server_serves_no_static_files():
     assert not any(rule.endpoint == "static" for rule in create_app(memory_settings()).url_map.iter_rules())
+
+
+# WR-07: auth lookups stuck on a stalled database must not starve the default executor, which the health
+# probes and the superuser seed share through asyncio.to_thread.
+async def test_stalled_auth_lookups_leave_the_default_executor_free(monkeypatch):
+    import asyncio
+
+    monkeypatch.setattr("api.apps.auth.LOOKUP_TIMEOUT_SECONDS", 0.05)
+    release = threading.Event()
+
+    def stalled(credential: str, allowed_types: tuple[str, ...]) -> Principal | None:
+        release.wait(timeout=20)  # a database that does not answer
+        return None
+
+    app = make_test_app(authenticated=False, resolver=stalled)
+    client = _client(app)
+    default_workers = getattr(asyncio.get_running_loop()._default_executor, "_max_workers", None) or 36
+    try:
+        replies = await asyncio.gather(*[client.get(JWT_PATH, headers=_bearer(_signed())) for _ in range(default_workers + 8)])
+        assert {r.status_code for r in replies} == {503}, "every stalled lookup is the fail-closed 503"
+        probe = await asyncio.wait_for(asyncio.to_thread(lambda: "free"), timeout=1.0)
+        assert probe == "free", "the shared default executor still serves other callers"
+    finally:
+        release.set()
+
+
+def test_auth_lookups_run_on_a_dedicated_bounded_executor():
+    from api.apps import auth
+
+    pool = auth.AUTH_LOOKUP_EXECUTOR
+    assert pool._max_workers == auth.AUTH_LOOKUP_WORKERS  # noqa: SLF001
+    assert 1 <= auth.AUTH_LOOKUP_WORKERS <= 32
