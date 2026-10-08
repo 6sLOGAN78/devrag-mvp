@@ -10,7 +10,7 @@ A workspace connects a real model provider, sets default chat and embedding mode
 
 In scope: provider credentials and model settings (API and settings UI), chat and embedding drivers proven with real calls, token usage recording, dataset create/list/get/update/delete, the `DocStoreConnection` port and the Elasticsearch adapter (index provisioning; the `search` signature is defined here so Phase 5 does not reshape it), the storage interface with MinIO and local drivers, upload with validation and content-hash dedupe, document list and delete with blob garbage collection, datasets gallery, dataset workspace and upload dialog.
 
-Not in scope: parsing, chunking, embedding of documents and progress (Phase 4); retrieval and rerank (Phase 5/6); chat (later phases); the remaining documented providers beyond the set in D-13; billing quotas.
+Not in scope: parsing, chunking, embedding of documents and progress (Phase 4); retrieval and rerank (Phase 5/6); chat (later phases); the remaining documented providers beyond the set in D-15; billing quotas.
 </domain>
 
 <decisions>
@@ -35,7 +35,7 @@ Every decision in the four discussed sections was chosen by the user on 2026-10-
 ### Upload rules
 - **D-11:** Maximum single file size is **100 MB**, set by configuration. Nginx and the server enforce it; an oversized file is refused and nothing is stored.
 - **D-12:** Upload accepts **all documented file types** now (PDF, DOCX, PPTX, XLSX, TXT, Markdown, HTML, CSV, JSON, images and the rest the docs list). Files wait in "not started" until Phase 4 can parse them. Any other extension or MIME type is refused with HTTP 400.
-- **D-13 (limits):** Configurable limits with generous defaults: documents per dataset and files per upload request, each with a clear error when exceeded. No per-workspace storage quota in bytes in this phase; that belongs to the billing work.
+- **D-13:** Configurable limits with generous defaults: documents per dataset and files per upload request, each with a clear error when exceeded. No per-workspace storage quota in bytes in this phase; that belongs to the billing work.
 - **D-14:** A file whose name already exists in the dataset is kept and auto-renamed (`report.pdf` becomes `report(1).pdf`). Nothing is overwritten. Identical content still shares one stored blob (xxh64 dedupe within the tenant, as the docs specify).
 
 ### Provider coverage and the settings page
@@ -53,7 +53,7 @@ Every decision in the four discussed sections was chosen by the user on 2026-10-
 
 ### Claude's Discretion
 - The encryption scheme and key source for provider credentials at rest, within `docs/20-security/secrets.md` and `docs/11-llm/model-providers.md`.
-- Default values for the configurable limits in D-13, and the exact allowed-extension list taken from the docs.
+- Default values for the configurable limits in D-13 and the exact allowed-extension list taken from the docs.
 - Index naming, mapping details and analyzers, within `docs/05-rag-pipeline/indexing.md` and the documented `q_{dim}_vec` HNSW/cosine schema.
 - Layout details of the settings page, datasets gallery, dataset workspace and upload dialog, to be fixed in the UI design contract (`/gsd-ui-phase 3`).
 - Which cheap OpenRouter models to use for tests (D-06), and how usage is recorded.
