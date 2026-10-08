@@ -10,6 +10,8 @@
     {"area": "search_bots", "action": "ask", "allowed": ["owner", "admin", "normal", "beta_token", "api_token"]},
     {"area": "mcp_server", "action": "tool_call", "allowed": ["owner", "admin", "normal", "beta_token", "api_token"]},
     {"area": "tenant_settings", "action": "update_llm_keys", "allowed": ["owner", "admin"]},
+    {"area": "tenant_settings", "action": "view_models", "allowed": ["owner", "admin", "normal", "api_token"]},
+    {"area": "tenant_settings", "action": "set_default_models", "allowed": ["owner", "admin"]},
     {"area": "team_admin", "action": "manage_members", "allowed": ["owner"]},
     {"area": "enterprise_admin", "action": "view_health", "allowed": ["owner", "admin"]}
   ],

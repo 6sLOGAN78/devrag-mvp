@@ -17,6 +17,12 @@
     {"method": "GET", "path": "/api/v1/system/healthz", "auth": "none", "owner": "python", "scope": "none", "preflight": false},
     {"method": "GET", "path": "/unknown", "auth": "jwt", "owner": "", "scope": "none", "preflight": false},
     {"method": "GET", "path": "", "auth": "jwt", "owner": "", "scope": "none", "preflight": false},
+    {"method": "PUT", "path": "/api/v1/providers", "auth": "jwt", "owner": "python", "scope": "tenant", "preflight": false},
+    {"method": "GET", "path": "/api/v1/providers", "auth": "api", "owner": "python", "scope": "tenant", "preflight": false},
+    {"method": "POST", "path": "/api/v1/documents/upload", "auth": "api", "owner": "python", "scope": "tenant", "preflight": false},
+    {"method": "DELETE", "path": "/api/v1/datasets", "auth": "api", "owner": "python", "scope": "tenant", "preflight": false},
+    {"method": "PATCH", "path": "/api/v1/models/default", "auth": "jwt", "owner": "python", "scope": "tenant", "preflight": false},
+    {"method": "GET", "path": "/api/v1/datasets/x/y", "auth": "api", "owner": "python", "scope": "none", "preflight": false},
     {"method": "OPTIONS", "path": "/api/v1/datasets", "auth": "api", "owner": "python", "scope": "none", "preflight": true},
     {"method": "OPTIONS", "path": "/unknown", "auth": "jwt", "owner": "", "scope": "none", "preflight": true}
   ]

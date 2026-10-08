@@ -82,7 +82,7 @@ def test_table_covers_every_documented_area_and_nothing_extra_is_allowed() -> No
     data = yaml.safe_load(TABLE.read_text(encoding="utf-8"))
     areas = {r["area"] for r in data["permissions"]}
     assert DOC_AREAS <= areas
-    assert len(data["permissions"]) == len(ORACLE["rows"]) == 10
+    assert len(data["permissions"]) == len(ORACLE["rows"]) == 12
     got = {(r["area"], r["action"]): sorted(r["allow"]) for r in data["permissions"]}
     want = {(r["area"], r["action"]): sorted(r["allowed"]) for r in ORACLE["rows"]}
     assert got == want

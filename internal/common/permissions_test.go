@@ -29,8 +29,8 @@ func loadPermissionFixture(t *testing.T) permissionFixture {
 	if err := json.Unmarshal(raw, &f); err != nil {
 		t.Fatalf("decode fixture: %v", err)
 	}
-	if len(f.Rows) != 10 {
-		t.Fatalf("the docs matrix has 10 rows, fixture has %d", len(f.Rows))
+	if len(f.Rows) != 12 {
+		t.Fatalf("the permission matrix has 12 rows, fixture has %d", len(f.Rows))
 	}
 	return f
 }

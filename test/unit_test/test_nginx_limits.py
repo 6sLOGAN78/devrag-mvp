@@ -64,12 +64,26 @@ def test_go_owned_locations_have_small_body_limits_except_the_profile_route(conf
             assert limit <= 16 << 10, f"{path} may take at most 16k, has {limit}"
 
 
+MB = 1024 * 1024
+UPLOAD_PATH = "/api/v1/documents/upload"
+JSON_FAMILIES = ("/api/v1/providers", "/api/v1/providers/", "/api/v1/models", "/api/v1/models/default", "/api/v1/datasets", "/api/v1/datasets/")
+CATCH_ALLS = ("/api/", "/v1/")
+
+
 @pytest.mark.parametrize("conf", CONFS)
-def test_python_owned_locations_keep_the_upload_allowance_explicitly(conf: str) -> None:
-    py = [(p, b) for _, p, port, b in locations(conf) if port == PY_PORT]
+def test_python_owned_locations_have_an_explicit_per_path_body_limit(conf: str) -> None:
+    """Upload 101m, JSON families 1m, the catch-alls keep 1024m (plan 03-04, T-03-04-04)."""
+    py = {p: b for _, p, port, b in locations(conf) if port == PY_PORT}
     assert py
-    for path, body in py:
-        assert size_bytes(body) == 1024 * 1024 * 1024, path
+    assert size_bytes(py[UPLOAD_PATH]) == 101 * MB
+    for path in JSON_FAMILIES:
+        assert path in py, path
+        assert size_bytes(py[path]) == 1 * MB, path
+    for path in CATCH_ALLS:
+        assert size_bytes(py[path]) == 1024 * MB, path
+    for path, body in py.items():
+        if path not in (UPLOAD_PATH, *JSON_FAMILIES, *CATCH_ALLS):
+            assert size_bytes(body) == 1024 * MB, path
 
 
 def test_global_default_is_small_so_a_new_location_cannot_inherit_the_upload_limit() -> None:
