@@ -8,11 +8,11 @@ import dataclasses
 import uuid
 
 import pytest
-from common.doc_store.doc_store_base import DocStoreError, index_name
 from elasticsearch import Elasticsearch
-from rag.utils.es_conn import ESConnection, get_doc_store
 
+from common.doc_store.doc_store_base import DocStoreError, MatchTextExpr, index_name
 from common.settings import EsSettings, load_settings
+from rag.utils.es_conn import ESConnection, get_doc_store
 from test.helpers.doc_store_contract import DocStoreContract
 
 pytestmark = pytest.mark.integration
@@ -88,7 +88,6 @@ class TestEsDocStore(DocStoreContract):
 
     def test_unsupported_match_and_fusion_are_named(self, store, tenant_index, dataset_ids):
         from common.doc_store.doc_store_base import FusionExpr, MatchSparseExpr, NotSupported
-
         from test.helpers.doc_store_contract import search
 
         store.create_idx(tenant_index, dataset_ids[0], 8)
@@ -96,6 +95,29 @@ class TestEsDocStore(DocStoreContract):
             search(store, tenant_index, [dataset_ids[0]], matches=[MatchSparseExpr()])
         with pytest.raises(NotSupported, match="rrf"):
             search(store, tenant_index, [dataset_ids[0]], matches=[FusionExpr("rrf", 10)])
+
+    def test_rank_feature_boosts_rows_that_carry_the_feature(self, store, tenant_index, dataset_ids):
+        from test.helpers.doc_store_contract import row, search
+
+        ds = dataset_ids[0]
+        store.create_idx(tenant_index, ds, 8)
+        boosted = {**row("c1", "d1", "x", 0), "pagerank_fea": 10}
+        plain = row("c2", "d1", "x", 1)
+        store.insert([plain, boosted], tenant_index, ds)
+        result = search(store, tenant_index, [ds], matches=[MatchTextExpr(["content_ltks"], "x", 10)])
+        assert {h["id"] for h in result.hits} == {"c1", "c2"}
+        ranked = store.search([], [], {}, [MatchTextExpr(["content_ltks"], "x", 10)], None, 0, 10, tenant_index, [ds], rank_feature={"pagerank_fea": 5.0})
+        assert ranked.hits[0]["id"] == "c1"
+
+    def test_highlight_and_aggregation_are_returned_in_engine_neutral_form(self, store, tenant_index, dataset_ids):
+        from test.helpers.doc_store_contract import row
+
+        ds = dataset_ids[0]
+        store.create_idx(tenant_index, ds, 8)
+        store.insert([row("c1", "d1", "findme here", 0), row("c2", "d2", "findme there", 1), row("c3", "d2", "other", 2)], tenant_index, ds)
+        result = store.search([], ["content_ltks"], {}, [MatchTextExpr(["content_ltks"], "findme", 10)], None, 0, 10, tenant_index, [ds], agg_fields=["doc_id"])
+        assert all("<em>findme</em>" in h["_highlight"]["content_ltks"][0] for h in result.hits)
+        assert {b["key"]: b["doc_count"] for b in result.aggregations["doc_id"]} == {"d1": 1, "d2": 1}
 
     def test_an_unreachable_engine_fails_with_a_message_free_of_host_and_credentials(self, settings):
         dead = dataclasses.replace(settings, es=EsSettings(hosts="http://127.0.0.1:1", username="elastic", password="not-a-real-password"))
