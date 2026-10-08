@@ -28,5 +28,9 @@
   {"id": "key_in_json_value", "input": "{\"detail\": \"bad credential sk-or-v1-FAKEFAKEFAKEFAKEFAKE0004 rejected\"}", "secrets": ["FAKEFAKEFAKEFAKEFAKE0004"], "keep": ["bad credential", "rejected"]},
   {"id": "key_after_bearer_text", "input": "upstream said Bearer sk-FAKEFAKEFAKEFAKEFAKEFAKE0005 was refused", "secrets": ["FAKEFAKEFAKEFAKEFAKEFAKE0005"], "keep": ["upstream said", "was refused"]},
   {"id": "keep_short_sk_prefix", "input": "model sk-short-1234 selected", "secrets": [], "keep": ["sk-short-1234", "selected"]},
-  {"id": "keep_ordinary_word", "input": "assigned to task-force-leader-name today", "secrets": [], "keep": ["task-force-leader-name", "today"]}
+  {"id": "keep_ordinary_word", "input": "assigned to task-force-leader-name today", "secrets": [], "keep": ["task-force-leader-name", "today"]},
+  {"id": "key_glued_to_a_word_is_masked", "input": "GET /api/v1/logmask-probe-0123456789abcdef0123456789abcdef", "uri": "/api/v1/logmask-probe-0123456789abcdef0123456789abcdef", "secrets": ["probe-0123456789abcdef0123456789abcdef", "0123456789abcdef0123456789abcdef"], "keep": ["/api/v1/logma"]},
+  {"id": "key_after_equals", "input": "upstream key=sk-FAKEFAKEFAKEFAKEFAKEFAKE0007 end", "secrets": ["FAKEFAKEFAKEFAKEFAKEFAKE0007"], "keep": ["upstream", "end"]},
+  {"id": "key_after_quote", "input": "rejected \"sk-FAKEFAKEFAKEFAKEFAKEFAKE0008\" end", "secrets": ["FAKEFAKEFAKEFAKEFAKEFAKE0008"], "keep": ["rejected", "end"]},
+  {"id": "key_after_underscore", "input": "id_sk-FAKEFAKEFAKEFAKEFAKEFAKE0009 end", "secrets": ["FAKEFAKEFAKEFAKEFAKEFAKE0009"], "keep": ["end"]}
 ]

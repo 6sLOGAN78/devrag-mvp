@@ -79,7 +79,9 @@ def test_token_in_path_is_logged_as_the_route_template_by_every_engine(ingress: 
     go_before = sum(GO_TEMPLATE in line for line in before.go)
 
     # a Python-owned route sees the API token as a bearer credential, a Go-owned route sees the token in the path
-    probe = f"/api/v1/logmask-probe-{uuid.uuid4().hex}"
+    # not named "...mask-probe-<hex>": "sk-" followed by 20+ name characters is a provider key shape that the log redactor (deliberately,
+    # fail closed, even when glued to a preceding word) cuts, so a marker spelled that way is masked out of the line it is meant to find
+    probe = f"/api/v1/log-probe-{uuid.uuid4().hex}"
     assert ingress.get(probe, headers={"Authorization": f"Bearer {api_token}", "User-Agent": agent}).status_code == 404
     assert ingress.delete(f"{FAMILY}{api_token}", headers=headers).status_code == 200
     assert ingress.delete(f"{FAMILY}{invalid}", headers=headers).status_code == 404
@@ -140,7 +142,7 @@ def test_credentials_used_in_a_whole_flow_never_reach_any_log(ingress: httpx.Cli
         assert login.status_code == 200
         session = login.json()["data"]["token"]
         assert ingress.get("/v1/user/info", headers={"Authorization": f"Bearer {session}", "Cookie": f"ragflow_auth={session}"}).status_code == 200
-        marker = f"/api/v1/logmask-flow-{uuid.uuid4().hex}"
+        marker = f"/api/v1/log-flow-{uuid.uuid4().hex}"
         assert ingress.get(marker, headers={"Authorization": f"Bearer {session}"}).status_code == 404
 
         def marker_logged() -> Streams | None:
