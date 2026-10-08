@@ -226,6 +226,20 @@ http.interceptors.response.use(
   },
 );
 
+/**
+ * Narrows a success body to an object whose `required` keys are non-empty strings. A server that answers success with
+ * `data: null`, no `data`, or a record without its identifying field is a protocol fault: it fails with a clear
+ * ApiError (status 200, code -1) instead of a TypeError deep inside a mapper (IN-F07).
+ */
+export function expectRecord<T extends object>(value: unknown, what: string, required: readonly string[]): T {
+  const record = typeof value === "object" && value !== null && !Array.isArray(value) ? (value as Record<string, unknown>) : null;
+  const missing = record === null ? required[0] : required.find((key) => typeof record[key] !== "string" || record[key] === "");
+  if (record === null || missing !== undefined) {
+    throw new ApiError({ code: -1, status: 200, message: `Malformed response from ${what}: expected ${record === null ? "an object" : `a non-empty "${missing}"`}` });
+  }
+  return record as T;
+}
+
 export async function requestWithMeta<T>(
   config: AxiosRequestConfig,
   opts?: { silent?: boolean },

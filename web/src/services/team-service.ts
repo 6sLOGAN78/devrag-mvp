@@ -1,5 +1,5 @@
 import { tenantListPath, tenantPath, tenantUserPath, tenantUsersPath } from "@/constants/api-paths";
-import { request } from "./http";
+import { expectRecord, request } from "./http";
 
 /** One entry of the caller's workspace list. Role `invite` is a pending invitation, never a role to display. */
 export interface Membership {
@@ -83,7 +83,8 @@ export async function listMembers(tenantId: string): Promise<Member[]> {
 
 /** POST invite by email. Silent: the form shows the server message in its own alert. */
 export async function inviteMember(tenantId: string, email: string): Promise<Member> {
-  return toMember(await request<MemberDto>({ url: tenantUsersPath(tenantId), method: "POST", data: { email } }, { silent: true }));
+  const dto = await request<unknown>({ url: tenantUsersPath(tenantId), method: "POST", data: { email } }, { silent: true });
+  return toMember(expectRecord<MemberDto>(dto, "invitation", ["id"]));
 }
 
 /** PATCH accept or decline the caller's own invitation. */

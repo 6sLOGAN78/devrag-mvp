@@ -1,6 +1,6 @@
 import { logoutPath, userInfoPath, userPasswordPath, userSettingPath } from "@/constants/api-paths";
 import type { SessionUser, UserInfoDto } from "@/interfaces/user";
-import { request } from "./http";
+import { expectRecord, request } from "./http";
 
 function toSessionUser(dto: UserInfoDto): SessionUser {
   return {
@@ -19,7 +19,8 @@ function toSessionUser(dto: UserInfoDto): SessionUser {
 
 /** Session recovery. Silent: the guard renders its own error state, and a 401 purges through the http client. */
 export async function getUserInfo(): Promise<SessionUser> {
-  return toSessionUser(await request<UserInfoDto>({ url: userInfoPath, method: "GET" }, { silent: true }));
+  const dto = await request<unknown>({ url: userInfoPath, method: "GET" }, { silent: true });
+  return toSessionUser(expectRecord<UserInfoDto>(dto, "user info", ["id"]));
 }
 
 /** Invalidates the shared token server-side. Silent so a failed sign out never stacks a toast on the redirect. */

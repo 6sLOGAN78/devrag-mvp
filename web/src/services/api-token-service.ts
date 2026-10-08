@@ -1,5 +1,5 @@
 import { apiTokenPath, apiTokensPath } from "@/constants/api-paths";
-import { request } from "./http";
+import { expectRecord, request } from "./http";
 
 /** One API token as the page needs it. The beta value the API also returns is dropped here: no screen shows it. */
 export interface ApiToken {
@@ -26,7 +26,8 @@ export async function listApiTokens(): Promise<ApiToken[]> {
 
 /** Creates a token (no input exists). Silent: the page shows a message chosen from the status. */
 export async function createApiToken(): Promise<ApiToken> {
-  return toApiToken(await request<ApiTokenDto>({ url: apiTokensPath, method: "POST" }, { silent: true }));
+  const dto = await request<unknown>({ url: apiTokensPath, method: "POST" }, { silent: true });
+  return toApiToken(expectRecord<ApiTokenDto>(dto, "token creation", ["token"]));
 }
 
 /** Deletes the given token. Silent: a 404 means it is already gone and is handled by refreshing the list. */
