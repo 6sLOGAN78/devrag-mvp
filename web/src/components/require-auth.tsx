@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { Navigate, Outlet, useLocation, useNavigate } from "react-router";
 import { ErrorState } from "@/components/error-state";
@@ -33,9 +33,14 @@ function SessionRecovery({ path }: { path: string }) {
   const user = useUserStore((state) => state.user);
   const data = query.data;
 
+  // The server's language and theme are applied once per recovered user, never again when the cached user object is
+  // replaced by a later profile save: that would undo an explicit local choice such as "System" (WR-F06, R-120).
+  const appliedFor = useRef<string | null>(null);
   useEffect(() => {
     if (!data) return;
     useUserStore.getState().setUser(data);
+    if (appliedFor.current === data.id) return;
+    appliedFor.current = data.id;
     applyUserLanguage(data.language);
     applyUserColourSchema(data.colorSchema);
   }, [data]);

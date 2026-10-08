@@ -9,6 +9,8 @@ import i18n from "@/i18n";
 import { LANG_KEY } from "@/i18n/language";
 import { http, registerQueryClient } from "@/services/http";
 import { installSessionSync } from "@/services/session-sync";
+import { useProfileRequest } from "@/hooks/use-profile-request";
+import { setThemeChoice } from "@/utils/theme";
 import { useUserStore } from "@/stores/user-store";
 import { getAuthorization, setAuthorization } from "@/utils/authorization";
 import { waitUntil } from "@/test/wait-until";
@@ -57,10 +59,10 @@ function Probe({ label }: { label: string }) {
   );
 }
 
-function renderGuard(path: string) {
+function renderGuard(path: string, content: JSX.Element = <p>protected content</p>) {
   const router = createMemoryRouter(
     [
-      { element: <RequireAuth />, children: [{ path: "/user-setting/profile", element: <p>protected content</p> }] },
+      { element: <RequireAuth />, children: [{ path: "/user-setting/profile", element: content }] },
       { path: "/login", element: <Probe label="login-page" /> },
     ],
     { initialEntries: [path] },
@@ -286,5 +288,56 @@ describe("RequireAuth: token changed in another tab (WR-F02)", () => {
     expect(screen.getByText("protected content")).toBeInTheDocument();
     expect(useUserStore.getState().user?.nickname).toBe("Ada");
     expect(calls).toHaveLength(1);
+  });
+});
+
+describe("RequireAuth: server theme applies at session recovery only (WR-F06, R-120)", () => {
+  beforeEach(() => {
+    setAuthorization("tok-a");
+    document.documentElement.classList.remove("dark");
+    vi.stubGlobal("matchMedia", (query: string) => ({ matches: false, media: query, addEventListener: () => undefined, removeEventListener: () => undefined }));
+  });
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    document.documentElement.classList.remove("dark");
+  });
+
+  function SaveNickname() {
+    const save = useProfileRequest();
+    return (
+      <div>
+        <button type="button" onClick={() => setThemeChoice("system")}>
+          choose system
+        </button>
+        <button type="button" onClick={() => save.mutate({ nickname: "Ada L" })}>
+          save profile
+        </button>
+        <p data-testid="saved">{save.isSuccess ? "saved" : "idle"}</p>
+      </div>
+    );
+  }
+
+  it("saving the profile after choosing System does not re-apply the server's Dark theme", async () => {
+    script = [{ kind: "ok", user: { color_schema: "Dark" } }, { kind: "ok" }];
+    renderGuard("/user-setting/profile", <SaveNickname />);
+    await waitUntil(() => document.documentElement.classList.contains("dark"), { describe: "server Dark applied at recovery" });
+    fireEvent.click(screen.getByRole("button", { name: "choose system" }));
+    expect(document.documentElement.classList.contains("dark")).toBe(false);
+    expect(localStorage.getItem("devrag.theme")).toBeNull();
+
+    fireEvent.click(screen.getByRole("button", { name: "save profile" }));
+    await waitUntil(() => screen.getByTestId("saved").textContent === "saved", { describe: "profile saved" });
+    expect(useUserStore.getState().user?.nickname).toBe("Ada L");
+    expect(document.documentElement.classList.contains("dark")).toBe(false);
+  });
+
+  it("saving the profile does not override an explicit Light choice either", async () => {
+    script = [{ kind: "ok", user: { color_schema: "Dark" } }, { kind: "ok" }];
+    renderGuard("/user-setting/profile", <SaveNickname />);
+    await waitUntil(() => document.documentElement.classList.contains("dark"), { describe: "server Dark applied at recovery" });
+    act(() => setThemeChoice("light"));
+    fireEvent.click(screen.getByRole("button", { name: "save profile" }));
+    await waitUntil(() => screen.getByTestId("saved").textContent === "saved", { describe: "profile saved" });
+    expect(document.documentElement.classList.contains("dark")).toBe(false);
   });
 });
