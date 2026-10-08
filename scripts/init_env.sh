@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Create docker/.env from docker/.env.example with generated secrets (SEC-04, R-61, R-96).
 # Secret keys are the ones preceded by a "# secret" comment line and left empty in the example.
-# SECRET_KEY is generated as 64 hex characters; operator-supplied secrets (SUPERUSER_PASSWORD,
-# SMTP_PASSWORD) are never generated and stay empty.
+# SECRET_KEY is generated as 64 hex characters; LLM_KEY_ENCRYPTION_KEY as 32 random bytes in URL-safe base64;
+# operator-supplied secrets (SUPERUSER_PASSWORD, SMTP_PASSWORD, OPENROUTER_API_KEY) are never generated and stay empty.
 # Without a flag: refuses to overwrite an existing .env. With --append-missing: appends only the keys the
 # existing .env lacks and never rewrites or regenerates an existing line (safe against live volumes).
 # Never prints secret values. ENV_EXAMPLE / ENV_TARGET override the paths (tests).
@@ -31,6 +31,7 @@ fi
 
 umask 077
 EXAMPLE="$EXAMPLE" TARGET="$TARGET" APPEND="$APPEND" python3 - <<'PY'
+import base64
 import os
 import secrets
 
@@ -38,10 +39,12 @@ example = os.environ["EXAMPLE"]
 target = os.environ["TARGET"]
 append = os.environ["APPEND"] == "1"
 # Supplied by the operator, never generated.
-OPERATOR_SUPPLIED = {"SUPERUSER_PASSWORD", "SMTP_PASSWORD"}
+OPERATOR_SUPPLIED = {"SUPERUSER_PASSWORD", "SMTP_PASSWORD", "OPENROUTER_API_KEY"}
 
 
 def generated(key: str) -> str:
+    if key == "LLM_KEY_ENCRYPTION_KEY":
+        return base64.urlsafe_b64encode(secrets.token_bytes(32)).decode()
     return secrets.token_hex(32) if key == "SECRET_KEY" else secrets.token_hex(16)
 
 

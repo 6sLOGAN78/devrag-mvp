@@ -17,6 +17,12 @@ dependencies = [
     "PyYAML==6.0.3",
     "httpx==0.28.1",
     "itsdangerous==2.2.0",
+    "litellm==1.103.2",
+    "openai>=2.20,<3",
+    "ollama==0.6.3",
+    "xxhash==4.0.1",
+    "tiktoken>=0.12,<1",
+    "pycryptodome==3.24.0",
 ]
 
 [dependency-groups]

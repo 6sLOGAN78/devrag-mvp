@@ -37,6 +37,10 @@ services:
       RATE_LIMIT_REGISTER_PER_IP: ${DEV_RATE_LIMIT_PER_IP_MAX:-100000}
       RATE_LIMIT_LOGIN_PER_IP: ${DEV_RATE_LIMIT_PER_IP_MAX:-100000}
       RATE_LIMIT_OTP_PER_IP_PER_HOUR: ${DEV_RATE_LIMIT_PER_IP_MAX:-100000}
+      # Dev only (never production compose): tests point a provider at a fake server on the host.
+      LLM_ALLOW_PRIVATE_BASE_URLS: ${DEV_LLM_ALLOW_PRIVATE_BASE_URLS:-true}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
   # Dev-only mail catcher for the password-reset flow (D-05, D-20, R-95, R-96). It lives in this file only: production
   # compose and docker-compose-base.yml carry SMTP settings but no mail service. SMTP (1025) is reachable inside the
   # network as mailpit:1025; only the HTTP API is published, on loopback, for test read-back.

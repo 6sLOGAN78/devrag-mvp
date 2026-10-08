@@ -1,7 +1,10 @@
 """Typed configuration loaded from the rendered service_conf.yaml (D-28, SEC-04)."""
 from __future__ import annotations
 
+import base64
+import binascii
 import os
+import re
 from dataclasses import dataclass, field
 from functools import lru_cache
 from pathlib import Path
@@ -146,6 +149,54 @@ class ModelsSettings:
     default_base_url: str = ""
 
 
+LLM_KEY_BYTES = 32
+MAX_UPLOAD_FILE_BYTES = 104857600  # 100 MiB: the generated Nginx cap of 101m must never be exceeded by configuration
+DEFAULT_UPLOAD_EXTENSIONS = ("pdf", "docx", "pptx", "xlsx", "txt", "md", "markdown", "csv", "json", "html", "htm", "epub", "jpg", "jpeg", "png", "mp3", "wav")  # D-28
+_EXTENSION = re.compile(r"^[a-z0-9]{1,10}$")
+_STORAGE_IMPLS = ("MINIO", "LOCAL")
+
+
+@dataclass(frozen=True)
+class LlmSettings:
+    """Provider-key encryption and model-call limits (SEC-03, LLM-16, D-23).
+
+    ``encryption_key`` is URL-safe base64 of 32 bytes. Empty is allowed at parse time so the app still boots;
+    routes that need it fail closed.
+    """
+
+    encryption_key: str = field(default="", repr=False)
+    key_id: str = "k1"
+    allow_private_base_urls: bool = False
+    chat_timeout_seconds: int = 60
+    embedding_timeout_seconds: int = 30
+    key_test_timeout_seconds: int = 20
+    max_retries: int = 3
+
+    def __repr__(self) -> str:
+        return (
+            f"LlmSettings(encryption_key={MASK!r}, key_id={self.key_id!r}, allow_private_base_urls={self.allow_private_base_urls}, "
+            f"chat_timeout_seconds={self.chat_timeout_seconds}, embedding_timeout_seconds={self.embedding_timeout_seconds}, "
+            f"key_test_timeout_seconds={self.key_test_timeout_seconds}, max_retries={self.max_retries})"
+        )
+
+    __str__ = __repr__
+
+
+@dataclass(frozen=True)
+class StorageSettings:
+    impl: str = "MINIO"
+    local_base_dir: str = "/ragflow/data/storage"
+
+
+@dataclass(frozen=True)
+class UploadSettings:
+    max_file_bytes: int = MAX_UPLOAD_FILE_BYTES  # D-11
+    max_files_per_request: int = 20  # D-13
+    max_documents_per_dataset: int = 10000  # D-13
+    body_timeout_seconds: int = 600
+    allowed_extensions: tuple[str, ...] = DEFAULT_UPLOAD_EXTENSIONS
+
+
 @dataclass(frozen=True)
 class RateLimitSettings:
     """Every rate-limit number (D-29). Defaults are the R-94 production values."""
@@ -159,6 +210,8 @@ class RateLimitSettings:
     otp_per_email_per_hour: int = 5
     otp_per_ip_per_hour: int = 20
     otp_window_seconds: int = 3600
+    provider_test_per_tenant: int = 10
+    provider_test_window_seconds: int = 300
 
 
 @dataclass(frozen=True)
@@ -175,6 +228,9 @@ class Settings:
     mail: MailSettings = field(default_factory=MailSettings)
     models: ModelsSettings = field(default_factory=ModelsSettings)
     ratelimit: RateLimitSettings = field(default_factory=RateLimitSettings)
+    llm: LlmSettings = field(default_factory=LlmSettings)
+    storage: StorageSettings = field(default_factory=StorageSettings)
+    upload: UploadSettings = field(default_factory=UploadSettings)
 
 
 def _section(data: dict[str, Any], name: str) -> dict[str, Any]:
@@ -214,7 +270,7 @@ def _bool(section: dict[str, Any], parent: str, key: str, default: bool) -> bool
     raise ConfigError(f"invalid value for config key: {parent}.{key}")
 
 
-def _bounded(section: dict[str, Any], parent: str, key: str, default: int, hi: int | None = None) -> int:
+def _bounded(section: dict[str, Any], parent: str, key: str, default: int, hi: int | None = None, lo: int = 1) -> int:
     raw = section.get(key)
     if raw is None or raw == "":
         return default
@@ -224,7 +280,7 @@ def _bounded(section: dict[str, Any], parent: str, key: str, default: int, hi: i
         value = int(str(raw).strip())
     except ValueError as exc:
         raise ConfigError(f"invalid value for config key: {parent}.{key}") from exc
-    if value < 1 or (hi is not None and value > hi):
+    if value < lo or (hi is not None and value > hi):
         raise ConfigError(f"invalid value for config key: {parent}.{key}")
     return value
 
@@ -280,6 +336,64 @@ def _parse_ratelimit(data: dict[str, Any]) -> RateLimitSettings:
     return RateLimitSettings(**values)
 
 
+def _valid_encryption_key(key: str) -> bool:
+    try:
+        return len(base64.urlsafe_b64decode(key + "=" * (-len(key) % 4))) == LLM_KEY_BYTES and re.fullmatch(r"[A-Za-z0-9_=-]+", key) is not None
+    except (binascii.Error, ValueError):
+        return False
+
+
+def _parse_llm(data: dict[str, Any]) -> LlmSettings:
+    sec = data.get("llm") or {}
+    defaults = LlmSettings()
+    key = _optional(sec, "encryption_key").strip()
+    if key and not _valid_encryption_key(key):
+        raise ConfigError("invalid value for config key: llm.encryption_key")
+    key_id = _optional(sec, "key_id", defaults.key_id).strip()
+    if not re.fullmatch(r"[A-Za-z0-9]{1,16}", key_id):
+        raise ConfigError("invalid value for config key: llm.key_id")
+    return LlmSettings(
+        encryption_key=key,
+        key_id=key_id,
+        allow_private_base_urls=_bool(sec, "llm", "allow_private_base_urls", defaults.allow_private_base_urls),
+        chat_timeout_seconds=_bounded(sec, "llm", "chat_timeout_seconds", defaults.chat_timeout_seconds, MAX_WINDOW_SECONDS),
+        embedding_timeout_seconds=_bounded(sec, "llm", "embedding_timeout_seconds", defaults.embedding_timeout_seconds, MAX_WINDOW_SECONDS),
+        key_test_timeout_seconds=_bounded(sec, "llm", "key_test_timeout_seconds", defaults.key_test_timeout_seconds, MAX_WINDOW_SECONDS),
+        max_retries=_bounded(sec, "llm", "max_retries", defaults.max_retries, 5, lo=0),
+    )
+
+
+def _parse_storage(data: dict[str, Any]) -> StorageSettings:
+    sec = data.get("storage") or {}
+    defaults = StorageSettings()
+    impl = _optional(sec, "impl", defaults.impl).strip().upper()
+    if impl not in _STORAGE_IMPLS:
+        raise ConfigError("invalid value for config key: storage.impl")
+    return StorageSettings(impl=impl, local_base_dir=_optional(sec, "local_base_dir", defaults.local_base_dir).strip())
+
+
+def _parse_extensions(sec: dict[str, Any]) -> tuple[str, ...]:
+    raw = _optional(sec, "allowed_extensions")
+    if not raw.strip():
+        return DEFAULT_UPLOAD_EXTENSIONS
+    names = tuple(part.strip().lower() for part in raw.split(","))
+    if not all(_EXTENSION.match(name) for name in names):
+        raise ConfigError("invalid value for config key: upload.allowed_extensions")
+    return names
+
+
+def _parse_upload(data: dict[str, Any]) -> UploadSettings:
+    sec = data.get("upload") or {}
+    defaults = UploadSettings()
+    return UploadSettings(
+        max_file_bytes=_bounded(sec, "upload", "max_file_bytes", defaults.max_file_bytes, MAX_UPLOAD_FILE_BYTES),
+        max_files_per_request=_bounded(sec, "upload", "max_files_per_request", defaults.max_files_per_request, 100),
+        max_documents_per_dataset=_bounded(sec, "upload", "max_documents_per_dataset", defaults.max_documents_per_dataset, 1_000_000),
+        body_timeout_seconds=_bounded(sec, "upload", "body_timeout_seconds", defaults.body_timeout_seconds, MAX_WINDOW_SECONDS),
+        allowed_extensions=_parse_extensions(sec),
+    )
+
+
 def parse_settings(data: dict[str, Any]) -> Settings:
     if not isinstance(data, dict):
         raise ConfigError("configuration file is empty or not a mapping")
@@ -324,6 +438,9 @@ def parse_settings(data: dict[str, Any]) -> Settings:
         mail=_parse_mail(data),
         models=_parse_models(data),
         ratelimit=_parse_ratelimit(data),
+        llm=_parse_llm(data),
+        storage=_parse_storage(data),
+        upload=_parse_upload(data),
     )
 
 

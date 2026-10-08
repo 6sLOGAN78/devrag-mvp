@@ -200,6 +200,7 @@ def test_cli_renders_phase2_sections(tmp_path):
         "register_per_ip": 10, "register_window_seconds": 3600, "login_failures_per_email": 5, "login_per_ip": 30,
         "login_window_seconds": 900, "otp_email_interval_seconds": 60, "otp_per_email_per_hour": 5,
         "otp_per_ip_per_hour": 20, "otp_window_seconds": 3600,
+        "provider_test_per_tenant": 10, "provider_test_window_seconds": 300,
     }
 
 

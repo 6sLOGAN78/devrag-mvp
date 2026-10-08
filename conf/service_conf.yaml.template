@@ -67,3 +67,24 @@ ratelimit:
   otp_per_email_per_hour: ${RATE_LIMIT_OTP_PER_EMAIL_PER_HOUR:-5}
   otp_per_ip_per_hour: ${RATE_LIMIT_OTP_PER_IP_PER_HOUR:-20}
   otp_window_seconds: ${RATE_LIMIT_OTP_WINDOW_SECONDS:-3600}
+  provider_test_per_tenant: ${RATE_LIMIT_PROVIDER_TEST_PER_TENANT:-10}
+  provider_test_window_seconds: ${RATE_LIMIT_PROVIDER_TEST_WINDOW_SECONDS:-300}
+# Provider-key encryption and model-call limits (SEC-03, D-23). The key is URL-safe base64 of 32 random bytes.
+llm:
+  encryption_key: '${LLM_KEY_ENCRYPTION_KEY:-}'
+  key_id: '${LLM_KEY_ID:-k1}'
+  allow_private_base_urls: '${LLM_ALLOW_PRIVATE_BASE_URLS:-false}'
+  chat_timeout_seconds: ${LLM_CHAT_TIMEOUT_SECONDS:-60}
+  embedding_timeout_seconds: ${LLM_EMBEDDING_TIMEOUT_SECONDS:-30}
+  key_test_timeout_seconds: ${LLM_KEY_TEST_TIMEOUT_SECONDS:-20}
+  max_retries: ${LLM_MAX_RETRIES:-3}
+storage:
+  impl: '${STORAGE_IMPL:-MINIO}'
+  local_base_dir: '${STORAGE_LOCAL_DIR:-/ragflow/data/storage}'
+# Upload limits (D-11, D-13). max_file_bytes is capped at 104857600 so it can never exceed the Nginx body cap of 101m.
+upload:
+  max_file_bytes: ${UPLOAD_MAX_FILE_BYTES:-104857600}
+  max_files_per_request: ${UPLOAD_MAX_FILES_PER_REQUEST:-20}
+  max_documents_per_dataset: ${DATASET_MAX_DOCUMENTS:-10000}
+  body_timeout_seconds: ${UPLOAD_BODY_TIMEOUT_SECONDS:-600}
+  allowed_extensions: '${UPLOAD_ALLOWED_EXTENSIONS:-}'
