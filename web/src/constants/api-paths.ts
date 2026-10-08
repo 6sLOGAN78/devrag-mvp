@@ -40,3 +40,18 @@ export const apiTokensPath = resolve("go", "/api/v1/system/tokens");
 export function apiTokenPath(token: string): string {
   return resolveUnder("go", "/api/v1/system/tokens/", encodeURIComponent(token));
 }
+
+/** The caller's memberships and pending invitations (GET). */
+export const tenantListPath = resolveUnder("go", "/v1/tenant/", "list");
+/** Members of one workspace (GET list, POST invite, DELETE remove, withdraw or leave). The id is the one the server listed. */
+export function tenantUsersPath(tenantId: string): string {
+  return resolveUnder("go", "/api/v1/tenants/", `${encodeURIComponent(tenantId)}/users`);
+}
+/** One workspace (PATCH accept or decline the caller's own invitation). */
+export function tenantPath(tenantId: string): string {
+  return resolveUnder("go", "/api/v1/tenants/", encodeURIComponent(tenantId));
+}
+/** One member of a workspace (PATCH role change, owner only). */
+export function tenantUserPath(tenantId: string, userId: string): string {
+  return resolveUnder("go", "/api/v1/tenants/", `${encodeURIComponent(tenantId)}/users/${encodeURIComponent(userId)}`);
+}
