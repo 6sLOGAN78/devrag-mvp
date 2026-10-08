@@ -56,6 +56,12 @@ var (
 	ErrAlreadyMember = errors.New("already a member")
 	// ErrAlreadyInvited means the target already has a pending invitation in the tenant.
 	ErrAlreadyInvited = errors.New("already invited")
+	// ErrNotPermitted means the caller's role, read inside the transaction, may not do this.
+	ErrNotPermitted = errors.New("not permitted")
+	// ErrOwnerRow means the target is (or is the caller as) the owner row, which never changes or leaves.
+	ErrOwnerRow = errors.New("owner row")
+	// ErrPendingRow means the target holds only a pending invitation, which has no role to change.
+	ErrPendingRow = errors.New("pending invitation")
 )
 
 const (
@@ -179,4 +185,138 @@ func (d *DB) AcceptInvite(ctx context.Context, tenantID, userID string, now time
 func (d *DB) DeclineInvite(ctx context.Context, tenantID, userID string) (bool, error) {
 	res := d.gorm.WithContext(ctx).Exec("DELETE FROM user_tenant WHERE tenant_id = ? AND user_id = ? AND role = ? AND status = '1' LIMIT 1", tenantID, userID, rolePending)
 	return res.RowsAffected > 0, res.Error
+}
+
+const (
+	roleAdmin = "admin"
+	roleOwner = "owner"
+)
+
+// lockedTenantCaller locks the active tenant row for the rest of the transaction and returns the
+// caller's membership role read under that lock. Every membership mutation starts here, so decisions
+// are made on rows no concurrent mutation can change: ErrNotFound when the tenant or the caller's
+// membership is gone.
+func lockedTenantCaller(tx *gorm.DB, tenantID, callerID string) (string, error) {
+	var lock entity.Tenant
+	if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).Select("id").Where("id = ? AND status = '1'", tenantID).Take(&lock).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return "", ErrNotFound
+		}
+		return "", fmt.Errorf("lock tenant: %T", err)
+	}
+	var roles []string
+	if err := tx.Model(&entity.UserTenant{}).Clauses(clause.Locking{Strength: "UPDATE"}).
+		Where("tenant_id = ? AND user_id = ? AND status = '1' AND role IN ?", tenantID, callerID, []string{roleOwner, roleAdmin, roleNormal}).
+		Pluck("role", &roles).Error; err != nil {
+		return "", fmt.Errorf("read caller rows: %T", err)
+	}
+	best := ""
+	for _, r := range roles {
+		if r == roleOwner || (r == roleAdmin && best != roleOwner) || (r == roleNormal && best == "") {
+			best = r
+		}
+	}
+	if best == "" {
+		return "", ErrNotFound
+	}
+	return best, nil
+}
+
+// lockedTargetRoles reads (and row-locks) the active roles of targetID in tenantID.
+func lockedTargetRoles(tx *gorm.DB, tenantID, targetID string) ([]string, error) {
+	var roles []string
+	err := tx.Model(&entity.UserTenant{}).Clauses(clause.Locking{Strength: "UPDATE"}).
+		Where("tenant_id = ? AND user_id = ? AND status = '1'", tenantID, targetID).Pluck("role", &roles).Error
+	if err != nil {
+		return nil, fmt.Errorf("read target rows: %T", err)
+	}
+	return roles, nil
+}
+
+func hasRole(roles []string, want ...string) bool {
+	for _, r := range roles {
+		for _, w := range want {
+			if r == w {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// ChangeMemberRole sets an admin or normal member of tenantID to role (admin or normal). The caller's
+// role and the target's rows are read inside one transaction under the tenant row lock; canManage
+// decides from the caller's role (the generated permission table). The owner row and a pending
+// invitation are refused (ErrOwnerRow, ErrPendingRow), an absent target is ErrNotFound, and the UPDATE
+// itself only matches admin or normal rows, so the owner role can never be written or overwritten.
+func (d *DB) ChangeMemberRole(ctx context.Context, tenantID, callerID, targetID, role string, now time.Time, canManage func(role string) bool) error {
+	return Transaction(ctx, d, func(tx *gorm.DB) error {
+		callerRole, err := lockedTenantCaller(tx, tenantID, callerID)
+		if err != nil {
+			return err
+		}
+		if !canManage(callerRole) {
+			return ErrNotPermitted
+		}
+		roles, err := lockedTargetRoles(tx, tenantID, targetID)
+		if err != nil {
+			return err
+		}
+		switch {
+		case hasRole(roles, roleOwner):
+			return ErrOwnerRow
+		case hasRole(roles, roleAdmin, roleNormal):
+		case hasRole(roles, rolePending):
+			return ErrPendingRow
+		default:
+			return ErrNotFound
+		}
+		err = tx.Exec("UPDATE user_tenant SET role = ?, update_time = ?, update_date = ? "+
+			"WHERE tenant_id = ? AND user_id = ? AND status = '1' AND role IN ('admin','normal')",
+			role, now.UnixMilli(), now, tenantID, targetID).Error
+		if err != nil {
+			return fmt.Errorf("update role: %T", err)
+		}
+		return nil
+	})
+}
+
+// RemoveMember deletes one membership row of tenantID. targetID equal to callerID is leaving: allowed
+// for admin and normal rows, ErrOwnerRow for the owner. Any other target needs canManage (owner) and
+// may be an admin, a normal member or a pending invitation; the owner row is ErrOwnerRow. The DELETE
+// matches only admin, normal and invite rows, so a racing request can never delete the owner row.
+// All decisions use rows read under the tenant row lock in this transaction; a target already gone
+// (including one removed by a racing request) is ErrNotFound.
+func (d *DB) RemoveMember(ctx context.Context, tenantID, callerID, targetID string, canManage func(role string) bool) error {
+	return Transaction(ctx, d, func(tx *gorm.DB) error {
+		callerRole, err := lockedTenantCaller(tx, tenantID, callerID)
+		if err != nil {
+			return err
+		}
+		if targetID == callerID {
+			if callerRole == roleOwner {
+				return ErrOwnerRow
+			}
+		} else if !canManage(callerRole) {
+			return ErrNotPermitted
+		}
+		roles, err := lockedTargetRoles(tx, tenantID, targetID)
+		if err != nil {
+			return err
+		}
+		if hasRole(roles, roleOwner) {
+			return ErrOwnerRow
+		}
+		if !hasRole(roles, roleAdmin, roleNormal, rolePending) {
+			return ErrNotFound
+		}
+		res := tx.Exec("DELETE FROM user_tenant WHERE tenant_id = ? AND user_id = ? AND status = '1' AND role IN ('admin','normal','invite')", tenantID, targetID)
+		if res.Error != nil {
+			return fmt.Errorf("delete member: %T", res.Error)
+		}
+		if res.RowsAffected == 0 {
+			return ErrNotFound
+		}
+		return nil
+	})
 }

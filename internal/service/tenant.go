@@ -22,6 +22,8 @@ type TenantStore interface {
 	CreateInvite(ctx context.Context, inviterID string, row entity.UserTenant) error
 	AcceptInvite(ctx context.Context, tenantID, userID string, now time.Time) (bool, error)
 	DeclineInvite(ctx context.Context, tenantID, userID string) (bool, error)
+	ChangeMemberRole(ctx context.Context, tenantID, callerID, targetID, role string, now time.Time, canManage func(role string) bool) error
+	RemoveMember(ctx context.Context, tenantID, callerID, targetID string, canManage func(role string) bool) error
 }
 
 // TenantInfo is the caller's own workspace with its default model ids; unconfigured ids are empty.

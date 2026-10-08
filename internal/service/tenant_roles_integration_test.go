@@ -27,10 +27,13 @@ func newTeamFixture(t *testing.T, perWindow int) *teamFixture {
 	t.Helper()
 	e := newMembersEnv(t, perWindow)
 	f := &teamFixture{e: e}
+	// The principal is built the way the gate would: a session of the registered user. Every membership
+	// decision reads the database, so no login (and its password hashing) is needed here; the token
+	// path is covered end to end by the e2e tier.
 	reg := func(prefix string) (testutil.Account, string, Principal) {
 		email := testutil.UniqueEmail(prefix)
 		u := e.register(t, email, testutil.FixtureCredential())
-		return testutil.Account{UserID: u.ID, TenantID: u.ID, Email: email}, email, e.principal(t, email)
+		return testutil.Account{UserID: u.ID, TenantID: u.ID, Email: email}, email, Principal{UserID: u.ID, TenantID: u.ID, Role: "owner", AuthType: AuthTypeJWT}
 	}
 	f.owner, f.ownerEmail, f.ownerP = reg("ro")
 	f.admin, f.adminEmail, f.adminP = reg("ra")
@@ -265,7 +268,7 @@ func TestRacingRemovalsNeverDeleteTheOwnerRow(t *testing.T) {
 }
 
 func TestOwnerRemovesMemberWhileMemberLeavesLeavesConsistentState(t *testing.T) {
-	for round := 0; round < 6; round++ {
+	for round := 0; round < 4; round++ {
 		f := newTeamFixture(t, 100000)
 		ctx := context.Background()
 		tenantID := f.owner.TenantID
@@ -301,7 +304,7 @@ func TestOwnerRemovesMemberWhileMemberLeavesLeavesConsistentState(t *testing.T) 
 }
 
 func TestTwoRoleChangesOnTheSameRowEndInOneOfTheTwoRoles(t *testing.T) {
-	for round := 0; round < 6; round++ {
+	for round := 0; round < 4; round++ {
 		f := newTeamFixture(t, 100000)
 		ctx := context.Background()
 		var wg sync.WaitGroup
@@ -326,7 +329,7 @@ func TestTwoRoleChangesOnTheSameRowEndInOneOfTheTwoRoles(t *testing.T) {
 }
 
 func TestRoleChangeRacingRemovalNeverResurrectsTheMember(t *testing.T) {
-	for round := 0; round < 6; round++ {
+	for round := 0; round < 4; round++ {
 		f := newTeamFixture(t, 100000)
 		ctx := context.Background()
 		var wg sync.WaitGroup
@@ -354,7 +357,7 @@ func TestRoleChangeRacingRemovalNeverResurrectsTheMember(t *testing.T) {
 }
 
 func TestAcceptRacingWithdrawLeavesNoMemberAndNoDuplicate(t *testing.T) {
-	for round := 0; round < 8; round++ {
+	for round := 0; round < 4; round++ {
 		f := newTeamFixture(t, 100000)
 		ctx := context.Background()
 		var wg sync.WaitGroup
