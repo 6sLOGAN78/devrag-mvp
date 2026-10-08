@@ -34,6 +34,10 @@ var cookiePattern = regexp.MustCompile(`(?i)(["']?[\w-]*cookie[\w-]*["']?)([ \t]
 // the greedy class stops at the last @ of the authority) and keeps everything but the password.
 var urlUserinfoPattern = regexp.MustCompile(`(?i)([a-z][a-z0-9+.-]*://[^\s:/@?#]*:)[^\s/?#]*(@)`)
 
+// keyShapePattern matches provider API key shapes (OpenRouter sk-or-v1-..., OpenAI-style sk-...) anywhere in free text,
+// such as an SDK message "Incorrect API key provided: sk-..." (D-23, SEC-02). RE2 keeps it linear.
+var keyShapePattern = regexp.MustCompile(`sk-or-v1-[A-Za-z0-9]{16,}|sk-[A-Za-z0-9_-]{20,}`)
+
 const (
 	// maxRedactInput bounds the text inspected by RedactString (parity with the Python engine).
 	maxRedactInput = 64 * 1024
@@ -65,11 +69,12 @@ func IsSensitiveKey(key string) bool {
 	return false
 }
 
-// RedactString masks credentials (key=value fragments, auth headers, cookies, URL userinfo) inside free text.
+// RedactString masks credentials (provider key shapes, key=value fragments, auth headers, cookies, URL userinfo) inside free text.
 func RedactString(s string) string {
 	if len(s) > maxRedactInput {
 		return RedactString(TruncateField(s, maxRedactInput-len(truncatedMarker)))
 	}
+	s = keyShapePattern.ReplaceAllString(s, RedactedValue)
 	s = urlUserinfoPattern.ReplaceAllString(s, "${1}"+RedactedValue+"${2}")
 	s = redactWith(cookiePattern, s)
 	return redactWith(fragmentPattern, s)

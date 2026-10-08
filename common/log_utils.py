@@ -28,6 +28,9 @@ _BARE = re.compile(rf"[^\s,;&}}]{{1,{_MAX_RUN}}}")
 # Stage 0: scheme:// locator and authority terminator for URL userinfo.
 _URL_SCHEME = re.compile(r"(?<![a-z0-9+.-])[a-z][a-z0-9+.-]*://", re.IGNORECASE)
 _AUTH_END = re.compile(r"[/?#\s]")
+# Stage 2: provider API key shapes (D-23, SEC-02) are masked wherever they appear in free text, such as an SDK message
+# "Incorrect API key provided: sk-...". Both quantifiers are bounded and the stage only sees text already capped at _MAX_INPUT.
+_KEY_SHAPE = re.compile(r"sk-or-v1-[A-Za-z0-9]{16,512}|sk-[A-Za-z0-9_-]{20,512}")
 _STANDARD = set(vars(logging.LogRecord("x", 0, "x", 0, "", None, None))) | {"message", "asctime", "taskName"}
 
 
@@ -104,10 +107,14 @@ def _redact_keys(text: str) -> str:
     return "".join(out)
 
 
+def _redact_key_shapes(text: str) -> str:
+    return _KEY_SHAPE.sub(REDACTED, text)
+
+
 def redact_text(text: str) -> str:
     if len(text) > _MAX_INPUT:
         return redact_text(text[:_MAX_INPUT]) + _TRUNCATED
-    return _redact_keys(_redact_userinfo(text))
+    return _redact_key_shapes(_redact_keys(_redact_userinfo(text)))
 
 
 def truncate_field(value: str, limit: int = MAX_LOG_FIELD) -> str:
