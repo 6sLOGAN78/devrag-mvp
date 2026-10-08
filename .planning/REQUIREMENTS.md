@@ -51,7 +51,7 @@ Requirements for initial release. Each maps to exactly one roadmap phase.
 - [x] **TEN-10**: Invited user can accept membership via `PATCH /tenants/<tenant_id>`
 - [x] **TEN-11**: Owner can change a member's role
 - [ ] **TEN-12**: Admin/owner can set the tenant's default chat and embedding models
-- [ ] **TEN-13**: Multiple users can share one tenant's datasets, documents, models, and agent workflows
+- [x] **TEN-13**: Multiple users can share one tenant's datasets, documents, models, and agent workflows
 - [ ] **TEN-14**: Custom RBAC: admin can `CREATE ROLE`, `GRANT <permission> ON <resource> TO ROLE`, `REVOKE ... FROM ROLE`
 - [ ] **TEN-15**: Invitation codes (`InvitationCode` entity)
 - [ ] **TEN-16**: Dataset-level `permission` field on create
@@ -718,7 +718,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | TEN-10 | Phase 2 | Complete |
 | TEN-11 | Phase 2 | Complete |
 | TEN-12 | Phase 3 | Pending |
-| TEN-13 | Phase 3 | Pending |
+| TEN-13 | Phase 3 | Complete |
 | TEN-14 | Phase 8 | Pending |
 | TEN-15 | Phase 8 | Pending |
 | TEN-16 | Phase 3 | Pending |
