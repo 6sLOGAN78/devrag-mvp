@@ -1,7 +1,8 @@
 ---
 phase: 3
 slug: models-knowledge-bases-and-upload
-status: draft
+status: approved
+reviewed_at: 2026-10-08
 shadcn_initialized: true
 preset: none
 created: 2026-10-08
@@ -921,11 +922,28 @@ Not used, deliberately; each would need the user's approval under D-21 and none 
 
 ## Checker Sign-Off
 
-- [ ] Dimension 1 Copywriting: PASS
-- [ ] Dimension 2 Visuals: PASS
-- [ ] Dimension 3 Color: PASS
-- [ ] Dimension 4 Typography: PASS
-- [ ] Dimension 5 Spacing: PASS
-- [ ] Dimension 6 Registry Safety: PASS
+- [x] Dimension 1 Copywriting: FLAG (non-blocking)
+- [x] Dimension 2 Visuals: PASS
+- [x] Dimension 3 Color: FLAG (non-blocking)
+- [x] Dimension 4 Typography: PASS
+- [x] Dimension 5 Spacing: PASS
+- [x] Dimension 6 Registry Safety: PASS
 
-**Approval:** pending
+**Approval:** approved 2026-10-08
+
+---
+
+## Checker Flags (non-blocking, 2026-10-08)
+
+The UI checker approved this contract (no blocking dimension). The planner should apply these:
+
+1. **Single-word CTAs.** "Done" (upload dialog primary), "Close", "Previous" and "Next" have no noun. Give "Done" an accessible name such as "Close upload dialog", as "Set up" and the row "Try again" already have.
+2. **Catch-all error for provider dialogs.** Set up, change key and add model cover 400, 429, 503/504/timeout and 403 only. Add a fallback key for 500, 502 and network failure, for example "The configuration wasn't saved. Try again."
+3. **HTTP 503 is ambiguous in provider dialogs.** Research uses 503 both for an exhausted provider rate limit (with `Retry-After`) and for a missing server key store. Give the two cases distinct envelope codes, or use neutral copy; "The provider didn't answer in time" is wrong for both.
+4. **Two delete failures have no copy.** Delete document declares no failure treatment. Delete provider credentials shows the server message with no fallback. Add both, in the style of `datasets.delete.failed`.
+5. **Test duration wording.** `models.testing` says "up to 30 seconds", the client timeout is 45 s and the server test is 20 s per call. A set-up with both a chat and an embedding model may run two tests; align the three numbers.
+6. **Missing locale keys.** The sr-only announcements "Uploading {n} files" and "{n} files weren't added", a body for `documents.noMatch`, and the document titles ("Datasets - devRag", "Models - devRag") have no keys. `no-hardcoded-copy.test.ts` will fail on these.
+7. **Accent list is incomplete.** The page-level drop overlay's 2px accent border and the primary "Back to datasets" button on the dataset-not-found state are not in the accent reservation list. Add both, or restyle them.
+8. **Names differ from RESEARCH.md.** This spec uses `pages/dataset/`, `pages/user-setting/model/`, `use-knowledge-request.ts` and `use-llm-request.ts`, taken from `docs/02-frontend/`. RESEARCH.md sketches other names. Follow this spec, because `docs/` is authoritative.
+9. **Stack deviation to record.** `CLAUDE.md` lists `react-dropzone` and `@tanstack/react-table`; this spec uses neither (D-21). Record this in `.planning/DECISIONS.md`.
+10. **"Add model" route.** The RESEARCH.md route table has no obvious add-model endpoint (the nearest is `POST /providers/{provider}/instances`). Bind the dialog to a documented route.
