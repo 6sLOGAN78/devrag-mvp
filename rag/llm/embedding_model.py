@@ -27,6 +27,7 @@ import logging
 import os
 import sys
 import time
+from abc import ABC, abstractmethod
 from collections.abc import Callable, Collection, Iterator
 from pathlib import Path
 from typing import Any
@@ -144,7 +145,7 @@ def classify_embedding_error(exc: BaseException) -> ModelException:
 
 
 # --- drivers ----------------------------------------------------------------------------------------------------------------
-class Base:
+class Base(ABC):
     """Embedding driver interface. Subclasses implement ``_open`` (one client per call) and ``_embed`` (one batch)."""
 
     def __init__(
@@ -201,12 +202,12 @@ class Base:
         return httpx.Client(follow_redirects=False, timeout=self.timeout)
 
     @contextlib.contextmanager
+    @abstractmethod
     def _open(self) -> Iterator[Any]:
-        raise NotImplementedError
-        yield  # pragma: no cover
+        yield from ()
 
-    def _embed(self, client: Any, batch: list[str]) -> tuple[list[list[float]], Usage | None]:
-        raise NotImplementedError
+    @abstractmethod
+    def _embed(self, client: Any, batch: list[str]) -> tuple[list[list[float]], Usage | None]: ...
 
     def _attempt(self, client: Any, state: dict[str, Any], batch: list[str]) -> tuple[list[list[float]], Usage | None]:
         state["validated"] = self._check_target(state.get("validated"))
@@ -255,8 +256,8 @@ class Base:
 
 
 class _OpenAISdkEmbed(Base):
-    def _make(self, openai: Any, http: httpx.Client) -> Any:
-        raise NotImplementedError
+    @abstractmethod
+    def _make(self, openai: Any, http: httpx.Client) -> Any: ...
 
     @contextlib.contextmanager
     def _open(self) -> Iterator[Any]:

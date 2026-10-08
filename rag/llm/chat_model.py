@@ -23,6 +23,7 @@ import asyncio
 import contextlib
 import logging
 import sys
+from abc import ABC, abstractmethod
 from collections.abc import AsyncIterator, Awaitable, Callable, Collection, Iterator, Mapping
 from dataclasses import dataclass
 from typing import Any
@@ -171,7 +172,7 @@ def _reported_or_estimated(reported: Usage | None, messages: list[dict[str, Any]
     return _estimate_usage(messages, answer)
 
 
-class Base:
+class Base(ABC):
     """Chat driver interface. Subclasses implement the two async methods; the sync ones wrap them."""
 
     def __init__(
@@ -205,11 +206,11 @@ class Base:
     def __repr__(self) -> str:
         return f"{type(self).__name__}(provider={self.spec.name!r}, model={self.model_name!r})"
 
-    async def async_chat(self, system: str, history: list[dict[str, Any]], gen_conf: Mapping[str, Any] | None = None) -> tuple[str, int]:
-        raise NotImplementedError
+    @abstractmethod
+    async def async_chat(self, system: str, history: list[dict[str, Any]], gen_conf: Mapping[str, Any] | None = None) -> tuple[str, int]: ...
 
-    def async_chat_streamly(self, system: str, history: list[dict[str, Any]], gen_conf: Mapping[str, Any] | None = None) -> AsyncIterator[str]:
-        raise NotImplementedError
+    @abstractmethod
+    def async_chat_streamly(self, system: str, history: list[dict[str, Any]], gen_conf: Mapping[str, Any] | None = None) -> AsyncIterator[str]: ...
 
     @staticmethod
     def _require_no_loop() -> None:
