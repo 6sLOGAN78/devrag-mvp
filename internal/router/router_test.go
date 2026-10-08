@@ -533,6 +533,28 @@ func TestTokenDeleteLogsTheRouteTemplateNotTheToken(t *testing.T) {
 	assert.Equal(t, "/api/v1/system/tokens/:token", entry["path"])
 }
 
+// An unmatched spelling of the token path (doubled slash, dot segment, upper case) does not match the route, so the logger falls
+// back to the raw path; that path must still never carry the credential (T-02-94).
+func TestUnmatchedTokenPathSpellingsDoNotLogTheToken(t *testing.T) {
+	const secret = "ragflow-test-only-spelled-token-000000000000"
+	e, logs := tokenEngine(t)
+	for _, path := range []string{
+		"/api/v1/system//tokens/" + secret,
+		"/api/v1//system/tokens/" + secret,
+		"/api/v1/x/../system/tokens/" + secret,
+		"/api/v1/system/./tokens/" + secret,
+		"/API/V1/System/Tokens/" + secret,
+		"/api/v1/system/tokens/" + secret + "/extra",
+		"/api/v1/system/token/" + secret, // a mistyped endpoint: the credential-shaped segment is still masked
+	} {
+		w := do(e, http.MethodDelete, path, authed)
+		assert.NotEqual(t, http.StatusOK, w.Code, path)
+	}
+	text := allLogText(logs)
+	assert.NotContains(t, text, secret)
+	assert.NotContains(t, text, "spelled-token")
+}
+
 func TestRequestLogRedactsTokenAndBetaFields(t *testing.T) {
 	core, logs := observer.New(zapcore.DebugLevel)
 	log := zap.New(common.WrapRedacting(core))

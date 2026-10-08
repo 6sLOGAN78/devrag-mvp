@@ -57,3 +57,26 @@ async def test_unmatched_credential_family_logs_its_template(caplog: pytest.LogC
     assert logged == "/api/v1/system/tokens/:token"
     assert logged.count(SECRET) == 0
 
+
+
+@pytest.mark.parametrize(
+    "path",
+    [
+        f"/api/v1/system//tokens/{SECRET}",
+        f"/api/v1//system/tokens/{SECRET}",
+        f"/api/v1/x/../system/tokens/{SECRET}",
+        f"/api/v1/system/./tokens/{SECRET}",
+        f"/API/V1/System/Tokens/{SECRET}",
+        f"/api/v1/system/tokens/{SECRET}/extra",
+    ],
+)
+async def test_other_spellings_of_the_credential_family_never_log_the_value(caplog: pytest.LogCaptureFixture, path: str) -> None:
+    _status, logged = await _logged(caplog, "DELETE", path)
+    assert logged == "/api/v1/system/tokens/:token"
+
+
+async def test_credential_shaped_segment_in_a_mistyped_path_is_masked(caplog: pytest.LogCaptureFixture) -> None:
+    token = "ragflow-" + "Ab1_-" * 9
+    _status, logged = await _logged(caplog, "DELETE", f"/api/v1/system/token/{token}")
+    assert logged == "/api/v1/system/token/ragflow-***"
+    assert logged.count(token) == 0

@@ -3,6 +3,8 @@ package router
 import (
 	"fmt"
 	"net/http"
+	"path"
+	"regexp"
 	"slices"
 	"strings"
 	"time"
@@ -24,17 +26,28 @@ func sourceHeader() gin.HandlerFunc {
 // credentialPathFamily is the Go-owned family whose last path segment is a credential.
 const credentialPathFamily = "/api/v1/system/tokens/"
 
+// apiTokenShape matches an API token (ragflow-<base64url>) anywhere in a path.
+var apiTokenShape = regexp.MustCompile(`ragflow-[A-Za-z0-9_-]{20,}`)
+
+// isCredentialPath reports whether p, once cleaned of doubled slashes, dot segments and letter case, lies under the token family.
+func isCredentialPath(p string) bool {
+	return strings.HasPrefix(strings.ToLower(path.Clean(p)), credentialPathFamily)
+}
+
 // loggedPath is the path a log line may carry. A matched route logs its template (c.FullPath), so the
 // token in DELETE /api/v1/system/tokens/:token never reaches the log. For an unmatched request (404 or
-// 405) the raw path is logged, except under the token family, whose template is substituted (T-02-94).
+// 405) the raw path is logged with two protections (T-02-94): any spelling of the token family (doubled
+// slash, dot segments, letter case, extra segments) is replaced by its template, and a credential-shaped
+// segment anywhere else, such as in a mistyped endpoint, is masked before the path is truncated.
 func loggedPath(c *gin.Context) string {
 	if p := c.FullPath(); p != "" {
 		return p
 	}
-	if strings.HasPrefix(c.Request.URL.Path, credentialPathFamily) {
+	raw := c.Request.URL.Path
+	if isCredentialPath(raw) {
 		return credentialPathFamily + ":token"
 	}
-	return common.TruncateField(c.Request.URL.Path, common.MaxLogField)
+	return common.TruncateField(apiTokenShape.ReplaceAllString(raw, "ragflow-***"), common.MaxLogField)
 }
 
 // requestLogger logs method, route template (no query string), status and duration.
