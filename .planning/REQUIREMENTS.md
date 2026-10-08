@@ -107,17 +107,17 @@ Requirements for initial release. Each maps to exactly one roadmap phase.
 
 ### STOR — Object and file storage
 
-- [ ] **STOR-01**: Uniform storage interface (`get`, `put`, `rm`, `bucket_exists`) selected by `STORAGE_IMPL` through a factory *(Python implementation in v1; Go mirror deferred to v2)*
-- [ ] **STOR-02**: MinIO driver
+- [x] **STOR-01**: Uniform storage interface (`get`, `put`, `rm`, `bucket_exists`) selected by `STORAGE_IMPL` through a factory *(Python implementation in v1; Go mirror deferred to v2)*
+- [x] **STOR-02**: MinIO driver
 - [ ] **STOR-03**: AWS S3 driver
 - [ ] **STOR-04**: Google Cloud Storage driver
 - [ ] **STOR-05**: Alibaba Cloud OSS driver
-- [ ] **STOR-06**: Local filesystem driver with path sanitization that blocks directory traversal
+- [x] **STOR-06**: Local filesystem driver with path sanitization that blocks directory traversal
 - [ ] **STOR-07**: Azure Blob Storage driver
-- [ ] **STOR-08**: Missing buckets are created on first write
+- [x] **STOR-08**: Missing buckets are created on first write
 - [ ] **STOR-09**: Extracted images and table crops are stored under `{tenant_id}/{doc_id}/{img_id}.png` and `.../tables/{table_id}.png`
-- [ ] **STOR-10**: Pre-signed download URLs with 3600s expiry
-- [ ] **STOR-11**: Uploaded objects are stored under randomized UUID names
+- [x] **STOR-10**: Pre-signed download URLs with 3600s expiry
+- [x] **STOR-11**: Uploaded objects are stored under randomized UUID names
 
 ### PARSE — Parsers, OCR, layout, tables (DeepDoc)
 
@@ -765,17 +765,17 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DOC-22 | Phase 4 | Pending |
 | DOC-23 | Phase 4 | Pending |
 | DOC-24 | Phase 8 | Pending |
-| STOR-01 | Phase 3 | Pending |
-| STOR-02 | Phase 3 | Pending |
+| STOR-01 | Phase 3 | Complete |
+| STOR-02 | Phase 3 | Complete |
 | STOR-03 | Phase 8 | Pending |
 | STOR-04 | Phase 8 | Pending |
 | STOR-05 | Phase 8 | Pending |
-| STOR-06 | Phase 3 | Pending |
+| STOR-06 | Phase 3 | Complete |
 | STOR-07 | Phase 8 | Pending |
-| STOR-08 | Phase 3 | Pending |
+| STOR-08 | Phase 3 | Complete |
 | STOR-09 | Phase 6 | Pending |
-| STOR-10 | Phase 3 | Pending |
-| STOR-11 | Phase 3 | Pending |
+| STOR-10 | Phase 3 | Complete |
+| STOR-11 | Phase 3 | Complete |
 | PARSE-01 | Phase 4 | Pending |
 | PARSE-02 | Phase 4 | Pending |
 | PARSE-03 | Phase 4 | Pending |

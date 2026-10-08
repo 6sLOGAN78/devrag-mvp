@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: milestone
 status: executing
 stopped_at: Phase 3 UI-SPEC approved
-last_updated: "2026-10-08T20:15:34.016Z"
+last_updated: "2026-10-08T20:19:29.600Z"
 last_activity: 2026-10-08
 progress:
   total_phases: 8
   completed_phases: 2
   total_plans: 83
-  completed_plans: 57
+  completed_plans: 58
   percent: 25
 ---
 
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-10-05)
 ## Current Position
 
 Phase: 3 (Models, Knowledge Bases and Upload) — EXECUTING
-Plan: 6 of 31
+Plan: 7 of 31
 Status: Ready to execute
 Last activity: 2026-10-08
 
-Progress: [███████░░░] 69%
+Progress: [███████░░░] 70%
 
 ## Performance Metrics
 
@@ -69,6 +69,7 @@ Progress: [███████░░░] 69%
 | Phase 03 P03 | 11min (closeout) | 3 tasks | 12 files |
 | Phase 03 P04 | 25min | 3 tasks | 17 files |
 | Phase 03 P05 | 75min | 3 tasks | 11 files |
+| Phase 03 P07 | 25min | 3 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -100,6 +101,7 @@ Recent decisions affecting current work:
 - [Phase 03]: 03-04: gen_routes lets a registry row tighten an api/beta family to jwt (key-writing methods share a path with readable ones)
 - [Phase 03]: 03-04: dataset_visible requires workspace membership even for the creator; me datasets have no owner/admin override
 - [Phase 03]: 03-05: 402 maps to ERROR_INVALID_REQUEST (provider_status kept); extra_headers dropped unless trust_extra_headers; per-call no-redirect httpx client with captured error body; pytest ignores two third-party pydantic warnings from litellm
+- [Phase 03]: 03-07: StorageNotFound added as StorageError subclass; unknown storage.impl raises ConfigError; presigned URLs implemented but not routed in Phase 3 — callers must tell absent objects from failures; matches the settings loader; URL carries internal MinIO endpoint
 
 ### Pending Todos
 
@@ -135,6 +137,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-10-08T20:15:30.437Z
+Last session: 2026-10-08T20:19:25.472Z
 Stopped at: Phase 3 UI-SPEC approved
 Resume file: None

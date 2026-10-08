@@ -56,7 +56,7 @@ completed: 2026-10-09
 
 - RED: the unit files failed at collection with `ModuleNotFoundError: No module named 'rag.utils.local_conn'` (the first import, alphabetical) before any implementation existed.
 - Local driver rejects `../x`, `a/../../x`, `a/./b`, `/abs`, `a\b`, NUL, newline, empty, `a//b`, trailing slash and 300-character keys before any filesystem call (test asserts the base directory is never created). Symlinked directory, file and bucket pointing outside the base are rejected on get, put and rm. Directories are 0700, files 0600. `os.replace` failure leaves no target and no temp file and keeps the previous content.
-- MinIO driver: first write to a nonexistent `rf-test-xxxxxxxx` bucket creates it; two threads racing on a missing bucket both succeed; a forced lost race (bucket exists, check says no) is absorbed through `BucketAlreadyOwnedByYou`; presigned URL downloads the bytes with httpx and carries `X-Amz-Expires=3600` (60 when asked); a wrong-password driver raises an error that contains neither the password, the real password nor the key.
+- MinIO driver: first write to a nonexistent `rf-test-xxxxxxxx` bucket creates it; two threads racing on a missing bucket both succeed; a forced lost race (bucket exists, check says no) is absorbed through `BucketAlreadyOwnedByYou`; presigned URL downloads the bytes with httpx and carries `X-Amz-Expires=3600` (60 when asked); a wrong-password driver raises an error that contains neither the wrong password, the real password nor the key.
 - The temp_bucket fixture removes only the objects it recorded and the bucket it named and asserts the bucket is gone; a post-run listing showed only `ragflow`.
 
 ## Verification (real output)
