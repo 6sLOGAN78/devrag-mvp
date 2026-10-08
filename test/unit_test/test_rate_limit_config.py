@@ -25,6 +25,8 @@ R94 = {
     "RATE_LIMIT_OTP_PER_IP_PER_HOUR": "20",
     "RATE_LIMIT_OTP_WINDOW_SECONDS": "3600",
 }
+# Phase 3 (03-01): provider key test limits sit beside the R-94 numbers in the example file.
+PROVIDER_TEST = {"RATE_LIMIT_PROVIDER_TEST_PER_TENANT": "10", "RATE_LIMIT_PROVIDER_TEST_WINDOW_SECONDS": "300"}
 PER_IP = {"RATE_LIMIT_REGISTER_PER_IP", "RATE_LIMIT_LOGIN_PER_IP", "RATE_LIMIT_OTP_PER_IP_PER_HOUR"}
 
 
@@ -44,7 +46,7 @@ def test_production_compose_defaults_equal_r94() -> None:
 
 def test_env_example_defaults_equal_r94() -> None:
     values = dict(line.split("=", 1) for line in EXAMPLE.read_text(encoding="utf-8").splitlines() if re.match(r"^RATE_LIMIT_\w+=", line))
-    assert values == R94
+    assert values == {**R94, **PROVIDER_TEST}
 
 
 def test_dev_overlay_raises_only_the_three_per_ip_keys() -> None:
