@@ -136,18 +136,18 @@ endpoints:
   - {method: POST, path: /api/v1/searchbots/retrieval_test, owner: go, auth: beta, roles: [], scope: none, implemented: false}
 
   # --- Phase 3, Python-owned, handlers land in the plans named in each note ---
-  - {method: GET, path: "/api/v1/providers", owner: python, auth: api, roles: [owner, admin, normal], scope: tenant, implemented: false,
-     note: "plan 03-12 lists providers with configured flag and last4 only; the key never leaves the server"}
-  - {method: PUT, path: "/api/v1/providers", owner: python, auth: jwt, roles: [owner, admin], scope: tenant, implemented: false,
-     note: "plan 03-12 saves a provider key; session token only so an API token cannot change keys (D-19, Pitfall 6)"}
-  - {method: DELETE, path: "/api/v1/providers/{provider}", owner: python, auth: jwt, roles: [owner, admin], scope: tenant, implemented: false,
-     note: "plan 03-12 removes a provider and its instances; session token only (D-19)"}
-  - {method: GET, path: "/api/v1/providers/{provider}/models", owner: python, auth: api, roles: [owner, admin, normal], scope: tenant, implemented: false,
-     note: "plan 03-12 lists the models of one provider"}
-  - {method: POST, path: "/api/v1/providers/{provider}/instances", owner: python, auth: jwt, roles: [owner, admin], scope: tenant, implemented: false,
-     note: "plan 03-12 adds a provider instance with a key; session token only (D-19)"}
-  - {method: GET, path: "/api/v1/providers/{provider}/instances/{instance}", owner: python, auth: api, roles: [owner, admin], scope: tenant, implemented: false,
-     note: "plan 03-12 reads one instance without its key"}
+  - {method: GET, path: "/api/v1/providers", owner: python, auth: api, roles: [owner, admin, normal], scope: tenant, implemented: true,
+     note: "lists the five providers with their configured flag and models; the address and last4 only for owner and admin, never for a token; the key never leaves the server; tenant_id in the query acts in a joined workspace"}
+  - {method: PUT, path: "/api/v1/providers", owner: python, auth: jwt, roles: [owner, admin], scope: tenant, implemented: true,
+     note: "saves a provider, or changes the key or address of a configured one, after a real test call per model; session token only so an API token cannot change keys (D-19, Pitfall 6); a refusal is 400, never 401; tenant_id in the body"}
+  - {method: DELETE, path: "/api/v1/providers/{provider}", owner: python, auth: jwt, roles: [owner, admin], scope: tenant, implemented: true,
+     note: "removes a provider with its instances, models and keys; session token only (D-19); an absent or unconfigured provider is the one 404"}
+  - {method: GET, path: "/api/v1/providers/{provider}/models", owner: python, auth: api, roles: [owner, admin, normal], scope: tenant, implemented: true,
+     note: "lists the models of one configured provider; an unknown or unconfigured provider is the one 404"}
+  - {method: POST, path: "/api/v1/providers/{provider}/instances", owner: python, auth: jwt, roles: [owner, admin], scope: tenant, implemented: true,
+     note: "models only: tests and adds them to an existing instance with its stored key; credentials in the body create a new instance; session token only (D-19)"}
+  - {method: GET, path: "/api/v1/providers/{provider}/instances/{instance}", owner: python, auth: jwt, roles: [owner, admin], scope: tenant, implemented: true,
+     note: "reads one instance with last4 and address, never the key; session token only because no token subject may read credentials (plan 03-12 tightened api to jwt)"}
   - {method: GET, path: "/api/v1/models", owner: python, auth: api, roles: [owner, admin, normal], scope: tenant, implemented: false,
      note: "plan 03-13 lists the workspace models"}
   - {method: GET, path: "/api/v1/models/default", owner: python, auth: api, roles: [owner, admin, normal], scope: tenant, implemented: false,

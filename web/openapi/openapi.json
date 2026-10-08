@@ -25,6 +25,19 @@
         "title": "Checks",
         "type": "object"
       },
+      "DeletedView": {
+        "properties": {
+          "deleted": {
+            "title": "Deleted",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "deleted"
+        ],
+        "title": "DeletedView",
+        "type": "object"
+      },
       "HealthData": {
         "properties": {
           "checks": {
@@ -47,6 +60,68 @@
         "title": "HealthData",
         "type": "object"
       },
+      "InstanceView": {
+        "properties": {
+          "api_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Api Version"
+          },
+          "base_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Base Url"
+          },
+          "configured": {
+            "title": "Configured",
+            "type": "boolean"
+          },
+          "last4": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Last4"
+          },
+          "models": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Models",
+            "type": "array"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "configured",
+          "models"
+        ],
+        "title": "InstanceView",
+        "type": "object"
+      },
       "LanguageData": {
         "properties": {
           "engine": {
@@ -58,6 +133,80 @@
           "engine"
         ],
         "title": "LanguageData",
+        "type": "object"
+      },
+      "ModelBody": {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "pattern": "^[^\\s@]{1,128}$",
+            "title": "Name",
+            "type": "string"
+          },
+          "type": {
+            "enum": [
+              "chat",
+              "embedding"
+            ],
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "type"
+        ],
+        "title": "ModelBody",
+        "type": "object"
+      },
+      "ModelView": {
+        "properties": {
+          "dimension": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dimension"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "instance": {
+            "title": "Instance",
+            "type": "string"
+          },
+          "max_tokens": {
+            "title": "Max Tokens",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "type": {
+            "title": "Type",
+            "type": "string"
+          },
+          "used_tokens": {
+            "title": "Used Tokens",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "type",
+          "dimension",
+          "max_tokens",
+          "instance",
+          "used_tokens"
+        ],
+        "title": "ModelView",
         "type": "object"
       },
       "ProbeResult": {
@@ -76,6 +225,45 @@
           "elapsed_ms"
         ],
         "title": "ProbeResult",
+        "type": "object"
+      },
+      "ProviderView": {
+        "properties": {
+          "configured": {
+            "title": "Configured",
+            "type": "boolean"
+          },
+          "instances": {
+            "items": {
+              "$ref": "#/components/schemas/InstanceView"
+            },
+            "title": "Instances",
+            "type": "array"
+          },
+          "models": {
+            "items": {
+              "$ref": "#/components/schemas/ModelView"
+            },
+            "title": "Models",
+            "type": "array"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "slug": {
+            "title": "Slug",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "slug",
+          "configured",
+          "instances",
+          "models"
+        ],
+        "title": "ProviderView",
         "type": "object"
       }
     }
@@ -114,6 +302,459 @@
                     "data"
                   ],
                   "title": "LanguageEnvelope",
+                  "type": "object"
+                }
+              }
+            },
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/v1/providers": {
+      "get": {
+        "operationId": "get_list_providers",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "title": "Code",
+                      "type": "integer"
+                    },
+                    "data": {
+                      "items": {
+                        "$ref": "#/components/schemas/ProviderView"
+                      },
+                      "title": "Data",
+                      "type": "array"
+                    },
+                    "message": {
+                      "title": "Message",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message",
+                    "data"
+                  ],
+                  "title": "ProviderListEnvelope",
+                  "type": "object"
+                }
+              }
+            },
+            "description": ""
+          }
+        }
+      },
+      "put": {
+        "description": "",
+        "operationId": "put_save_provider",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "api_key": {
+                    "anyOf": [
+                      {
+                        "format": "password",
+                        "maxLength": 2048,
+                        "type": "string",
+                        "writeOnly": true
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "title": "Api Key"
+                  },
+                  "api_version": {
+                    "anyOf": [
+                      {
+                        "maxLength": 64,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "title": "Api Version"
+                  },
+                  "base_url": {
+                    "anyOf": [
+                      {
+                        "maxLength": 255,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "title": "Base Url"
+                  },
+                  "instance_name": {
+                    "default": "default",
+                    "pattern": "^[A-Za-z0-9_-]{1,64}$",
+                    "title": "Instance Name",
+                    "type": "string"
+                  },
+                  "models": {
+                    "items": {
+                      "$ref": "#/components/schemas/ModelBody"
+                    },
+                    "maxItems": 2,
+                    "minItems": 1,
+                    "title": "Models",
+                    "type": "array"
+                  },
+                  "provider": {
+                    "maxLength": 64,
+                    "minLength": 1,
+                    "title": "Provider",
+                    "type": "string"
+                  },
+                  "tenant_id": {
+                    "anyOf": [
+                      {
+                        "pattern": "^[0-9a-f]{32}$",
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "title": "Tenant Id"
+                  }
+                },
+                "required": [
+                  "provider",
+                  "models"
+                ],
+                "title": "SaveProviderBody",
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "title": "Code",
+                      "type": "integer"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/ProviderView"
+                    },
+                    "message": {
+                      "title": "Message",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message",
+                    "data"
+                  ],
+                  "title": "ProviderEnvelope",
+                  "type": "object"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "summary": "Add a provider, or change the key and/or address of a configured one: the body's models are re-tested, the rest are kept."
+      }
+    },
+    "/api/v1/providers/{provider}": {
+      "delete": {
+        "operationId": "delete_delete_provider",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "provider",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "title": "Code",
+                      "type": "integer"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/DeletedView"
+                    },
+                    "message": {
+                      "title": "Message",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message",
+                    "data"
+                  ],
+                  "title": "DeletedEnvelope",
+                  "type": "object"
+                }
+              }
+            },
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/v1/providers/{provider}/instances": {
+      "post": {
+        "description": "",
+        "operationId": "post_add_instance",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "provider",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "api_key": {
+                    "anyOf": [
+                      {
+                        "format": "password",
+                        "maxLength": 2048,
+                        "type": "string",
+                        "writeOnly": true
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "title": "Api Key"
+                  },
+                  "api_version": {
+                    "anyOf": [
+                      {
+                        "maxLength": 64,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "title": "Api Version"
+                  },
+                  "base_url": {
+                    "anyOf": [
+                      {
+                        "maxLength": 255,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "title": "Base Url"
+                  },
+                  "instance_name": {
+                    "default": "default",
+                    "pattern": "^[A-Za-z0-9_-]{1,64}$",
+                    "title": "Instance Name",
+                    "type": "string"
+                  },
+                  "models": {
+                    "items": {
+                      "$ref": "#/components/schemas/ModelBody"
+                    },
+                    "maxItems": 2,
+                    "minItems": 1,
+                    "title": "Models",
+                    "type": "array"
+                  },
+                  "tenant_id": {
+                    "anyOf": [
+                      {
+                        "pattern": "^[0-9a-f]{32}$",
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "title": "Tenant Id"
+                  }
+                },
+                "required": [
+                  "models"
+                ],
+                "title": "AddInstanceBody",
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "title": "Code",
+                      "type": "integer"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/ProviderView"
+                    },
+                    "message": {
+                      "title": "Message",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message",
+                    "data"
+                  ],
+                  "title": "ProviderEnvelope",
+                  "type": "object"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "summary": "Models only: test and add them to an existing instance with its stored key. Credentials in the body: create that instance."
+      }
+    },
+    "/api/v1/providers/{provider}/instances/{instance}": {
+      "get": {
+        "operationId": "get_get_instance",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "provider",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "instance",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "title": "Code",
+                      "type": "integer"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/InstanceView"
+                    },
+                    "message": {
+                      "title": "Message",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message",
+                    "data"
+                  ],
+                  "title": "InstanceEnvelope",
+                  "type": "object"
+                }
+              }
+            },
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/v1/providers/{provider}/models": {
+      "get": {
+        "operationId": "get_list_provider_models",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "provider",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "title": "Code",
+                      "type": "integer"
+                    },
+                    "data": {
+                      "items": {
+                        "$ref": "#/components/schemas/ModelView"
+                      },
+                      "title": "Data",
+                      "type": "array"
+                    },
+                    "message": {
+                      "title": "Message",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message",
+                    "data"
+                  ],
+                  "title": "ModelListEnvelope",
                   "type": "object"
                 }
               }

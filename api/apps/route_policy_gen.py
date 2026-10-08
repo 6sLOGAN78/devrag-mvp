@@ -71,7 +71,7 @@ _ROWS: tuple[tuple[str, tuple[str, ...], str, str, str, tuple[str, ...]], ...] =
     ('PUT', ('api', 'v1', 'providers'), 'python', 'jwt', 'tenant', ('owner', 'admin')),
     ('DELETE', ('api', 'v1', 'providers', '{provider}'), 'python', 'jwt', 'tenant', ('owner', 'admin')),
     ('POST', ('api', 'v1', 'providers', '{provider}', 'instances'), 'python', 'jwt', 'tenant', ('owner', 'admin')),
-    ('GET', ('api', 'v1', 'providers', '{provider}', 'instances', '{instance}'), 'python', 'api', 'tenant', ('owner', 'admin')),
+    ('GET', ('api', 'v1', 'providers', '{provider}', 'instances', '{instance}'), 'python', 'jwt', 'tenant', ('owner', 'admin')),
     ('GET', ('api', 'v1', 'providers', '{provider}', 'models'), 'python', 'api', 'tenant', ('owner', 'admin', 'normal')),
     ('POST', ('api', 'v1', 'searchbots', 'ask'), 'go', 'beta', 'none', ()),
     ('POST', ('api', 'v1', 'searchbots', 'retrieval_test'), 'go', 'beta', 'none', ()),

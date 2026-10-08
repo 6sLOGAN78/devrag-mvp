@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import threading
+from pathlib import Path
 
 import pytest
 from quart import Quart, g
@@ -72,7 +73,7 @@ async def test_a_timeout_becomes_a_typed_service_error(executor, reason: str, ki
 
 
 def test_blocking_module_documents_why_the_default_executor_is_not_used() -> None:
-    text = (blocking.__doc__ or "") + open(blocking.__file__, encoding="utf-8").read()
+    text = Path(blocking.__file__).read_text(encoding="utf-8")
     assert "default executor" in text and "cannot be cancelled" in text
 
 
@@ -136,6 +137,6 @@ async def test_a_token_cannot_act_in_another_workspace() -> None:
 
 
 def test_handler_support_does_not_import_a_model_or_peewee() -> None:
-    text = open(handler_support.__file__, encoding="utf-8").read()
+    text = Path(handler_support.__file__).read_text(encoding="utf-8")
     for forbidden in ("api.db.models", "api.db.database", "import peewee"):
         assert forbidden not in text

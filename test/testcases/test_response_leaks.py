@@ -22,12 +22,15 @@ import yaml
 from test.conftest import stack_env
 from test.helpers.accounts import TEST_PASSWORD, Account, AccountRegistry, unique_email
 from test.helpers.db import root_connection
+from test.helpers.fake_provider import running_stack_fake_provider
 from test.helpers.mail import delete_mail_for, extract_code, wait_for_mail
 from test.testcases._leak_sweep import CREDENTIAL_ROWS, LOGIN, TOKEN_ROWS, VERIFY, Secret, scan_response
-from test.testcases._matrix_fixtures import World, build_world
+from test.testcases._matrix_fixtures import A_PROVIDER_KEY, B_PROVIDER_KEY, COMPAT, PROVIDER_SLUG, PROVIDERS, World, build_world
 from test.testcases._routes import ROUTES_FILE
 from test.testcases.conftest import BASE_URL
 
+SENTINEL_PROVIDER_KEY = "-".join(("leak", "sweep", "provider", "key", "0003"))
+ROTATED_PROVIDER_KEY = "-".join(("leak", "sweep", "provider", "key", "0004"))
 NEW_PASSWORD = "leak-sweep-new-pass-0007"
 CHANGED_PASSWORD = "leak-sweep-changed-pass-0008"
 TOKENS = "/api/v1/system/tokens"
@@ -222,6 +225,78 @@ def sweep_tenant_rows(s: Sweep, w: World) -> None:
     s.errors(row, "DELETE", users, "PUT")
 
 
+def sweep_provider_rows(s: Sweep, w: World) -> None:
+    """All six provider rows, each on a success and on an error path (plan 03-12). The sentinel key is sent in request bodies only."""
+    assert w.fake is not None
+    a, b, member = w.a, w.b, w.normal
+    provider_keys = {
+        "tenant A's provider key": A_PROVIDER_KEY,
+        "tenant B's provider key": B_PROVIDER_KEY,
+        "the sentinel provider key": SENTINEL_PROVIDER_KEY,
+        "the rotated provider key": ROTATED_PROVIDER_KEY,
+    }
+    for label, key in provider_keys.items():
+        s.secret(label, key, frozenset())  # no row may carry a key, including the PUT answer that received it
+    chat = {"name": "leak-chat", "type": "chat"}
+    scope = f"?tenant_id={a.tenant_id}"
+    save = {"provider": COMPAT, "base_url": w.fake.stack_base_url, "models": [chat]}
+    compat = f"{PROVIDERS}/{PROVIDER_SLUG}"
+
+    row = f"GET {PROVIDERS}"
+    s.req(row, "success as owner", "GET", PROVIDERS, a.token)
+    s.req(row, "success as member", "GET", PROVIDERS + scope, member.token)
+    s.req(row, "success with an API token", "GET", PROVIDERS, str(w.a_tokens[0]["token"]))
+    s.req(row, "as an outsider", "GET", PROVIDERS + scope, b.token)
+    s.errors(row, "GET", PROVIDERS, "DELETE")
+
+    row = f"PUT {PROVIDERS}"
+    s.req(row, "success (new key)", "PUT", PROVIDERS, a.token, {**save, "api_key": SENTINEL_PROVIDER_KEY})
+    s.req(row, "success (rotation)", "PUT", PROVIDERS, a.token, {**save, "api_key": ROTATED_PROVIDER_KEY})
+    s.req(row, "refused by the provider", "PUT", PROVIDERS, a.token, {**save, "api_key": SENTINEL_PROVIDER_KEY, "models": [{"name": "fake-401", "type": "chat"}]})
+    s.req(row, "refused address", "PUT", PROVIDERS, a.token, {**save, "api_key": SENTINEL_PROVIDER_KEY, "base_url": "http://169.254.169.254/v1"})
+    s.req(row, "unknown field", "PUT", PROVIDERS, a.token, {**save, "api_key": SENTINEL_PROVIDER_KEY, "created_by": a.user_id})
+    s.req(row, "as a member", "PUT", PROVIDERS, member.token, {**save, "api_key": SENTINEL_PROVIDER_KEY, "tenant_id": a.tenant_id})
+    s.req(row, "as an outsider", "PUT", PROVIDERS, b.token, {**save, "api_key": SENTINEL_PROVIDER_KEY, "tenant_id": a.tenant_id})
+    s.req(row, "with an API token", "PUT", PROVIDERS, str(w.a_tokens[0]["token"]), {**save, "api_key": SENTINEL_PROVIDER_KEY})
+    s.errors(row, "PUT", PROVIDERS, "PATCH")
+    s.req(row, "second provider (Ollama)", "PUT", PROVIDERS, a.token, {"provider": "Ollama", "base_url": w.fake.stack_ollama_url, "models": [chat]})
+
+    row = f"GET {PROVIDERS}/{{provider}}/models"
+    s.req(row, "success as owner", "GET", f"{compat}/models", a.token)
+    s.req(row, "success as member", "GET", f"{compat}/models{scope}", member.token)
+    s.req(row, "unknown provider", "GET", f"{PROVIDERS}/{uuid.uuid4().hex}/models", a.token)
+    s.req(row, "as an outsider", "GET", f"{compat}/models{scope}", b.token)
+    s.errors(row, "GET", f"{compat}/models", "DELETE")
+
+    row = f"GET {PROVIDERS}/{{provider}}/instances/{{instance}}"
+    s.req(row, "success", "GET", f"{compat}/instances/default", a.token)
+    s.req(row, "nonexistent instance", "GET", f"{compat}/instances/{uuid.uuid4().hex[:12]}", a.token)
+    s.req(row, "as a member", "GET", f"{compat}/instances/default{scope}", member.token)
+    s.req(row, "as an outsider", "GET", f"{compat}/instances/default{scope}", b.token)
+    s.req(row, "with an API token", "GET", f"{compat}/instances/default", str(w.a_tokens[0]["token"]))
+    s.errors(row, "GET", f"{compat}/instances/default", "DELETE")
+
+    row = f"POST {PROVIDERS}/{{provider}}/instances"
+    added = {"models": [{"name": "leak-chat-2", "type": "chat"}]}
+    s.req(row, "success (models only)", "POST", f"{compat}/instances", a.token, added)
+    s.req(row, "duplicate model", "POST", f"{compat}/instances", a.token, added)
+    s.req(row, "unconfigured provider", "POST", f"{PROVIDERS}/openai/instances", a.token, added)
+    s.req(row, "invalid body", "POST", f"{compat}/instances", a.token, {"models": []})
+    s.req(row, "as a member", "POST", f"{compat}/instances", member.token, {**added, "tenant_id": a.tenant_id})
+    s.req(row, "as an outsider", "POST", f"{compat}/instances", b.token, {**added, "tenant_id": a.tenant_id})
+    s.req(row, "with an API token", "POST", f"{compat}/instances", str(w.a_tokens[0]["token"]), added)
+    s.errors(row, "POST", f"{compat}/instances", "GET")
+
+    row = f"DELETE {PROVIDERS}/{{provider}}"
+    ollama = f"{PROVIDERS}/ollama"
+    s.req(row, "as a member", "DELETE", ollama + scope, member.token)
+    s.req(row, "as an outsider", "DELETE", ollama + scope, b.token)
+    s.req(row, "with an API token", "DELETE", ollama, str(w.a_tokens[0]["token"]))
+    s.req(row, "success", "DELETE", ollama, a.token)
+    s.req(row, "repeat", "DELETE", ollama, a.token)
+    s.errors(row, "DELETE", ollama, "GET")
+
+
 def collect_database_secrets(s: Sweep) -> None:
     """Hashes and stored access tokens of every account the sweep touched, read back from MySQL."""
     ids = [acc.user_id for acc in s.registry.created]
@@ -231,6 +306,10 @@ def collect_database_secrets(s: Sweep) -> None:
     try:
         with conn.cursor() as cur:
             cur.execute("USE `rag_flow`")
+            for acc in s.registry.created:  # sealed provider keys: the envelope must never be shown either
+                cur.execute("SELECT DISTINCT `api_key` FROM `tenant_llm` WHERE `tenant_id` = %s AND `api_key` LIKE 'v1:%%'", (acc.tenant_id,))
+                for (envelope,) in cur.fetchall():
+                    s.secret("a sealed provider key envelope", str(envelope), frozenset())
             for user_id in ids:
                 cur.execute("SELECT `password`, `access_token` FROM `user` WHERE `id` = %s", (user_id,))
                 for password_hash, access_token in cur.fetchall():
@@ -251,7 +330,7 @@ def infrastructure_secrets() -> list[Secret]:
 @pytest.fixture(scope="module")
 def sweep(ingress: httpx.Client) -> Iterator[Sweep]:
     registry = AccountRegistry(BASE_URL)
-    with httpx.Client(base_url=BASE_URL, timeout=10.0, follow_redirects=False) as client:
+    with running_stack_fake_provider() as fake, httpx.Client(base_url=BASE_URL, timeout=60.0, follow_redirects=False) as client:
         s = Sweep(client, registry)
         try:
             s.secret("the shared test password", TEST_PASSWORD)
@@ -260,10 +339,11 @@ def sweep(ingress: httpx.Client) -> Iterator[Sweep]:
             sweep_session_rows(s, main)
             sweep_account_rows(s)
             sweep_password_reset_rows(s)
-            world = build_world(client, registry)
+            world = build_world(client, registry, fake)
             for acc in (world.a, world.b, world.pending, world.admin, world.normal, world.victim, world.spare):
                 s.secret("a session token of the tenant world", acc.token, frozenset({LOGIN}))
             sweep_tenant_rows(s, world)
+            sweep_provider_rows(s, world)
             collect_database_secrets(s)
             s.secrets.extend(infrastructure_secrets())
             yield s

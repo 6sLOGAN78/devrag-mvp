@@ -172,21 +172,36 @@ def test_row_may_tighten_an_api_family_to_session_only_but_never_loosen(tmp_path
     assert _mutate(tmp_path / "b", loosen).returncode != 0
 
 
-def test_phase3_key_writing_rows_are_session_only_and_unimplemented() -> None:
-    """D-19, Pitfall 6: an API token must not reach the rows that write provider keys or default models."""
+def test_phase3_key_writing_rows_are_session_only() -> None:
+    """D-19, Pitfall 6: an API token must not reach the rows that write provider keys or default models.
+
+    The provider rows landed in plan 03-12 (implemented); the default-model row is still to come (plan 03-13).
+    """
     data = yaml.safe_load(ROUTES.read_text(encoding="utf-8"))
     rows = {(e["method"], e["path"]): e for e in data["endpoints"]}
-    for key in [
-        ("PUT", "/api/v1/providers"),
-        ("DELETE", "/api/v1/providers/{provider}"),
-        ("POST", "/api/v1/providers/{provider}/instances"),
-        ("PATCH", "/api/v1/models/default"),
-    ]:
+    implemented = {
+        ("PUT", "/api/v1/providers"): True,
+        ("DELETE", "/api/v1/providers/{provider}"): True,
+        ("POST", "/api/v1/providers/{provider}/instances"): True,
+        ("PATCH", "/api/v1/models/default"): False,
+    }
+    for key, landed in implemented.items():
         row = rows[key]
-        assert (row["owner"], row["auth"], row["scope"], row["implemented"]) == ("python", "jwt", "tenant", False), key
+        assert (row["owner"], row["auth"], row["scope"], row["implemented"]) == ("python", "jwt", "tenant", landed), key
         assert row["roles"] == ["owner", "admin"], key
     for key in [("GET", "/api/v1/providers"), ("GET", "/api/v1/models"), ("POST", "/api/v1/datasets"), ("POST", "/api/v1/documents/upload")]:
         assert rows[key]["auth"] == "api" and rows[key]["roles"] == ["owner", "admin", "normal"], key
+
+
+def test_provider_rows_are_implemented_and_the_credential_detail_is_session_only() -> None:
+    """Plan 03-12: six provider rows are served; the instance detail shows last4 and the address, so no token may read it."""
+    data = yaml.safe_load(ROUTES.read_text(encoding="utf-8"))
+    rows = {(e["method"], e["path"]): e for e in data["endpoints"]}
+    provider_rows = {k: v for k, v in rows.items() if k[1].startswith("/api/v1/providers")}
+    assert len(provider_rows) == 6 and all(r["implemented"] is True and r["owner"] == "python" for r in provider_rows.values())
+    detail = rows[("GET", "/api/v1/providers/{provider}/instances/{instance}")]
+    assert (detail["auth"], detail["roles"]) == ("jwt", ["owner", "admin"])
+    assert rows[("GET", "/api/v1/providers/{provider}/models")]["auth"] == "api"
 
 
 def test_check_fails_when_policy_modules_are_stale(tmp_path: Path) -> None:

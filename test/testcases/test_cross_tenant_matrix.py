@@ -21,6 +21,7 @@ import pytest
 import yaml
 
 from test.helpers.accounts import AccountRegistry
+from test.helpers.fake_provider import running_stack_fake_provider
 from test.testcases._matrix_fixtures import (
     BUILDERS,
     NO_ID_CHECKS,
@@ -31,6 +32,7 @@ from test.testcases._matrix_fixtures import (
     coverage_problems,
     load_tenant_rows,
     random_value,
+    resource_of,
     triple,
 )
 from test.testcases._routes import ROUTES_FILE
@@ -44,9 +46,10 @@ NO_ID_ROWS = [r for r in ROWS if not r.params]
 @pytest.fixture(scope="module")
 def world(ingress: httpx.Client) -> Iterator[World]:
     registry = AccountRegistry(BASE_URL)
-    with httpx.Client(base_url=BASE_URL, timeout=10.0, follow_redirects=False) as client:
+    # A's provider points at the stack-mode fake provider, which lives as long as the world (the matrix is about isolation, not about a model).
+    with running_stack_fake_provider() as fake, httpx.Client(base_url=BASE_URL, timeout=60.0, follow_redirects=False) as client:
         try:
-            yield build_world(client, registry)
+            yield build_world(client, registry, fake)
         finally:
             registry.cleanup()
 
@@ -124,7 +127,7 @@ def test_cross_tenant_matrix_outsiders_see_the_not_found_answer(world: World, ro
     assert not problems, "; ".join(problems)
     target: Target = BUILDERS[row.key](world)
     before = world.snapshot()
-    resource = "tokens" if "/tokens" in row.path else "members"
+    resource = resource_of(row)
     assert target.snapshot() == before[resource]
     client = world.client
 

@@ -113,7 +113,7 @@ def model_rows(tenant_id: str) -> int:
 
 
 def save_body(fake: FakeProvider, key: str | None = KEY_ONE, models: list[dict[str, str]] | None = None, **extra: Any) -> dict[str, Any]:
-    body: dict[str, Any] = {"provider": COMPAT, "base_url": fake.stack_base_url, "models": models or [CHAT, EMBED], **extra}
+    body: dict[str, Any] = {"provider": COMPAT, "base_url": fake.stack_base_url, "models": [CHAT, EMBED] if models is None else models, **extra}
     if key is not None:
         body["api_key"] = key
     return body

@@ -20,6 +20,88 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/providers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["get_list_providers"];
+        /** Add a provider, or change the key and/or address of a configured one: the body's models are re-tested, the rest are kept. */
+        put: operations["put_save_provider"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/providers/{provider}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["delete_delete_provider"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/providers/{provider}/instances": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Models only: test and add them to an existing instance with its stored key. Credentials in the body: create that instance. */
+        post: operations["post_add_instance"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/providers/{provider}/instances/{instance}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["get_get_instance"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/providers/{provider}/models": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["get_list_provider_models"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/system/healthz": {
         parameters: {
             query?: never;
@@ -95,6 +177,11 @@ export interface components {
             redis: components["schemas"]["ProbeResult"];
             storage: components["schemas"]["ProbeResult"];
         };
+        /** DeletedView */
+        DeletedView: {
+            /** Deleted */
+            deleted: boolean;
+        };
         /** HealthData */
         HealthData: {
             checks: components["schemas"]["Checks"];
@@ -103,10 +190,61 @@ export interface components {
             /** Status */
             status: string;
         };
+        /** InstanceView */
+        InstanceView: {
+            /**
+             * Api Version
+             * @default null
+             */
+            api_version: string | null;
+            /**
+             * Base Url
+             * @default null
+             */
+            base_url: string | null;
+            /** Configured */
+            configured: boolean;
+            /**
+             * Last4
+             * @default null
+             */
+            last4: string | null;
+            /** Models */
+            models: string[];
+            /** Name */
+            name: string;
+        };
         /** LanguageData */
         LanguageData: {
             /** Engine */
             engine: string;
+        };
+        /** ModelBody */
+        ModelBody: {
+            /** Name */
+            name: string;
+            /**
+             * Type
+             * @enum {string}
+             */
+            type: "chat" | "embedding";
+        };
+        /** ModelView */
+        ModelView: {
+            /** Dimension */
+            dimension: number | null;
+            /** Id */
+            id: string;
+            /** Instance */
+            instance: string;
+            /** Max Tokens */
+            max_tokens: number;
+            /** Name */
+            name: string;
+            /** Type */
+            type: string;
+            /** Used Tokens */
+            used_tokens: number;
         };
         /** ProbeResult */
         ProbeResult: {
@@ -114,6 +252,19 @@ export interface components {
             elapsed_ms: number;
             /** Status */
             status: string;
+        };
+        /** ProviderView */
+        ProviderView: {
+            /** Configured */
+            configured: boolean;
+            /** Instances */
+            instances: components["schemas"]["InstanceView"][];
+            /** Models */
+            models: components["schemas"]["ModelView"][];
+            /** Name */
+            name: string;
+            /** Slug */
+            slug: string;
         };
     };
     responses: never;
@@ -142,6 +293,233 @@ export interface operations {
                         /** Code */
                         code: number;
                         data: components["schemas"]["LanguageData"];
+                        /** Message */
+                        message: string;
+                    };
+                };
+            };
+        };
+    };
+    get_list_providers: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Code */
+                        code: number;
+                        /** Data */
+                        data: components["schemas"]["ProviderView"][];
+                        /** Message */
+                        message: string;
+                    };
+                };
+            };
+        };
+    };
+    put_save_provider: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": {
+                    /**
+                     * Api Key
+                     * @default null
+                     */
+                    api_key?: string | null;
+                    /**
+                     * Api Version
+                     * @default null
+                     */
+                    api_version?: string | null;
+                    /**
+                     * Base Url
+                     * @default null
+                     */
+                    base_url?: string | null;
+                    /**
+                     * Instance Name
+                     * @default default
+                     */
+                    instance_name?: string;
+                    /** Models */
+                    models: components["schemas"]["ModelBody"][];
+                    /** Provider */
+                    provider: string;
+                    /**
+                     * Tenant Id
+                     * @default null
+                     */
+                    tenant_id?: string | null;
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Code */
+                        code: number;
+                        data: components["schemas"]["ProviderView"];
+                        /** Message */
+                        message: string;
+                    };
+                };
+            };
+        };
+    };
+    delete_delete_provider: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                provider: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Code */
+                        code: number;
+                        data: components["schemas"]["DeletedView"];
+                        /** Message */
+                        message: string;
+                    };
+                };
+            };
+        };
+    };
+    post_add_instance: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                provider: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": {
+                    /**
+                     * Api Key
+                     * @default null
+                     */
+                    api_key?: string | null;
+                    /**
+                     * Api Version
+                     * @default null
+                     */
+                    api_version?: string | null;
+                    /**
+                     * Base Url
+                     * @default null
+                     */
+                    base_url?: string | null;
+                    /**
+                     * Instance Name
+                     * @default default
+                     */
+                    instance_name?: string;
+                    /** Models */
+                    models: components["schemas"]["ModelBody"][];
+                    /**
+                     * Tenant Id
+                     * @default null
+                     */
+                    tenant_id?: string | null;
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Code */
+                        code: number;
+                        data: components["schemas"]["ProviderView"];
+                        /** Message */
+                        message: string;
+                    };
+                };
+            };
+        };
+    };
+    get_get_instance: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                provider: string;
+                instance: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Code */
+                        code: number;
+                        data: components["schemas"]["InstanceView"];
+                        /** Message */
+                        message: string;
+                    };
+                };
+            };
+        };
+    };
+    get_list_provider_models: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                provider: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Code */
+                        code: number;
+                        /** Data */
+                        data: components["schemas"]["ModelView"][];
                         /** Message */
                         message: string;
                     };
