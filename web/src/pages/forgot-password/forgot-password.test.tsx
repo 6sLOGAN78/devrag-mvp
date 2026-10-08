@@ -565,6 +565,19 @@ describe("step 3: new password (D-02, D-08)", () => {
     expect(useUserStore.getState().user).toBeNull();
   });
 
+  it("keeps a signed-in session that belongs to a different account than the one reset (IN-F05)", async () => {
+    setAuthorization("tok-other");
+    useUserStore.getState().setUser({ id: "u9", nickname: "Grace", email: "grace@example.test", avatar: "", language: "English", colorSchema: "Bright", tenantId: "t9", tenantName: "w", role: "owner", isSuperuser: false });
+    const user = userEvent.setup();
+    renderPage();
+    await toStep3(user);
+    await user.type(screen.getByTestId("field-password"), NEW_PASSWORD);
+    await user.click(screen.getByTestId("forgot-submit"));
+    await screen.findByTestId("landed");
+    expect(getAuthorization()).toBe("tok-other");
+    expect(useUserStore.getState().user?.email).toBe("grace@example.test");
+  });
+
   it("blocks a second reset while the first is pending", async () => {
     let release!: () => void;
     resetReply = { status: 200, body: { code: 0, message: "", data: null }, hold: new Promise<void>((resolve) => (release = resolve)) };
