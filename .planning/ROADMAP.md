@@ -212,7 +212,7 @@ Scope notes: the cross-language token and password-hash contract (R-33, R-34) ne
 Plans:
 **Wave 1**
 
-- [ ] 03-01-PLAN.md — Packages, settings sections, secret box, env and Dockerfile
+- [x] 03-01-PLAN.md — Packages, settings sections, secret box, env and Dockerfile
 - [ ] 03-02-PLAN.md — Key-shape log redaction (Python, Go, Nginx) and the base-URL guard
 - [ ] 03-03-PLAN.md — Workspace switcher and store
 - [ ] 03-04-PLAN.md — Registry rows, permission rows, Nginx limits and acting-tenant resolution

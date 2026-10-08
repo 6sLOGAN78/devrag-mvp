@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: milestone
 status: executing
 stopped_at: Phase 3 UI-SPEC approved
-last_updated: "2026-10-08T16:50:44.077Z"
-last_activity: 2026-10-08 -- Phase 3 planning complete
+last_updated: "2026-10-08T16:57:25.136Z"
+last_activity: 2026-10-08
 progress:
   total_phases: 8
   completed_phases: 2
   total_plans: 83
-  completed_plans: 52
+  completed_plans: 53
   percent: 25
 ---
 
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-10-05)
 
 **Core value:** A user can upload a document into a knowledge base and get an accurate, cited answer to a question about it, end-to-end through the real pipeline (parse, chunk, embed, index, hybrid retrieve, rerank, generate), with no mocked stages.
-**Current focus:** Phase 3 — models, knowledge bases and upload
+**Current focus:** Phase 3 — Models, Knowledge Bases and Upload
 
 ## Current Position
 
-Phase: 3
-Plan: Not started
+Phase: 3 (Models, Knowledge Bases and Upload) — EXECUTING
+Plan: 2 of 31
 Status: Ready to execute
-Last activity: 2026-10-08 -- Phase 3 planning complete
+Last activity: 2026-10-08
 
-Progress: [██████████] 100%
+Progress: [██████░░░░] 64%
 
 ## Performance Metrics
 
@@ -64,6 +64,7 @@ Progress: [██████████] 100%
 | Phase 02 P22 | single session | 3 tasks | 26 files |
 | Phase 02 P21 | single session | 3 tasks | 24 files |
 | Phase 02 P25 | single session | 3 tasks | 14 files |
+| Phase 03 P01 | 45min | 3 tasks | 22 files |
 
 ## Accumulated Context
 
@@ -89,6 +90,7 @@ Recent decisions affecting current work:
 - [Phase 02]: R-124: API tokens page - tokens.action.* labels, owner-only forbidden state and home card, own 409/429/403 messages, aria-disabled pending, caption focus after delete
 - [Phase 02]: R-127: matrix rows generated from routes.yaml with a fixture guard; Nginx access log masks token paths and drops query and Referer; Go and Python loggers mask credential spellings
 - [Phase 02]: R-128: gate stack runs the mail profile and exports SERVICE_CONF and MYSQL_ROOT_PASSWORD for host-run tiers; TEN-01, TEN-05, UI-42 left partial (B-18, B-22)
+- [Phase 03]: [03-01] Dev override uses DEV_LLM_ALLOW_PRIVATE_BASE_URLS (default true) so the example's false never shadows it; llm encryption key is URL-safe base64 of 32 bytes validated lazily; provider-test limit 10 per 300 s per tenant
 
 ### Pending Todos
 
@@ -124,6 +126,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-10-08T11:53:57.689Z
+Last session: 2026-10-08T16:57:21.844Z
 Stopped at: Phase 3 UI-SPEC approved
-Resume file: .planning/phases/03-models-knowledge-bases-and-upload/03-UI-SPEC.md
+Resume file: None
