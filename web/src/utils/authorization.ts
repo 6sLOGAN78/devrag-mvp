@@ -14,6 +14,9 @@ function notify(): void {
  */
 let memoryToken: string | null = null;
 
+/** The token as this tab last saw it, so a storage event can tell another tab's change from a no-op. */
+let lastSeen: string | null = null;
+
 export function getAuthorization(): string | null {
   if (memoryToken !== null) return memoryToken;
   try {
@@ -32,6 +35,7 @@ export function setAuthorization(token: string): void {
   } catch {
     memoryToken = token;
   }
+  lastSeen = getAuthorization();
   notify();
 }
 
@@ -42,6 +46,7 @@ export function removeAuthorization(): void {
   } catch {
     /* storage blocked: nothing persisted, nothing to remove */
   }
+  lastSeen = getAuthorization();
   notify();
 }
 
@@ -59,4 +64,23 @@ export function subscribeAuthorization(listener: Listener): () => void {
     listeners.delete(listener);
     window.removeEventListener("storage", onStorage);
   };
+}
+
+/**
+ * Calls `handler(current, previous)` when another tab removes or replaces the stored token (a storage event whose
+ * outcome differs from what this tab last saw). Changes made here never fire it, nor does an event that changed
+ * nothing, so one foreign change is reported exactly once. Returns the unsubscribe function (WR-F02).
+ */
+export function onForeignTokenChange(handler: (current: string | null, previous: string | null) => void): () => void {
+  lastSeen = getAuthorization();
+  const onStorage = (event: StorageEvent) => {
+    if (event.key !== STORAGE_KEY && event.key !== null) return;
+    const current = getAuthorization();
+    if (current === lastSeen) return;
+    const previous = lastSeen;
+    lastSeen = current;
+    handler(current, previous);
+  };
+  window.addEventListener("storage", onStorage);
+  return () => window.removeEventListener("storage", onStorage);
 }

@@ -8,6 +8,7 @@ import { Toaster } from "@/components/ui/sonner";
 import i18n from "@/i18n";
 import { LANG_KEY } from "@/i18n/language";
 import { http, registerQueryClient } from "@/services/http";
+import { installSessionSync } from "@/services/session-sync";
 import { useUserStore } from "@/stores/user-store";
 import { getAuthorization, setAuthorization } from "@/utils/authorization";
 import { waitUntil } from "@/test/wait-until";
@@ -221,5 +222,69 @@ describe("RequireAuth: session recovery", () => {
     expect(await screen.findByTestId("login-page")).toHaveTextContent("/login?next=%2Fuser-setting%2Fprofile");
     expect(getAuthorization()).toBeNull();
     expect(screen.queryByText("Session expired")).toBeNull();
+  });
+});
+
+describe("RequireAuth: token changed in another tab (WR-F02)", () => {
+  let stopSync: () => void = () => undefined;
+  beforeEach(() => {
+    setAuthorization("tok-a");
+    stopSync = installSessionSync();
+  });
+  afterEach(() => stopSync());
+
+  /** What the browser does when another tab writes the shared localStorage: the value changes, then the event fires. */
+  function otherTabWrites(token: string | null) {
+    if (token === null) localStorage.removeItem("Authorization");
+    else localStorage.setItem("Authorization", token);
+    act(() => {
+      window.dispatchEvent(new StorageEvent("storage", { key: "Authorization" }));
+    });
+  }
+
+  it("a replacement token purges user A's identity and cache, then recovers user B with B's token", async () => {
+    script = [{ kind: "ok" }, { kind: "ok", user: { id: "u2", nickname: "Bob", email: "bob@example.test" } }];
+    const { client } = renderGuard("/user-setting/profile");
+    expect(await screen.findByText("protected content")).toBeInTheDocument();
+    client.setQueryData(["api-tokens", "t1"], ["secret-token-of-A"]);
+    expect(useUserStore.getState().user?.nickname).toBe("Ada");
+
+    otherTabWrites("tok-b");
+
+    expect(client.getQueryData(["api-tokens", "t1"])).toBeUndefined();
+    expect(useUserStore.getState().user).toBeNull();
+    expect(screen.queryByText("protected content")).toBeNull();
+    await waitUntil(() => calls.length === 2, { describe: "second session recovery request" });
+    expect(new AxiosHeaders(calls[1]?.headers as never).get("Authorization")).toBe("Bearer tok-b");
+    expect(await screen.findByText("protected content")).toBeInTheDocument();
+    expect(useUserStore.getState().user).toMatchObject({ id: "u2", nickname: "Bob" });
+    expect(client.getQueryData(["api-tokens", "t1"])).toBeUndefined();
+    expect(screen.queryByText("Session expired")).toBeNull();
+  });
+
+  it("a removed token purges identity and cache and sends the guard to /login without a toast", async () => {
+    script = [{ kind: "ok" }];
+    const { client } = renderGuard("/user-setting/profile");
+    expect(await screen.findByText("protected content")).toBeInTheDocument();
+    client.setQueryData(["memberships", "t1"], [{ email: "member@example.test" }]);
+
+    otherTabWrites(null);
+
+    expect(await screen.findByTestId("login-page")).toHaveTextContent("/login?next=%2Fuser-setting%2Fprofile");
+    expect(useUserStore.getState().user).toBeNull();
+    expect(client.getQueryData(["memberships", "t1"])).toBeUndefined();
+    expect(client.getQueryCache().getAll()).toHaveLength(0);
+    expect(screen.queryByText("Session expired")).toBeNull();
+    expect(calls).toHaveLength(1);
+  });
+
+  it("ignores a storage event that carries the same token", async () => {
+    script = [{ kind: "ok" }];
+    renderGuard("/user-setting/profile");
+    expect(await screen.findByText("protected content")).toBeInTheDocument();
+    otherTabWrites("tok-a");
+    expect(screen.getByText("protected content")).toBeInTheDocument();
+    expect(useUserStore.getState().user?.nickname).toBe("Ada");
+    expect(calls).toHaveLength(1);
   });
 });

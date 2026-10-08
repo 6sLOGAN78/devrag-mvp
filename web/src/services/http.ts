@@ -117,11 +117,16 @@ export interface PurgeOptions {
   navigate?: boolean;
 }
 
+/** Forgets the signed-in identity and everything fetched under it, without touching the stored token. */
+export function dropSessionState(): void {
+  useUserStore.getState().reset();
+  queryClient?.clear();
+}
+
 /** Drops the token, the user store and the query cache. Callers that did not expire the session pass `toast: false`. */
 export function purgeSession(options: PurgeOptions = {}): void {
   removeAuthorization();
-  useUserStore.getState().reset();
-  queryClient?.clear();
+  dropSessionState();
   if (options.toast !== false) {
     notifyError({
       id: SESSION_TOAST_ID,

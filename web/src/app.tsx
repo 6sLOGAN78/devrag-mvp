@@ -1,9 +1,10 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createBrowserRouter, RouterProvider } from "react-router";
 import { Toaster } from "@/components/ui/sonner";
 import { buildRoutes } from "@/routes";
 import { registerNavigate, registerQueryClient } from "@/services/http";
+import { installSessionSync } from "@/services/session-sync";
 
 const router = createBrowserRouter(buildRoutes());
 
@@ -19,6 +20,8 @@ export function App() {
     registerQueryClient(created);
     return created;
   });
+  // A token removed or replaced by another tab purges this tab's identity and cached data (WR-F02).
+  useEffect(() => installSessionSync(), []);
   return (
     <QueryClientProvider client={client}>
       <RouterProvider router={router} />

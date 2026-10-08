@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { getAuthorization, removeAuthorization, setAuthorization, subscribeAuthorization } from "./authorization";
+import { getAuthorization, onForeignTokenChange, removeAuthorization, setAuthorization, subscribeAuthorization } from "./authorization";
 
 describe("unit authorization util", () => {
   it("returns null when no token is stored", () => {
@@ -81,5 +81,45 @@ describe("unit authorization with blocked storage (WR-F01)", () => {
     expect(getAuthorization()).toBe("tok");
     removeAuthorization();
     expect(getAuthorization()).toBeNull();
+  });
+});
+
+describe("unit authorization change detection across tabs (WR-F02)", () => {
+  it("reports a removal from another tab with the previous and new value, not a local change", () => {
+    setAuthorization("tok-a");
+    const handler = vi.fn();
+    const stop = onForeignTokenChange(handler);
+    removeAuthorization();
+    expect(handler).not.toHaveBeenCalled();
+    setAuthorization("tok-a");
+    localStorage.removeItem("Authorization");
+    window.dispatchEvent(new StorageEvent("storage", { key: "Authorization" }));
+    expect(handler).toHaveBeenCalledTimes(1);
+    expect(handler).toHaveBeenCalledWith(null, "tok-a");
+    stop();
+  });
+
+  it("reports a replaced token once and ignores a storage event that changed nothing", () => {
+    setAuthorization("tok-a");
+    const handler = vi.fn();
+    const stop = onForeignTokenChange(handler);
+    window.dispatchEvent(new StorageEvent("storage", { key: "Authorization" }));
+    expect(handler).not.toHaveBeenCalled();
+    localStorage.setItem("Authorization", "tok-b");
+    window.dispatchEvent(new StorageEvent("storage", { key: "Authorization" }));
+    window.dispatchEvent(new StorageEvent("storage", { key: "Authorization" }));
+    expect(handler).toHaveBeenCalledTimes(1);
+    expect(handler).toHaveBeenCalledWith("tok-b", "tok-a");
+    stop();
+  });
+
+  it("treats a cleared storage area (key null) as a removal", () => {
+    setAuthorization("tok-a");
+    const handler = vi.fn();
+    const stop = onForeignTokenChange(handler);
+    localStorage.clear();
+    window.dispatchEvent(new StorageEvent("storage", { key: null }));
+    expect(handler).toHaveBeenCalledWith(null, "tok-a");
+    stop();
   });
 });
