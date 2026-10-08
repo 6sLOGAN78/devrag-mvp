@@ -213,7 +213,7 @@ Plans:
 **Wave 1**
 
 - [x] 03-01-PLAN.md — Packages, settings sections, secret box, env and Dockerfile
-- [ ] 03-02-PLAN.md — Key-shape log redaction (Python, Go, Nginx) and the base-URL guard
+- [x] 03-02-PLAN.md — Key-shape log redaction (Python, Go, Nginx) and the base-URL guard
 - [ ] 03-03-PLAN.md — Workspace switcher and store
 - [ ] 03-04-PLAN.md — Registry rows, permission rows, Nginx limits and acting-tenant resolution
 
