@@ -1,9 +1,10 @@
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { ComponentType } from "react";
 import { createMemoryRouter, RouterProvider } from "react-router";
 import { Activity } from "lucide-react";
-import { beforeAll, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { EmptyState } from "@/components/empty-state";
 import { ErrorState } from "@/components/error-state";
 import { AppSidebar } from "@/components/app-sidebar";
@@ -39,11 +40,18 @@ beforeAll(() => {
   Element.prototype.scrollIntoView ??= () => undefined;
 });
 
+afterEach(() => useUserStore.getState().reset());
+
 function renderIn(Layout: ComponentType, path = "/") {
   const router = createMemoryRouter([{ element: <Layout />, children: [{ path: "*", element: <p>page body</p> }] }], {
     initialEntries: [path],
   });
-  return render(<RouterProvider router={router} />);
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  return render(
+    <QueryClientProvider client={client}>
+      <RouterProvider router={router} />
+    </QueryClientProvider>,
+  );
 }
 
 describe("StandardLayout", () => {
@@ -56,6 +64,31 @@ describe("StandardLayout", () => {
     const main = screen.getByRole("main");
     expect(main).toHaveAttribute("id", "main");
     expect(within(main).getByText("page body")).toBeInTheDocument();
+  });
+
+  it("puts the wordmark (hidden below 640px), a separator and the workspace name in the header left cluster (D-26)", () => {
+    useUserStore.getState().setUser({
+      id: "u1", nickname: "Ada", email: "ada@example.test", avatar: "", language: "", colorSchema: "", tenantId: "t1", tenantName: "Ada's workspace", role: "owner", isSuperuser: false,
+    });
+    renderIn(StandardLayout);
+    const header = screen.getByRole("banner");
+    const wordmark = within(header).getByText(i18n.t("app.wordmark"));
+    expect(wordmark).toHaveClass("hidden", "sm:inline");
+    const separator = within(header).getByTestId("header-separator");
+    expect(separator).toHaveAttribute("data-orientation", "vertical");
+    expect(separator).toHaveClass("h-6");
+    const workspace = within(header).getByTestId("workspace-current");
+    expect(wordmark.compareDocumentPosition(separator) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(separator.compareDocumentPosition(workspace) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(workspace).toHaveTextContent("Ada's workspace");
+    useUserStore.getState().reset();
+  });
+
+  it("shows no workspace name while no user is signed in", () => {
+    renderIn(StandardLayout);
+    const header = screen.getByRole("banner");
+    expect(within(header).queryByTestId("workspace-current")).toBeNull();
+    expect(within(header).queryByTestId("workspace-switch")).toBeNull();
   });
 
   it("makes the skip link the first focusable element", async () => {
