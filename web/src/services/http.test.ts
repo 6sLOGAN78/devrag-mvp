@@ -121,7 +121,7 @@ describe("unit http client", () => {
     expect(useUserStore.getState().userId).toBeNull();
     expect(qc.getQueryData(["k"])).toBeUndefined();
     expect(await screen.findAllByText(i18n.t("toast.session.description"))).toHaveLength(1);
-    expect(screen.getByText("Your session ended. Reload the page to continue.")).toBeInTheDocument();
+    expect(screen.getByText("Sign in again to continue.")).toBeInTheDocument();
   });
 
   it("maps a 5xx without an envelope to code -1 and the server error copy", async () => {

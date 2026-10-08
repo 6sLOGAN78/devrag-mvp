@@ -48,7 +48,7 @@ const ENGLISH: Record<string, string> = {
   "toast.timeout.title": "Request timed out",
   "toast.timeout.description": "The server took too long to respond. Try again.",
   "toast.session.title": "Session expired",
-  "toast.session.description": "Your session ended. Reload the page to continue.",
+  "toast.session.description": "Sign in again to continue.",
 };
 
 describe("migrated Phase 1 copy (UI-42)", () => {
@@ -162,6 +162,6 @@ describe("http toasts follow the language (instance used directly, not a hook)",
     render(<Toaster />);
     await expect(http.get("/api/v1/anything")).rejects.toBeTruthy();
     expect(await screen.findByText(i18n.t("toast.session.description"))).toBeInTheDocument();
-    expect(i18n.t("toast.session.description")).not.toBe("Your session ended. Reload the page to continue.");
+    expect(i18n.t("toast.session.description")).toBe("请重新登录以继续。");
   });
 });

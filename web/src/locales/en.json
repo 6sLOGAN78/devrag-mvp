@@ -99,7 +99,7 @@
     },
     "session": {
       "title": "Session expired",
-      "description": "Your session ended. Reload the page to continue."
+      "description": "Sign in again to continue."
     }
   },
   "auth": {
