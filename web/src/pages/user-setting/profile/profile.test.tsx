@@ -302,6 +302,18 @@ describe("profile avatar (T-02-71, T-02-74)", () => {
     expect(useUserStore.getState().user?.avatar).toBe("");
   });
 
+  it("explains a 413 on avatar save in a translated sentence, whatever the proxy body says, and keeps the staged image (R-130)", async () => {
+    downscale.mockResolvedValue(NEW_PNG);
+    responder = (config) => failure(config, 413, 400, "Request Entity Too Large");
+    renderPage();
+    await upload();
+    await userEvent.click(save());
+    expect(await screen.findByTestId("alert-form-error")).toHaveTextContent("That upload is too large to save. Choose a smaller image and try again.");
+    expect(screen.queryByText("Request Entity Too Large")).toBeNull();
+    expect(screen.getByTestId("profile-page").querySelector("img")).toHaveAttribute("src", NEW_PNG);
+    expect(useUserStore.getState().user?.avatar).toBe("");
+  });
+
   it("falls back to initials when the stored avatar is not a safe data URL", () => {
     useUserStore.getState().setUser({ ...USER, avatar: "https://evil.example/a.png" });
     renderPage();

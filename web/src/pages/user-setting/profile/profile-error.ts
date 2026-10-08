@@ -12,6 +12,8 @@ export function profileErrorMessage(error: unknown, t: TFunction): string {
   if (!(error instanceof ApiError)) return t("auth.error.fallback");
   if (error.status === 429) return t("auth.error.rateLimited");
   if (error.status === 503) return t("auth.error.unavailable");
+  // Nginx and the Go body cap answer 413 (R-130); the proxy's own wording is not user copy.
+  if (error.status === 413) return t("auth.error.tooLarge");
   if (error.status === 0 || error.status >= 500) return t("auth.error.fallback");
   const message = error.message;
   return message.trim().length > 0 && message.length <= MAX_SERVER_MESSAGE ? message : t("auth.error.fallback");

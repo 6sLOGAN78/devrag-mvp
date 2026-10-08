@@ -134,6 +134,7 @@
       "hide": "Hide password"
     },
     "error": {
+      "tooLarge": "That upload is too large to save. Choose a smaller image and try again.",
       "fallback": "Something went wrong. Try again.",
       "rateLimited": "Too many attempts. Wait a few minutes, then try again.",
       "unavailable": "The service is unavailable right now. Try again in a moment."
