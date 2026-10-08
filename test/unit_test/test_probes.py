@@ -63,11 +63,14 @@ def test_blueprint_urls_match_python_exact_routes():
     for entry in data["routes"]:
         if entry["owner"] == "python" and entry["match"] == "exact":
             expected.update(p for p in (entry["path"], *entry.get("also", [])) if p in implemented)
-    # /api/v1/providers is an exact family too, but the provider blueprint (plan 03-12) serves it, not the system blueprint.
+    # /api/v1/providers is an exact family too, but the provider blueprint (plan 03-12) serves it, not the system blueprint;
+    # the same holds for /api/v1/models and /api/v1/models/default (models blueprint, plan 03-13).
+    from api.apps.restful_apis.models_api import MODELS, MODELS_DEFAULT
     from api.apps.restful_apis.provider_api import PROVIDERS
 
-    assert set(HEALTH_PATHS) == expected - {PROVIDERS}
-    assert PROVIDERS in expected
+    other_blueprints = {PROVIDERS, MODELS, MODELS_DEFAULT}
+    assert set(HEALTH_PATHS) == expected - other_blueprints
+    assert other_blueprints <= expected
 
 
 async def test_unauthenticated_unknown_path_is_401_not_404():

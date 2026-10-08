@@ -32,6 +32,8 @@ from test.testcases._routes import ROUTES_FILE  # conf/routes.yaml
 _PLACEHOLDER = re.compile(r"\{(\w+)\}")
 TOKENS = "/api/v1/system/tokens"
 PROVIDERS = "/api/v1/providers"
+MODELS = "/api/v1/models"
+MODELS_DEFAULT = "/api/v1/models/default"
 PROVIDER_SLUG = "openai-compatible"
 COMPAT = "OpenAI-API-Compatible"
 NOT_FOUND = (404, 404, "not found")
@@ -157,6 +159,17 @@ class World:
         assert resp.status_code == 200, resp.text
         return resp.json()["data"]
 
+    def snapshot_models(self) -> Any:
+        """A's configured models as the owner sees them (composite ids, dimensions, usage counters)."""
+        resp = call(self.client, "GET", MODELS, self.a.token, {})
+        assert resp.status_code == 200, resp.text
+        return resp.json()["data"]
+
+    def snapshot_defaults(self) -> Any:
+        resp = call(self.client, "GET", MODELS_DEFAULT, self.a.token, {})
+        assert resp.status_code == 200, resp.text
+        return resp.json()["data"]
+
     def snapshot_tokens(self) -> Any:
         return sorted(self.list_tokens(self.a), key=lambda t: t["token"])
 
@@ -171,7 +184,14 @@ class World:
             resp = call(self.client, "GET", "/v1/tenant/list", who.token, {})
             assert resp.status_code == 200, resp.text
             roles[name] = sorted((m["tenant_id"], m["role"]) for m in resp.json()["data"])
-        return {"members": self.members(), "tokens": self.snapshot_tokens(), "memberships": roles, "providers": self.snapshot_providers()}
+        return {
+            "members": self.members(),
+            "tokens": self.snapshot_tokens(),
+            "memberships": roles,
+            "providers": self.snapshot_providers(),
+            "models": self.snapshot_models(),
+            "defaults": self.snapshot_defaults(),
+        }
 
     def a_identifiers(self) -> list[str]:
         """Values that belong to A's side only; none may ever appear in a response to B."""
@@ -185,6 +205,11 @@ class World:
         return [v for v in out if v]
 
 
+def a_embed_id() -> str:
+    """The composite id of A's embedding model."""
+    return f"{A_EMBED_MODEL}@{COMPAT}"
+
+
 def _ok(resp: httpx.Response, what: str) -> dict[str, Any]:
     assert resp.status_code == 200 and resp.json().get("code") == 0, f"{what} failed: HTTP {resp.status_code}"
     return resp.json()
@@ -196,6 +221,8 @@ def resource_of(row: Row) -> str:
         return "tokens"
     if row.path.startswith(PROVIDERS):
         return "providers"
+    if row.path.startswith(MODELS):
+        return "models"
     return "members"
 
 
@@ -231,6 +258,7 @@ def build_world(client: httpx.Client, registry: AccountRegistry, fake: FakeProvi
             "models": [{"name": A_CHAT_MODEL, "type": "chat"}, {"name": A_EMBED_MODEL, "type": "embedding"}],
         }
         _ok(call(client, "PUT", PROVIDERS, a.token, {}, body=body), "A saves a provider")
+        _ok(call(client, "PATCH", MODELS_DEFAULT, a.token, {}, body={"embedding": a_embed_id()}), "A chooses its embedding default")
     return world
 
 
@@ -451,9 +479,98 @@ def check_providers_save(w: World) -> None:
     assert w.snapshot_providers() == before
 
 
+def _refused_as_unavailable(resp: httpx.Response, what: str) -> None:
+    assert resp.status_code == 400, f"{what}: HTTP {resp.status_code}"
+    assert resp.json()["data"]["reason"] == "model_unavailable", what
+
+
+def check_models_list(w: World) -> None:
+    """GET /api/v1/models: the list is the caller's workspace's whatever workspace id the request carries; no credential field, ever."""
+    before = w.snapshot_models()
+    smuggle = {"tenant_id": w.a.tenant_id, "user_id": w.a.user_id, "owner_id": w.a.user_id}
+    own_b = call(w.client, "GET", MODELS, w.b.token, {})
+    assert own_b.status_code == 200, own_b.text
+    _assert_no_a_data(own_b.text, w, "B's own model list")
+    for who, label in ((w.b, "B"), (w.pending, "the pending invitee")):
+        resp = call(w.client, "GET", MODELS, who.token, {}, query=smuggle)
+        assert triple(resp) == NOT_FOUND, f"{label} naming tenant A's workspace must get the one not-found answer: {triple(resp)}"
+        _assert_no_a_data(resp.text, w, f"the model list {label} asked for in A's name")
+        plain = call(w.client, "GET", MODELS, who.token, {}, query={"type": "embedding"})
+        assert plain.status_code == 200, plain.text
+        _assert_no_a_data(plain.text, w, f"the embedding models of {label}")
+    assert call(w.client, "GET", MODELS, w.b.token, {}).text == own_b.text, "B's own list is unchanged by the smuggled requests"
+    for member in (w.normal, w.admin, w.victim):
+        resp = call(w.client, "GET", MODELS, member.token, {}, query={"tenant_id": w.a.tenant_id})
+        assert resp.status_code == 200, resp.text
+        assert A_CHAT_MODEL in resp.text and A_EMBED_MODEL in resp.text, "a member of A sees A's models"
+        assert _credential_free(resp.text) and A_PROVIDER_KEY not in resp.text
+    a_token = str(w.a_tokens[0]["token"])
+    as_token = call(w.client, "GET", MODELS, a_token, {})
+    assert as_token.status_code == 200 and A_CHAT_MODEL in as_token.text and _credential_free(as_token.text)
+    assert triple(call(w.client, "GET", MODELS, a_token, {}, query={"tenant_id": w.b.tenant_id})) == NOT_FOUND, "a token is pinned to its own workspace"
+    assert triple(call(w.client, "GET", MODELS, w.b_api_token, {}, query={"tenant_id": w.a.tenant_id})) == NOT_FOUND
+    assert w.snapshot_models() == before
+
+
+def check_models_default_get(w: World) -> None:
+    """GET /api/v1/models/default: another workspace's defaults are the one not-found answer; B's own hold none of A's ids."""
+    before = w.snapshot_defaults()
+    assert before["embedding"] == a_embed_id(), "A chose its embedding default when the world was built"
+    smuggle = {"tenant_id": w.a.tenant_id, "user_id": w.a.user_id, "owner_id": w.a.user_id}
+    for who, label in ((w.b, "B"), (w.pending, "the pending invitee")):
+        resp = call(w.client, "GET", MODELS_DEFAULT, who.token, {}, query=smuggle)
+        assert triple(resp) == NOT_FOUND, f"{label}: {triple(resp)}"
+        _assert_no_a_data(resp.text, w, f"the defaults {label} asked for in A's name")
+        own = call(w.client, "GET", MODELS_DEFAULT, who.token, {})
+        assert own.status_code == 200, own.text
+        _assert_no_a_data(own.text, w, f"the defaults of {label}")
+        assert a_embed_id() not in own.text
+    for member in (w.normal, w.admin, w.victim):
+        resp = call(w.client, "GET", MODELS_DEFAULT, member.token, {}, query={"tenant_id": w.a.tenant_id})
+        assert resp.status_code == 200 and resp.json()["data"] == before, resp.text
+    a_token = str(w.a_tokens[0]["token"])
+    assert call(w.client, "GET", MODELS_DEFAULT, a_token, {}).json()["data"] == before
+    assert triple(call(w.client, "GET", MODELS_DEFAULT, w.b_api_token, {}, query={"tenant_id": w.a.tenant_id})) == NOT_FOUND
+    assert w.snapshot_defaults() == before
+
+
+def check_models_default_patch(w: World) -> None:
+    """PATCH /api/v1/models/default: B cannot write into A's workspace, cannot adopt A's model, and a token cannot write at all."""
+    before, snapshot = w.snapshot_defaults(), w.snapshot()
+    for who, label in ((w.b, "B"), (w.pending, "the pending invitee")):
+        resp = call(w.client, "PATCH", MODELS_DEFAULT, who.token, {}, body={"chat": None, "embedding": None, "tenant_id": w.a.tenant_id})
+        assert triple(resp) == NOT_FOUND, f"{label}: {triple(resp)}"
+        _assert_no_a_data(resp.text, w, f"the refused write of {label}")
+    assert w.snapshot_defaults() == before, "a refused foreign write changed nothing"
+
+    # A's composite ids are unavailable in B's own workspace, whatever else the body carries.
+    for slot, value in (("embedding", a_embed_id()), ("chat", f"{A_CHAT_MODEL}@{COMPAT}")):
+        resp = call(w.client, "PATCH", MODELS_DEFAULT, w.b.token, {}, body={slot: value})
+        _refused_as_unavailable(resp, f"B adopts A's {slot} model")
+        _assert_no_a_data(resp.text, w, "the refusal of B's attempt to adopt A's model")
+    unknown = call(w.client, "PATCH", MODELS_DEFAULT, w.b.token, {}, body={"chat": None, "user_id": w.a.user_id})
+    assert unknown.status_code == 400, "an unknown body field is refused, not ignored"
+    assert w.snapshot_defaults() == before
+
+    own = call(w.client, "PATCH", MODELS_DEFAULT, w.b.token, {}, body={"chat": None})
+    assert _ok(own, "B clears its own chat default")["data"]["chat"] == ""
+    _assert_no_a_data(own.text, w, "B's own defaults write")
+
+    denied = call(w.client, "PATCH", MODELS_DEFAULT, w.normal.token, {}, body={"chat": None, "tenant_id": w.a.tenant_id})
+    assert denied.status_code == 403, "a normal member of A may read the defaults, not change them"
+    for token, label in ((w.b_api_token, "B's API token"), (str(w.a_tokens[0]["token"]), "A's API token")):
+        resp = call(w.client, "PATCH", MODELS_DEFAULT, token, {}, body={"chat": None})
+        assert resp.status_code == 401, f"{label} must not change defaults"
+    assert w.snapshot_defaults() == before
+    assert w.snapshot() == snapshot
+
+
 NO_ID_CHECKS: dict[str, NoIdCheck] = {
     "GET /api/v1/providers": check_providers_list,
     "PUT /api/v1/providers": check_providers_save,
+    "GET /api/v1/models": check_models_list,
+    "GET /api/v1/models/default": check_models_default_get,
+    "PATCH /api/v1/models/default": check_models_default_patch,
     "GET /api/v1/system/tokens": check_tokens_list,
     "POST /api/v1/system/tokens": check_tokens_create,
 }

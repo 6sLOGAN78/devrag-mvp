@@ -20,6 +20,39 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/models": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["get_list_models"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/models/default": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["get_get_defaults"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Set or clear the default chat and embedding model. Only the slots named in the body change. */
+        patch: operations["patch_patch_defaults"];
+        trace?: never;
+    };
     "/api/v1/providers": {
         parameters: {
             query?: never;
@@ -177,6 +210,13 @@ export interface components {
             redis: components["schemas"]["ProbeResult"];
             storage: components["schemas"]["ProbeResult"];
         };
+        /** DefaultsView */
+        DefaultsView: {
+            /** Chat */
+            chat: string;
+            /** Embedding */
+            embedding: string;
+        };
         /** DeletedView */
         DeletedView: {
             /** Deleted */
@@ -228,6 +268,25 @@ export interface components {
              * @enum {string}
              */
             type: "chat" | "embedding";
+        };
+        /** ModelDescription */
+        ModelDescription: {
+            /** Dimension */
+            dimension: number | null;
+            /** Id */
+            id: string;
+            /** Instance */
+            instance: string;
+            /** Max Tokens */
+            max_tokens: number;
+            /** Name */
+            name: string;
+            /** Provider */
+            provider: string;
+            /** Type */
+            type: string;
+            /** Used Tokens */
+            used_tokens: number;
         };
         /** ModelView */
         ModelView: {
@@ -293,6 +352,102 @@ export interface operations {
                         /** Code */
                         code: number;
                         data: components["schemas"]["LanguageData"];
+                        /** Message */
+                        message: string;
+                    };
+                };
+            };
+        };
+    };
+    get_list_models: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Code */
+                        code: number;
+                        /** Data */
+                        data: components["schemas"]["ModelDescription"][];
+                        /** Message */
+                        message: string;
+                    };
+                };
+            };
+        };
+    };
+    get_get_defaults: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Code */
+                        code: number;
+                        data: components["schemas"]["DefaultsView"];
+                        /** Message */
+                        message: string;
+                    };
+                };
+            };
+        };
+    };
+    patch_patch_defaults: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": {
+                    /**
+                     * Chat
+                     * @default null
+                     */
+                    chat?: string | null;
+                    /**
+                     * Embedding
+                     * @default null
+                     */
+                    embedding?: string | null;
+                    /**
+                     * Tenant Id
+                     * @default null
+                     */
+                    tenant_id?: string | null;
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Code */
+                        code: number;
+                        data: components["schemas"]["DefaultsView"];
                         /** Message */
                         message: string;
                     };

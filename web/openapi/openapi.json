@@ -25,6 +25,24 @@
         "title": "Checks",
         "type": "object"
       },
+      "DefaultsView": {
+        "properties": {
+          "chat": {
+            "title": "Chat",
+            "type": "string"
+          },
+          "embedding": {
+            "title": "Embedding",
+            "type": "string"
+          }
+        },
+        "required": [
+          "chat",
+          "embedding"
+        ],
+        "title": "DefaultsView",
+        "type": "object"
+      },
       "DeletedView": {
         "properties": {
           "deleted": {
@@ -157,6 +175,61 @@
           "type"
         ],
         "title": "ModelBody",
+        "type": "object"
+      },
+      "ModelDescription": {
+        "properties": {
+          "dimension": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dimension"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "instance": {
+            "title": "Instance",
+            "type": "string"
+          },
+          "max_tokens": {
+            "title": "Max Tokens",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "provider": {
+            "title": "Provider",
+            "type": "string"
+          },
+          "type": {
+            "title": "Type",
+            "type": "string"
+          },
+          "used_tokens": {
+            "title": "Used Tokens",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "provider",
+          "instance",
+          "type",
+          "dimension",
+          "max_tokens",
+          "used_tokens"
+        ],
+        "title": "ModelDescription",
         "type": "object"
       },
       "ModelView": {
@@ -309,6 +382,172 @@
             "description": ""
           }
         }
+      }
+    },
+    "/api/v1/models": {
+      "get": {
+        "operationId": "get_list_models",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "title": "Code",
+                      "type": "integer"
+                    },
+                    "data": {
+                      "items": {
+                        "$ref": "#/components/schemas/ModelDescription"
+                      },
+                      "title": "Data",
+                      "type": "array"
+                    },
+                    "message": {
+                      "title": "Message",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message",
+                    "data"
+                  ],
+                  "title": "ModelListEnvelope",
+                  "type": "object"
+                }
+              }
+            },
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/v1/models/default": {
+      "get": {
+        "operationId": "get_get_defaults",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "title": "Code",
+                      "type": "integer"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/DefaultsView"
+                    },
+                    "message": {
+                      "title": "Message",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message",
+                    "data"
+                  ],
+                  "title": "DefaultsEnvelope",
+                  "type": "object"
+                }
+              }
+            },
+            "description": ""
+          }
+        }
+      },
+      "patch": {
+        "description": "",
+        "operationId": "patch_patch_defaults",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "description": "No length bound on the ids on purpose: an over-long id is a typed ``model_unavailable`` from the service, like any other bad id.",
+                "properties": {
+                  "chat": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "title": "Chat"
+                  },
+                  "embedding": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "title": "Embedding"
+                  },
+                  "tenant_id": {
+                    "anyOf": [
+                      {
+                        "pattern": "^[0-9a-f]{32}$",
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "title": "Tenant Id"
+                  }
+                },
+                "title": "DefaultsBody",
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "title": "Code",
+                      "type": "integer"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/DefaultsView"
+                    },
+                    "message": {
+                      "title": "Message",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message",
+                    "data"
+                  ],
+                  "title": "DefaultsEnvelope",
+                  "type": "object"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "summary": "Set or clear the default chat and embedding model. Only the slots named in the body change."
       }
     },
     "/api/v1/providers": {

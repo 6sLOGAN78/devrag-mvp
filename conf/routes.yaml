@@ -148,11 +148,11 @@ endpoints:
      note: "models only: tests and adds them to an existing instance with its stored key; credentials in the body create a new instance; session token only (D-19)"}
   - {method: GET, path: "/api/v1/providers/{provider}/instances/{instance}", owner: python, auth: jwt, roles: [owner, admin], scope: tenant, implemented: true,
      note: "reads one instance with last4 and address, never the key; session token only because no token subject may read credentials (plan 03-12 tightened api to jwt)"}
-  - {method: GET, path: "/api/v1/models", owner: python, auth: api, roles: [owner, admin, normal], scope: tenant, implemented: false,
+  - {method: GET, path: "/api/v1/models", owner: python, auth: api, roles: [owner, admin, normal], scope: tenant, implemented: true,
      note: "plan 03-13 lists the workspace models"}
-  - {method: GET, path: "/api/v1/models/default", owner: python, auth: api, roles: [owner, admin, normal], scope: tenant, implemented: false,
+  - {method: GET, path: "/api/v1/models/default", owner: python, auth: api, roles: [owner, admin, normal], scope: tenant, implemented: true,
      note: "plan 03-13 reads the default model per type"}
-  - {method: PATCH, path: "/api/v1/models/default", owner: python, auth: jwt, roles: [owner, admin], scope: tenant, implemented: false,
+  - {method: PATCH, path: "/api/v1/models/default", owner: python, auth: jwt, roles: [owner, admin], scope: tenant, implemented: true,
      note: "plan 03-13 sets the default models; session token only (D-07)"}
   - {method: POST, path: "/api/v1/datasets", owner: python, auth: api, roles: [owner, admin, normal], scope: tenant, implemented: false,
      note: "plan 03-14 creates a dataset; permission me or team (D-08)"}

@@ -175,7 +175,7 @@ def test_row_may_tighten_an_api_family_to_session_only_but_never_loosen(tmp_path
 def test_phase3_key_writing_rows_are_session_only() -> None:
     """D-19, Pitfall 6: an API token must not reach the rows that write provider keys or default models.
 
-    The provider rows landed in plan 03-12 (implemented); the default-model row is still to come (plan 03-13).
+    The provider rows landed in plan 03-12 and the default-model row in plan 03-13 (all implemented).
     """
     data = yaml.safe_load(ROUTES.read_text(encoding="utf-8"))
     rows = {(e["method"], e["path"]): e for e in data["endpoints"]}
@@ -183,7 +183,7 @@ def test_phase3_key_writing_rows_are_session_only() -> None:
         ("PUT", "/api/v1/providers"): True,
         ("DELETE", "/api/v1/providers/{provider}"): True,
         ("POST", "/api/v1/providers/{provider}/instances"): True,
-        ("PATCH", "/api/v1/models/default"): False,
+        ("PATCH", "/api/v1/models/default"): True,
     }
     for key, landed in implemented.items():
         row = rows[key]

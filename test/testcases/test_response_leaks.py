@@ -25,7 +25,17 @@ from test.helpers.db import root_connection
 from test.helpers.fake_provider import running_stack_fake_provider
 from test.helpers.mail import delete_mail_for, extract_code, wait_for_mail
 from test.testcases._leak_sweep import CREDENTIAL_ROWS, LOGIN, TOKEN_ROWS, VERIFY, Secret, scan_response
-from test.testcases._matrix_fixtures import A_PROVIDER_KEY, B_PROVIDER_KEY, COMPAT, PROVIDER_SLUG, PROVIDERS, World, build_world
+from test.testcases._matrix_fixtures import (
+    A_PROVIDER_KEY,
+    B_PROVIDER_KEY,
+    COMPAT,
+    MODELS,
+    MODELS_DEFAULT,
+    PROVIDER_SLUG,
+    PROVIDERS,
+    World,
+    build_world,
+)
 from test.testcases._routes import ROUTES_FILE
 from test.testcases.conftest import BASE_URL
 
@@ -297,6 +307,42 @@ def sweep_provider_rows(s: Sweep, w: World) -> None:
     s.errors(row, "DELETE", ollama, "GET")
 
 
+def sweep_model_rows(s: Sweep, w: World) -> None:
+    """The three model rows, each on a success and on error paths (plan 03-13). Runs after the provider rows, which leave ``leak-chat`` configured."""
+    a, b, member = w.a, w.b, w.normal
+    token = str(w.a_tokens[0]["token"])
+    scope = f"?tenant_id={a.tenant_id}"
+    chat_id = f"leak-chat@{COMPAT}"
+
+    row = f"GET {MODELS}"
+    s.req(row, "success as owner", "GET", MODELS, a.token)
+    s.req(row, "filtered by type", "GET", MODELS + "?type=embedding", a.token)
+    s.req(row, "success as member", "GET", MODELS + scope, member.token)
+    s.req(row, "success with an API token", "GET", MODELS, token)
+    s.req(row, "invalid type", "GET", MODELS + "?type=image", a.token)
+    s.req(row, "as an outsider", "GET", MODELS + scope, b.token)
+    s.errors(row, "GET", MODELS, "DELETE")
+
+    row = f"GET {MODELS_DEFAULT}"
+    s.req(row, "success as owner", "GET", MODELS_DEFAULT, a.token)
+    s.req(row, "success as member", "GET", MODELS_DEFAULT + scope, member.token)
+    s.req(row, "success with an API token", "GET", MODELS_DEFAULT, token)
+    s.req(row, "as an outsider", "GET", MODELS_DEFAULT + scope, b.token)
+    s.errors(row, "GET", MODELS_DEFAULT, "DELETE")
+
+    row = f"PATCH {MODELS_DEFAULT}"
+    s.req(row, "success (choose)", "PATCH", MODELS_DEFAULT, a.token, {"chat": chat_id})
+    s.req(row, "success (clear)", "PATCH", MODELS_DEFAULT, a.token, {"chat": None})
+    s.req(row, "unknown model", "PATCH", MODELS_DEFAULT, a.token, {"chat": f"no-such-model@{COMPAT}"})
+    s.req(row, "over-long id", "PATCH", MODELS_DEFAULT, a.token, {"embedding": "x" * 129 + f"@{COMPAT}"})
+    s.req(row, "empty body", "PATCH", MODELS_DEFAULT, a.token, {})
+    s.req(row, "unknown field", "PATCH", MODELS_DEFAULT, a.token, {"chat": None, "created_by": a.user_id})
+    s.req(row, "as a member", "PATCH", MODELS_DEFAULT, member.token, {"chat": None, "tenant_id": a.tenant_id})
+    s.req(row, "as an outsider", "PATCH", MODELS_DEFAULT, b.token, {"chat": None, "tenant_id": a.tenant_id})
+    s.req(row, "with an API token", "PATCH", MODELS_DEFAULT, token, {"chat": None})
+    s.errors(row, "PATCH", MODELS_DEFAULT, "PUT")
+
+
 def collect_database_secrets(s: Sweep) -> None:
     """Hashes and stored access tokens of every account the sweep touched, read back from MySQL."""
     ids = [acc.user_id for acc in s.registry.created]
@@ -344,6 +390,7 @@ def sweep(ingress: httpx.Client) -> Iterator[Sweep]:
                 s.secret("a session token of the tenant world", acc.token, frozenset({LOGIN}))
             sweep_tenant_rows(s, world)
             sweep_provider_rows(s, world)
+            sweep_model_rows(s, world)
             collect_database_secrets(s)
             s.secrets.extend(infrastructure_secrets())
             yield s
