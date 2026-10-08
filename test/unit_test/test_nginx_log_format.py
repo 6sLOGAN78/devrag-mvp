@@ -26,10 +26,10 @@ def test_log_format_has_no_raw_request_target_query_or_referer() -> None:
 
 def test_token_family_is_masked_by_a_map_on_the_normalised_path() -> None:
     assert "map $uri $loggable_uri" in CONF
-    assert "/api/v1/system/tokens/" in CONF.split("map $uri $loggable_uri", 1)[1].split("}", 1)[0]
+    assert "/api/v1/system/tokens/" in CONF.split("map $uri $loggable_uri", 1)[1].split("log_format", 1)[0]
     assert "***" in CONF
 
 
 def test_credential_shaped_segments_are_masked_wherever_they_appear() -> None:
-    block = CONF.split("map $uri $loggable_uri", 1)[1].split("}", 1)[0]
+    block = CONF.split("map $uri $loggable_uri", 1)[1].split("log_format", 1)[0]
     assert "ragflow-" in block and "ragflow-***" in block
