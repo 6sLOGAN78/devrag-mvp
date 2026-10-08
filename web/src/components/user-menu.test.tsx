@@ -31,7 +31,7 @@ const userDto = {
   is_superuser: false,
 };
 
-let logoutMode: "ok" | "network" | "500" | "pending" = "ok";
+let logoutMode: "ok" | "network" | "500" | "401" | "pending" = "ok";
 let calls: InternalAxiosRequestConfig[] = [];
 let userOverrides: Partial<typeof userDto> = {};
 
@@ -43,6 +43,10 @@ const adapter: AxiosAdapter = (config) => {
   if (config.url === logoutPath) {
     if (logoutMode === "pending") return new Promise<never>(() => undefined);
     if (logoutMode === "network") return Promise.reject(new AxiosError("Network Error", "ERR_NETWORK", config));
+    if (logoutMode === "401") {
+      const response = done(401, { code: 401, message: "Unauthorized", data: null });
+      return Promise.reject(new AxiosError("status 401", "ERR_BAD_REQUEST", config, null, response));
+    }
     if (logoutMode === "500") {
       const response = done(500, { code: 500, message: "boom", data: null });
       return Promise.reject(new AxiosError("status 500", "ERR_BAD_RESPONSE", config, null, response));
@@ -252,6 +256,25 @@ describe("UserMenu sign out (T-02-53B)", () => {
       expect(document.querySelector("[data-sonner-toast]")).toBeNull();
     },
   );
+
+  it("signing out with an expired token never shows 'Session expired' and never adds next, even though logout answers 401 (WR-F03)", async () => {
+    logoutMode = "401";
+    const visited: string[] = [];
+    const view = renderGuarded();
+    const unsubscribe = view.router.subscribe((state) => visited.push(`${state.location.pathname}${state.location.search}`));
+    view.client.setQueryData(["other"], 1);
+    await userEvent.click(await screen.findByTestId("user-menu"));
+    await userEvent.click(await screen.findByTestId("user-menu-signout"));
+    expect(await screen.findByTestId("login-page")).toHaveTextContent(/^\/login$/);
+    unsubscribe();
+    expect(calls.filter((c) => c.url === logoutPath)).toHaveLength(1);
+    expect(getAuthorization()).toBeNull();
+    expect(useUserStore.getState().user).toBeNull();
+    expect(view.client.getQueryData(["other"])).toBeUndefined();
+    expect(visited.filter((path) => path.includes("next="))).toEqual([]);
+    expect(screen.queryByText("Session expired")).toBeNull();
+    expect(document.querySelector("[data-sonner-toast]")).toBeNull();
+  });
 
   it("ignores a second activation while logout is in flight", async () => {
     logoutMode = "pending";

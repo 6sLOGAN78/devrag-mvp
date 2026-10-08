@@ -31,13 +31,14 @@ export function UserMenu() {
   const signOut = async () => {
     if (signingOut.current) return;
     signingOut.current = true;
+    // Mark the intent before the request: logout answers 401 for an expired token, and that must not read as an expiry.
+    beginSignOut();
     try {
       await logout();
     } catch {
       // A failed request must never leave a usable local session (T-02-53B): fall through to the local purge.
     } finally {
       // Deliberate sign out lands on a bare /login: the guard must not add the expiry-style `next` parameter.
-      beginSignOut();
       purgeSession({ toast: false, navigate: false });
       try {
         await navigate("/login", { replace: true });

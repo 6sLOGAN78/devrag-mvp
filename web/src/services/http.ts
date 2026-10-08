@@ -11,6 +11,7 @@ import i18n from "@/i18n";
 import { useUserStore } from "@/stores/user-store";
 import { loginRedirect } from "@/utils/safe-next";
 import { getAuthorization, removeAuthorization } from "@/utils/authorization";
+import { isSigningOut } from "@/utils/sign-out-intent";
 import { notifyError } from "./notify";
 
 declare module "axios" {
@@ -117,6 +118,15 @@ export interface PurgeOptions {
   navigate?: boolean;
 }
 
+/**
+ * A 401 on a request that carried the current token ends the session. While a deliberate sign-out is running, the
+ * session is ending anyway: no "Session expired" toast and no `next` redirect (UI-SPEC "no toast on deliberate sign-out").
+ */
+function purgeAfterUnauthorised(): void {
+  if (isSigningOut()) purgeSession({ toast: false, navigate: false });
+  else purgeSession();
+}
+
 /** Forgets the signed-in identity and everything fetched under it, without touching the stored token. */
 export function dropSessionState(): void {
   useUserStore.getState().reset();
@@ -182,7 +192,7 @@ http.interceptors.response.use(
       requestId: headerValue(response.headers, "x-request-id"),
       data: body.data,
     });
-    if (body.code === RetCode.UNAUTHORIZED && shouldPurge(response.config)) purgeSession();
+    if (body.code === RetCode.UNAUTHORIZED && shouldPurge(response.config)) purgeAfterUnauthorised();
     else toastFor(error, response.config.silent === true);
     return Promise.reject(error);
   },
@@ -210,7 +220,7 @@ http.interceptors.response.use(
         retryAfter: parseRetryAfter(headerValue(response.headers, "retry-after")),
       });
     }
-    if ((error.status === 401 || error.code === RetCode.UNAUTHORIZED) && shouldPurge(failure.config)) purgeSession();
+    if ((error.status === 401 || error.code === RetCode.UNAUTHORIZED) && shouldPurge(failure.config)) purgeAfterUnauthorised();
     else toastFor(error, silent);
     return Promise.reject(error);
   },
