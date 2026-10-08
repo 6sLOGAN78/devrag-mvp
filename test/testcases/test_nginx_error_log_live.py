@@ -17,7 +17,7 @@ from test.testcases.conftest import DOCKER, PROJECT, exec_app
 
 pytestmark = pytest.mark.e2e
 
-WORK = "/tmp/wr03"
+WORK = "/tmp/wr03"  # noqa: S108 - a path inside the throwaway app container, removed afterwards
 PORT = 18099
 FAKE_TOKEN = "ragflow-fake0token0for0wr03testsABCDEFG"  # obviously not a credential
 

@@ -232,3 +232,27 @@ Additionally, after `FindUserByEmail`, key the failure counter on the resolved `
 _Reviewed: 2026-10-08_
 _Reviewer: Claude (gsd-code-reviewer)_
 _Depth: deep_
+
+## Fix status
+
+Fixed on 2026-10-08, each finding test-first (failing output recorded in the commit message or the plan notes) and one commit per finding. New decisions: R-129 to R-133 in `.planning/DECISIONS.md`; open items: B-17 (extended), B-28, B-29 in `.planning/BLOCKERS.md`.
+
+| Finding | Reproduced | Status |
+|---------|-----------|--------|
+| CR-01 collation-equal email spellings bypass limits | yes: `á`, combining-mark and fullwidth spellings got separate login counters and OTP budgets, and `álice-...@example.test` registered as a second account (real MySQL `utf8mb4_unicode_ci` and Valkey) | fixed in 73dfd6f (one `CanonicalEmail` in Go and Python with shared vectors; limiter and OTP keys use the resolved account; new accounts ASCII only, R-129) |
+| WR-01 check-then-act failure counter | yes: 24 parallel wrong guesses were all verified (cap 3), for login and for password change | fixed in 0dc8e3f (increment before the check, success clears; parallel tests on real Valkey) |
+| WR-02 lockout of a victim by 5 wrong guesses | n/a (design question) | deferred to blocker B-17 (analysis and options added; behaviour unchanged, waiting for the user) |
+| WR-03 token in the Nginx error log | yes: a throwaway Nginx on the generated block with a dead upstream wrote `request: "DELETE /control/<token>"` for a location without the override | fixed in b08cbb6 (generated `error_log /dev/stderr emerg;` on the token family, R-131; live test in the app container) |
+| WR-04 1 GB bodies on auth routes | yes: live, a 20 KB body on login and a 600 KB body on the profile route reached the Go server (`X-API-Source: go`) | fixed in 521bde3 and 0e58da5 (Nginx 16k, profile route 512k, Python keeps 1024m, 413 envelope; Go `BodyLimitMiddleware` 16 KB / 400 KB without Nginx; R-130) |
+| WR-05 login CSRF via form posts | yes by test (urlencoded and text/plain bodies and a cross-site Origin reached the handlers) | fixed in 811da11 (JSON-only bodies 415, public writes with a foreign Origin 403, no Origin keeps working; R-132) |
+| WR-06 page overflow gives 503 | yes: `page=MaxInt` in the member list was a store failure, other huge pages were accepted | fixed in 60a22e6 (`MaxListPage` 100,000, 400 envelope) |
+| WR-07 default executor starvation | yes offline: 44 stalled lookups made another `to_thread` call wait past 1 s | fixed in 9207a20 (dedicated 16-thread pool, R-133); residual in B-28 |
+| IN-01 weak outage assertion | yes | fixed in f959a59 |
+| IN-02 reset compares typed email | yes (mixed spellings failed after a code was sent) | fixed by CR-01 (73dfd6f): the grant is bound to the account |
+| IN-03 account existence observable | n/a | deferred, already accepted in R-107 (B-29) |
+| IN-04 HTTPS redirect drops the port, no HSTS | n/a | deferred, needs a public URL and TLS deployment decision (B-29) |
+| IN-05 Go server timeouts | yes (only ReadHeaderTimeout) | fixed in 75cb363 |
+| IN-06 SMTP defaults | n/a | deferred, needs a production profile (B-29) |
+| IN-07 boolean parsing differs | yes: Go accepted `t`/`T`/`f`/`F` | fixed in 698e22d |
+| IN-08 500 instead of 503 / no-workspace login | yes | fixed in 9170fb7 |
+| IN-09 smaller items | body cap yes, shared limiter yes | register/login cap 2 KB in e4342e0; one shared limiter in 75cb363; PBKDF2 slot context, `clean_room.sh` export scope (R-128) and the verify-step per-IP limiter deferred (B-29) |
