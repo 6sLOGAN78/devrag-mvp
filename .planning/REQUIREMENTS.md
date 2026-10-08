@@ -208,12 +208,12 @@ Requirements for initial release. Each maps to exactly one roadmap phase.
 - [ ] **IDX-01**: Chunks are embedded in batches of 64 using the dataset's embedding model
 - [ ] **IDX-02**: Inputs are truncated to 8192 tokens before embedding; results are re-ordered by index to match inputs
 - [ ] **IDX-03**: Vectors are L2-normalized
-- [ ] **IDX-04**: Vector field is named `q_{dim}_vec`, allowing multiple embedding dimensions in one index
-- [ ] **IDX-05**: Unified `DocStoreConnection` interface (create/drop index, insert, update, delete, search with text + dense + fusion expressions)
-- [ ] **IDX-06**: Index schema: `id`, `doc_id`, `kb_id`, `content_ltks`, `title_tks`, `important_kwd`, `question_tks`, `position_int`, `q_{dim}_vec`, `available_int` (plus `title_sm_tks`, `important_tks`, `content_sm_ltks` from query fields)
+- [x] **IDX-04**: Vector field is named `q_{dim}_vec`, allowing multiple embedding dimensions in one index
+- [x] **IDX-05**: Unified `DocStoreConnection` interface (create/drop index, insert, update, delete, search with text + dense + fusion expressions)
+- [x] **IDX-06**: Index schema: `id`, `doc_id`, `kb_id`, `content_ltks`, `title_tks`, `important_kwd`, `question_tks`, `position_int`, `q_{dim}_vec`, `available_int` (plus `title_sm_tks`, `important_tks`, `content_sm_ltks` from query fields)
 - [ ] **IDX-07**: Chunks are bulk-upserted in batches of 64 with deterministic id `doc_id + "_" + order`
-- [ ] **IDX-08**: Vector index is HNSW with cosine metric, `m=16`, `ef_construction=200`
-- [ ] **IDX-09**: Elasticsearch 8 adapter
+- [x] **IDX-08**: Vector index is HNSW with cosine metric, `m=16`, `ef_construction=200`
+- [x] **IDX-09**: Elasticsearch 8 adapter
 - [ ] **IDX-10**: Infinity adapter
 - [ ] **IDX-14**: Document and dataset deletion remove their chunks from the index
 - [ ] **IDX-15**: Go docstore drivers (Elasticsearch, Infinity, OceanBase) *(Python implementation in v1; Go mirror deferred to v2)*
@@ -608,7 +608,7 @@ Requirements for initial release. Each maps to exactly one roadmap phase.
 - [ ] **TEST-05**: CLI lexer/parser unit tests
 - [ ] **TEST-06**: Canvas state-machine unit tests and state benchmarks
 - [ ] **TEST-07**: Sandbox security tests (seccomp, memory limit, blocked modules)
-- [ ] **TEST-08**: Vector-engine integration tests against live engines
+- [x] **TEST-08**: Vector-engine integration tests against live engines
 - [ ] **TEST-09**: Sandbox RPC integration tests
 - [x] **TEST-10**: Frontend component tests (React Testing Library with Jest or Vitest)
 - [ ] **TEST-11**: Database tests and pipeline tests
@@ -854,12 +854,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 | IDX-01 | Phase 4 | Pending |
 | IDX-02 | Phase 4 | Pending |
 | IDX-03 | Phase 4 | Pending |
-| IDX-04 | Phase 3 | Pending |
-| IDX-05 | Phase 3 | Pending |
-| IDX-06 | Phase 3 | Pending |
+| IDX-04 | Phase 3 | Complete |
+| IDX-05 | Phase 3 | Complete |
+| IDX-06 | Phase 3 | Complete |
 | IDX-07 | Phase 4 | Pending |
-| IDX-08 | Phase 3 | Pending |
-| IDX-09 | Phase 3 | Pending |
+| IDX-08 | Phase 3 | Complete |
+| IDX-09 | Phase 3 | Complete |
 | IDX-10 | Phase 8 | Pending |
 | IDX-14 | Phase 4 | Pending |
 | IDX-15 | Phase 8 | Pending |
@@ -1197,7 +1197,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | TEST-05 | Phase 8 | Pending |
 | TEST-06 | Phase 7 | Pending |
 | TEST-07 | Phase 7 | Pending |
-| TEST-08 | Phase 3 | Pending |
+| TEST-08 | Phase 3 | Complete |
 | TEST-09 | Phase 7 | Pending |
 | TEST-10 | Phase 1 | Complete |
 | TEST-11 | Phase 4 | Pending |
