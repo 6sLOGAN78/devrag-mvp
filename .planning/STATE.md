@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: milestone
 status: executing
 stopped_at: Phase 3 UI-SPEC approved
-last_updated: "2026-10-08T19:52:31.464Z"
+last_updated: "2026-10-08T19:56:37.088Z"
 last_activity: 2026-10-08
 progress:
   total_phases: 8
   completed_phases: 2
   total_plans: 83
-  completed_plans: 55
+  completed_plans: 56
   percent: 25
 ---
 
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-10-05)
 ## Current Position
 
 Phase: 3 (Models, Knowledge Bases and Upload) — EXECUTING
-Plan: 4 of 31
+Plan: 5 of 31
 Status: Ready to execute
 Last activity: 2026-10-08
 
-Progress: [███████░░░] 66%
+Progress: [███████░░░] 67%
 
 ## Performance Metrics
 
@@ -67,6 +67,7 @@ Progress: [███████░░░] 66%
 | Phase 03 P01 | 45min | 3 tasks | 22 files |
 | Phase 03 P02 | 35min | 3 tasks | 9 files |
 | Phase 03 P03 | 11min (closeout) | 3 tasks | 12 files |
+| Phase 03 P04 | 25min | 3 tasks | 17 files |
 
 ## Accumulated Context
 
@@ -95,6 +96,8 @@ Recent decisions affecting current work:
 - [Phase 03]: [03-01] Dev override uses DEV_LLM_ALLOW_PRIVATE_BASE_URLS (default true) so the example's false never shadows it; llm encryption key is URL-safe base64 of 32 bytes validated lazily; provider-test limit 10 per 300 s per tenant
 - [Phase 03]: [03-02] Nginx key-shape map entry keeps the prefix and drops the key and the rest of the URI; url_guard judges every IP spelling after resolution and always denies link-local, metadata and project service hosts; DNS-rebinding window accepted (T-03-02-02)
 - [Phase 03-03]: Workspace selector persists {userId, tenantId} in localStorage devrag.workspace, validated against server memberships; radio menu items hand-written on installed Radix (D-21)
+- [Phase 03]: 03-04: gen_routes lets a registry row tighten an api/beta family to jwt (key-writing methods share a path with readable ones)
+- [Phase 03]: 03-04: dataset_visible requires workspace membership even for the creator; me datasets have no owner/admin override
 
 ### Pending Todos
 
@@ -130,6 +133,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-10-08T19:52:28.183Z
+Last session: 2026-10-08T19:56:33.564Z
 Stopped at: Phase 3 UI-SPEC approved
 Resume file: None

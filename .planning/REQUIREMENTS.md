@@ -50,11 +50,11 @@ Requirements for initial release. Each maps to exactly one roadmap phase.
 - [x] **TEN-09**: Owner can invite/add a member via `POST /tenants/<tenant_id>/users`
 - [x] **TEN-10**: Invited user can accept membership via `PATCH /tenants/<tenant_id>`
 - [x] **TEN-11**: Owner can change a member's role
-- [ ] **TEN-12**: Admin/owner can set the tenant's default chat and embedding models
+- [x] **TEN-12**: Admin/owner can set the tenant's default chat and embedding models
 - [x] **TEN-13**: Multiple users can share one tenant's datasets, documents, models, and agent workflows
 - [ ] **TEN-14**: Custom RBAC: admin can `CREATE ROLE`, `GRANT <permission> ON <resource> TO ROLE`, `REVOKE ... FROM ROLE`
 - [ ] **TEN-15**: Invitation codes (`InvitationCode` entity)
-- [ ] **TEN-16**: Dataset-level `permission` field on create
+- [x] **TEN-16**: Dataset-level `permission` field on create
 
 ### KB — Knowledge bases (datasets)
 
@@ -268,12 +268,12 @@ Requirements for initial release. Each maps to exactly one roadmap phase.
 - [ ] **LLM-20**: Stream sanitizer strips malformed fragments and control tokens
 - [ ] **LLM-21**: Token usage is counted for streaming and non-streaming calls and recorded
 - [ ] **LLM-22**: Model metadata registry: context window, max completion tokens, vision flag, input/output price
-- [ ] **LLM-23**: User can list providers via `GET /providers`
+- [x] **LLM-23**: User can list providers via `GET /providers`
 - [ ] **LLM-24**: Admin/owner can add or update a provider's credentials via `PUT /providers`
 - [ ] **LLM-25**: Admin/owner can delete a provider via `DELETE /providers/<provider_id_or_name>`
 - [ ] **LLM-26**: User can list a provider's models via `GET /providers/<provider>/models`
 - [ ] **LLM-27**: Admin/owner can create and view provider instances via `POST /providers/<provider>/instances` and `GET .../instances/<instance>`
-- [ ] **LLM-28**: User can list configured models and tenant defaults via `GET /models`, `GET /models/default`
+- [x] **LLM-28**: User can list configured models and tenant defaults via `GET /models`, `GET /models/default`
 - [ ] **LLM-29**: Tenant model entities: `TenantModelProvider`, `TenantModelInstance`, `TenantModel`, `TenantModelGroup`, `TenantModelGroupMapping`
 - [ ] **LLM-30**: Per-tenant Langfuse keys: set via `POST`/`PUT /langfuse/api-key`, delete via `DELETE /langfuse/api-key`
 - [ ] **LLM-31**: LLM calls emit Langfuse observations when keys are configured
@@ -717,11 +717,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | TEN-09 | Phase 2 | Complete |
 | TEN-10 | Phase 2 | Complete |
 | TEN-11 | Phase 2 | Complete |
-| TEN-12 | Phase 3 | Pending |
+| TEN-12 | Phase 3 | Complete |
 | TEN-13 | Phase 3 | Complete |
 | TEN-14 | Phase 8 | Pending |
 | TEN-15 | Phase 8 | Pending |
-| TEN-16 | Phase 3 | Pending |
+| TEN-16 | Phase 3 | Complete |
 | KB-01 | Phase 3 | Pending |
 | KB-02 | Phase 3 | Pending |
 | KB-03 | Phase 3 | Pending |
@@ -908,12 +908,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 | LLM-20 | Phase 3 | Pending |
 | LLM-21 | Phase 3 | Pending |
 | LLM-22 | Phase 3 | Pending |
-| LLM-23 | Phase 3 | Pending |
+| LLM-23 | Phase 3 | Complete |
 | LLM-24 | Phase 3 | Pending |
 | LLM-25 | Phase 3 | Pending |
 | LLM-26 | Phase 3 | Pending |
 | LLM-27 | Phase 3 | Pending |
-| LLM-28 | Phase 3 | Pending |
+| LLM-28 | Phase 3 | Complete |
 | LLM-29 | Phase 3 | Pending |
 | LLM-30 | Phase 8 | Pending |
 | LLM-31 | Phase 8 | Pending |
