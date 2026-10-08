@@ -219,7 +219,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 03-05-PLAN.md — Provider registry, shared error, retry and stream modules, chat driver and recording fake provider
+- [x] 03-05-PLAN.md — Provider registry, shared error, retry and stream modules, chat driver and recording fake provider
 - [ ] 03-07-PLAN.md — Storage interface, MinIO and local drivers
 - [ ] 03-08-PLAN.md — DocStoreConnection port and Elasticsearch adapter with contract suite
 

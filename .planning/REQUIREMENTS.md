@@ -246,8 +246,8 @@ Requirements for initial release. Each maps to exactly one roadmap phase.
 
 ### LLM — Providers, model configuration, prompts
 
-- [ ] **LLM-01**: Chat driver base interface: `chat`, `async_chat`, `chat_streamly`, `async_chat_streamly`
-- [ ] **LLM-02**: LiteLLM-backed driver with provider prefix routing and default base URLs
+- [x] **LLM-01**: Chat driver base interface: `chat`, `async_chat`, `chat_streamly`, `async_chat_streamly`
+- [x] **LLM-02**: LiteLLM-backed driver with provider prefix routing and default base URLs
 - [ ] **LLM-03**: OpenAI chat and embeddings
 - [ ] **LLM-04**: Azure OpenAI deployment mapping
 - [ ] **LLM-05**: Ollama chat and embeddings with user-supplied base URL (no `/v1` suffix)
@@ -262,12 +262,12 @@ Requirements for initial release. Each maps to exactly one roadmap phase.
 - [ ] **LLM-14**: `LLMBundle` resolves tenant credentials, instantiates the driver, resets/reports usage
 - [ ] **LLM-15**: Composite model ids `model@instance@provider` and `model@provider` *(Python implementation in v1; Go mirror deferred to v2)*
 - [ ] **LLM-16**: Per-tenant provider credentials (`tenant_llm`: factory, model type, API key, API base) stored encrypted
-- [ ] **LLM-17**: Generation parameters are whitelisted (`ALLOWED_GEN_CONF_KEYS`) before provider calls
-- [ ] **LLM-18**: Reasoning models (o1/o3) suppress `temperature` and use `max_completion_tokens`
-- [ ] **LLM-19**: Provider errors map to `LLMErrorCode`; rate-limit and timeout errors are retried
-- [ ] **LLM-20**: Stream sanitizer strips malformed fragments and control tokens
+- [x] **LLM-17**: Generation parameters are whitelisted (`ALLOWED_GEN_CONF_KEYS`) before provider calls
+- [x] **LLM-18**: Reasoning models (o1/o3) suppress `temperature` and use `max_completion_tokens`
+- [x] **LLM-19**: Provider errors map to `LLMErrorCode`; rate-limit and timeout errors are retried
+- [x] **LLM-20**: Stream sanitizer strips malformed fragments and control tokens
 - [ ] **LLM-21**: Token usage is counted for streaming and non-streaming calls and recorded
-- [ ] **LLM-22**: Model metadata registry: context window, max completion tokens, vision flag, input/output price
+- [x] **LLM-22**: Model metadata registry: context window, max completion tokens, vision flag, input/output price
 - [x] **LLM-23**: User can list providers via `GET /providers`
 - [ ] **LLM-24**: Admin/owner can add or update a provider's credentials via `PUT /providers`
 - [ ] **LLM-25**: Admin/owner can delete a provider via `DELETE /providers/<provider_id_or_name>`
@@ -886,8 +886,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | RETR-21 | Phase 7 | Pending |
 | RETR-22 | Phase 8 | Pending |
 | RETR-23 | Phase 5 | Pending |
-| LLM-01 | Phase 3 | Pending |
-| LLM-02 | Phase 3 | Pending |
+| LLM-01 | Phase 3 | Complete |
+| LLM-02 | Phase 3 | Complete |
 | LLM-03 | Phase 3 | Pending |
 | LLM-04 | Phase 3 | Pending |
 | LLM-05 | Phase 3 | Pending |
@@ -902,12 +902,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 | LLM-14 | Phase 3 | Pending |
 | LLM-15 | Phase 3 | Pending |
 | LLM-16 | Phase 3 | Pending |
-| LLM-17 | Phase 3 | Pending |
-| LLM-18 | Phase 3 | Pending |
-| LLM-19 | Phase 3 | Pending |
-| LLM-20 | Phase 3 | Pending |
+| LLM-17 | Phase 3 | Complete |
+| LLM-18 | Phase 3 | Complete |
+| LLM-19 | Phase 3 | Complete |
+| LLM-20 | Phase 3 | Complete |
 | LLM-21 | Phase 3 | Pending |
-| LLM-22 | Phase 3 | Pending |
+| LLM-22 | Phase 3 | Complete |
 | LLM-23 | Phase 3 | Complete |
 | LLM-24 | Phase 3 | Pending |
 | LLM-25 | Phase 3 | Pending |
