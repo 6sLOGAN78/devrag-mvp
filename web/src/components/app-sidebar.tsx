@@ -1,9 +1,12 @@
 import { NavLink } from "react-router";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useTranslation } from "react-i18next";
-import { NAV_GROUPS, navEntries, pathSlug, type RouteEntry } from "@/constants/routes";
+import { NAV_GROUPS, navEntries, pathSlug, type NavGroup, type RouteEntry } from "@/constants/routes";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
+
+/** Locale key of each group caption, written out so a missing key is a typo in one visible place. */
+const GROUP_CAPTION_KEYS: Record<NavGroup, string> = { platform: "nav.groupPlatform", account: "nav.groupAccount" };
 
 interface AppSidebarProps {
   /** Labels are always visible inside the mobile sheet; in the rail they collapse to tooltips. */
@@ -64,7 +67,7 @@ export function AppSidebar({ forceLabels = false, onNavigate, entries: source }:
           <div key={group} role="group" aria-labelledby={captionId} className="flex flex-col gap-1">
             {index > 0 ? <Separator decorative={false} className={cn("my-1", forceLabels ? "hidden" : "lg:hidden")} /> : null}
             <p id={captionId} className={cn("px-2 pb-1 text-xs font-semibold text-muted-foreground", forceLabels ? "block" : "sr-only lg:not-sr-only lg:block", index > 0 && forceLabels && "pt-2", index > 0 && !forceLabels && "lg:pt-2")}>
-              {t(`nav.group${group === "platform" ? "Platform" : "Account"}`)}
+              {t(GROUP_CAPTION_KEYS[group])}
             </p>
             {items.map((entry) => renderItem(entry))}
           </div>
