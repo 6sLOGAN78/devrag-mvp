@@ -19,6 +19,7 @@ import peewee
 
 from api.db.database import DB, DatabaseLock, transaction
 from api.db.models import Tenant, User, UserTenant
+from common.security.emails import canonical_email, new_account_email_chars
 from common.security.passwords import hash_password
 
 logger = logging.getLogger(__name__)
@@ -46,14 +47,14 @@ class SuperuserSeedError(Exception):
 
 
 def normalise_email(email: str) -> str:
-    """Lowercase and trim, exactly like registration (internal/service/account.go)."""
-    return email.strip().lower()
+    """The shared canonical form, exactly like registration (internal/common/email.go, R-129)."""
+    return canonical_email(email)
 
 
 def validate_credentials(email: str, password: str) -> tuple[str, str]:
     """Return ``(normalised email, password)`` or raise ``SuperuserConfigError`` naming the setting."""
     normalised = normalise_email(email)
-    if not normalised or len(normalised) > MAX_EMAIL_LENGTH or not _EMAIL_RE.fullmatch(normalised):
+    if not normalised or len(normalised) > MAX_EMAIL_LENGTH or not new_account_email_chars(normalised) or not _EMAIL_RE.fullmatch(normalised):
         raise SuperuserConfigError("SUPERUSER_EMAIL is not a valid email address")
     if not MIN_PASSWORD_LENGTH <= len(password) <= MAX_PASSWORD_LENGTH:
         raise SuperuserConfigError(f"SUPERUSER_PASSWORD must be {MIN_PASSWORD_LENGTH} to {MAX_PASSWORD_LENGTH} characters")

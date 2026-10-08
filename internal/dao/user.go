@@ -3,7 +3,6 @@ package dao
 import (
 	"context"
 	"errors"
-	"strings"
 	"time"
 
 	"gorm.io/gorm"
@@ -49,10 +48,11 @@ func (d *DB) CreateAccount(ctx context.Context, a NewAccount) error {
 	})
 }
 
-// FindUserByEmail looks a user up by lowercase email.
+// FindUserByEmail looks a user up by canonical email (common.CanonicalEmail, applied by the caller).
+// The column collation is case and accent insensitive, so collation-equal spellings find the same row.
 func (d *DB) FindUserByEmail(ctx context.Context, email string) (*entity.User, error) {
 	var u entity.User
-	err := d.gorm.WithContext(ctx).Where("email = ?", strings.ToLower(email)).Take(&u).Error
+	err := d.gorm.WithContext(ctx).Where("email = ?", email).Take(&u).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, ErrNotFound
 	}

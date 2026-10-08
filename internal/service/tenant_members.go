@@ -145,7 +145,7 @@ func (t *Tenant) Invite(ctx context.Context, p Principal, tenantID, email string
 	if err := t.hitInviteLimits(ctx, p.UserID, tenantID); err != nil {
 		return Member{}, err
 	}
-	email = normaliseEmail(email)
+	email = common.CanonicalEmail(email)
 	if !validEmail(email) {
 		return Member{}, &ValidationError{Msg: "a valid email address is required"}
 	}

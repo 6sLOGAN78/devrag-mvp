@@ -13,6 +13,8 @@ import (
 	"math/big"
 	"strings"
 	"time"
+
+	"devrag/internal/common"
 )
 
 const (
@@ -99,11 +101,11 @@ func (o *OTP) mac(salt, emailDigest, code string) []byte {
 	return m.Sum(nil)
 }
 
-// Issue creates a code for email, owned by userID ("" for a decoy that no one can read), and
+// Issue creates a code for subject (the account identity from accountSubject, never a typed address), owned by userID ("" for a decoy that no one can read), and
 // replaces any earlier code and its attempt count atomically. It returns the plain code so the
 // caller can mail it; the code is never stored.
-func (o *OTP) Issue(ctx context.Context, email, userID string) (string, error) {
-	digest := emailKey(normaliseEmail(email))
+func (o *OTP) Issue(ctx context.Context, subject, userID string) (string, error) {
+	digest := emailKey(common.CanonicalEmail(subject))
 	code, err := generateCode()
 	if err != nil {
 		return "", err
@@ -122,11 +124,11 @@ func (o *OTP) Issue(ctx context.Context, email, userID string) (string, error) {
 // Verify checks a code and consumes it. The attempt is counted before anything is compared, so
 // parallel guesses cannot exceed the cap; the fifth wrong attempt destroys the code; a correct
 // code can be used by exactly one caller.
-func (o *OTP) Verify(ctx context.Context, email, code string) (string, error) {
+func (o *OTP) Verify(ctx context.Context, subject, code string) (string, error) {
 	if !validCodeShape(code) {
 		return "", ErrOTPInvalid
 	}
-	digest := emailKey(normaliseEmail(email))
+	digest := emailKey(common.CanonicalEmail(subject))
 	key := o.otpKey(digest)
 	value, owner, attempt, found, err := o.be.OTPAttempt(ctx, key, otpMaxAttempts)
 	if err != nil {
@@ -173,8 +175,8 @@ func ticketSubject(userID, emailDigest string) string {
 
 // IssueTicket creates the random, single-use, short-lived ticket that proves a verified code. It is
 // stored under its SHA-256 digest, bound to the owner and the email, and replaces the owner's earlier ticket.
-func (o *OTP) IssueTicket(ctx context.Context, email, userID string, ttl time.Duration) (string, error) {
-	digest := emailKey(normaliseEmail(email))
+func (o *OTP) IssueTicket(ctx context.Context, subject, userID string, ttl time.Duration) (string, error) {
+	digest := emailKey(common.CanonicalEmail(subject))
 	raw := make([]byte, ticketBytes)
 	if _, err := rand.Read(raw); err != nil {
 		return "", err
@@ -213,11 +215,11 @@ func validTicketShape(t string) bool {
 
 // ConsumeTicket uses a ticket once and returns its owner ("" for a decoy). The ticket is removed
 // before it is compared with the email, so a mismatched use burns it.
-func (o *OTP) ConsumeTicket(ctx context.Context, email, ticket string) (string, error) {
+func (o *OTP) ConsumeTicket(ctx context.Context, subject, ticket string) (string, error) {
 	if !validTicketShape(ticket) {
 		return "", ErrTicketInvalid
 	}
-	digest := emailKey(normaliseEmail(email))
+	digest := emailKey(common.CanonicalEmail(subject))
 	th := sha256Hex(ticket)
 	value, found, err := o.be.GetDel(ctx, o.ticketKey(th))
 	if err != nil {
@@ -240,9 +242,9 @@ func (o *OTP) ConsumeTicket(ctx context.Context, email, ticket string) (string, 
 	return owner, nil
 }
 
-// Revoke removes the code of email and every ticket of userID.
-func (o *OTP) Revoke(ctx context.Context, email, userID string) error {
-	digest := emailKey(normaliseEmail(email))
+// Revoke removes the code of subject and every ticket of userID.
+func (o *OTP) Revoke(ctx context.Context, subject, userID string) error {
+	digest := emailKey(common.CanonicalEmail(subject))
 	if err := o.be.Delete(ctx, o.otpKey(digest)); err != nil {
 		return storeFailure("code store", err)
 	}

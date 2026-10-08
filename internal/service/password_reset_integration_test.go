@@ -79,22 +79,32 @@ func newResetEnv(t *testing.T, mutate func(*server.Config)) *resetEnv {
 	return e
 }
 
+// subjectOf resolves the account identity the service keys its limiters on, the way the service does.
+func (e *resetEnv) subjectOf(t *testing.T, email string) string {
+	t.Helper()
+	canonical := common.CanonicalEmail(email)
+	u, err := e.db.FindUserByEmail(context.Background(), canonical)
+	if err != nil {
+		return accountSubject(nil, canonical)
+	}
+	return accountSubject(u, canonical)
+}
+
 // clearInterval removes the one-per-interval counter so a test can request a second code for the
 // same email at once; production never does this.
 func (e *resetEnv) clearInterval(t *testing.T, email string) {
 	t.Helper()
-	require.NoError(t, e.svc.limiter.Reset(context.Background(), "otp:email:interval:"+emailKey(normaliseEmail(email))))
+	require.NoError(t, e.svc.limiter.Reset(context.Background(), "otp:email:interval:"+emailKey(e.subjectOf(t, email))))
 }
 
 func (e *resetEnv) request(t *testing.T, email string) string {
 	t.Helper()
 	e.clearInterval(t, email)
+	before := len(e.queue.sent())
 	require.NoError(t, e.reset.RequestReset(context.Background(), email, "203.0.113.50"))
-	for _, m := range e.queue.sent() {
-		if strings.EqualFold(m.To, strings.TrimSpace(email)) {
-			if c := sixDigits.FindString(m.Body); c != "" {
-				return c
-			}
+	for _, m := range e.queue.sent()[before:] {
+		if c := sixDigits.FindString(m.Body); c != "" {
+			return c
 		}
 	}
 	return ""
@@ -327,7 +337,7 @@ func TestDecoyGrantSucceedsWithoutChangingAnything(t *testing.T) {
 	e := newResetEnv(t, nil)
 	ctx := context.Background()
 	ghost := testutil.UniqueEmail("ghost")
-	code, err := e.otp.Issue(ctx, ghost, "")
+	code, err := e.otp.Issue(ctx, accountSubject(nil, ghost), "")
 	require.NoError(t, err)
 	ticket, err := e.reset.VerifyCode(ctx, ghost, code)
 	require.NoError(t, err, "verify cannot tell a decoy from a real code")

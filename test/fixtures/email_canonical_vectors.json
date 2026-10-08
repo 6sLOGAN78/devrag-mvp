@@ -1,0 +1,17 @@
+{
+  "_comment": "Shared email canonicalisation vectors for Go (internal/common/email.go) and Python (common/security/emails.py). Fake addresses only. Rule: trim, Unicode NFKC, ASCII-only lower-case. new_ok says whether a NEW account may use the canonical form (printable ASCII only).",
+  "canonical": [
+    {"id": "plain", "input": "alice@example.test", "canonical": "alice@example.test", "new_ok": true},
+    {"id": "trim_and_case", "input": "  Alice@Example.TEST \t", "canonical": "alice@example.test", "new_ok": true},
+    {"id": "fullwidth_ascii", "input": "Ａlice@example.test", "canonical": "alice@example.test", "new_ok": true},
+    {"id": "kelvin_sign", "input": "Kate@example.test", "canonical": "kate@example.test", "new_ok": true},
+    {"id": "precomposed_accent", "input": "álice@example.test", "canonical": "álice@example.test", "new_ok": false},
+    {"id": "combining_accent", "input": "álice@example.test", "canonical": "álice@example.test", "new_ok": false},
+    {"id": "accent_in_domain", "input": "alice@exámple.test", "canonical": "alice@exámple.test", "new_ok": false},
+    {"id": "upper_accent_untouched", "input": "Álice@example.test", "canonical": "Álice@example.test", "new_ok": false},
+    {"id": "dotted_capital_i", "input": "İvan@example.test", "canonical": "İvan@example.test", "new_ok": false},
+    {"id": "zero_width_space", "input": "al​ice@example.test", "canonical": "al​ice@example.test", "new_ok": false},
+    {"id": "inner_space", "input": "al ice@example.test", "canonical": "al ice@example.test", "new_ok": false},
+    {"id": "empty", "input": "   ", "canonical": "", "new_ok": false}
+  ]
+}

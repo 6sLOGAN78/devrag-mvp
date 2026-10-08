@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"crypto/rand"
-	"crypto/sha256"
 	"encoding/hex"
 	"errors"
 	"net/mail"
@@ -97,8 +96,8 @@ func randomID() string {
 	return hex.EncodeToString(b[:])
 }
 
-func normaliseEmail(email string) string { return strings.ToLower(strings.TrimSpace(email)) }
-
+// validEmail checks the syntax of a canonical address. It is the check for finding an existing
+// account (reset, invitations): rows created before R-129 may hold characters new accounts cannot.
 func validEmail(email string) bool {
 	if email == "" || len(email) > maxEmailLength || strings.Count(email, "@") != 1 {
 		return false
@@ -110,16 +109,17 @@ func validEmail(email string) bool {
 	return strings.Contains(email[strings.IndexByte(email, '@')+1:], ".")
 }
 
+// validNewEmail is validEmail plus the character restriction for addresses that become a new
+// account (R-129): printable ASCII only, so no two different strings can name one collation-equal address.
+func validNewEmail(email string) bool {
+	return common.NewAccountEmailChars(email) && validEmail(email)
+}
+
 func ipKey(ip string) string {
 	if ip == "" {
 		return "unknown"
 	}
 	return ip
-}
-
-func emailKey(email string) string {
-	sum := sha256.Sum256([]byte(email))
-	return hex.EncodeToString(sum[:16])
 }
 
 func window(seconds int) time.Duration { return time.Duration(seconds) * time.Second }
@@ -133,8 +133,8 @@ func (a *Account) Register(ctx context.Context, in RegisterInput) (Profile, erro
 	if err := a.limiter.Hit(ctx, "register:ip:"+ipKey(in.ClientIP), rl.RegisterPerIP, window(rl.RegisterWindowSeconds)); err != nil {
 		return Profile{}, err
 	}
-	email := normaliseEmail(in.Email)
-	if !validEmail(email) {
+	email := common.CanonicalEmail(in.Email)
+	if !validNewEmail(email) {
 		return Profile{}, &ValidationError{Msg: "email is not valid"}
 	}
 	nickname, err := validNickname(in.Nickname)
@@ -198,8 +198,11 @@ func qualified(model, factory string) string {
 }
 
 // Login verifies the credentials and returns the shared access token (D-10).
+//
+// The failure counter is keyed on the resolved account (accountSubject), not on the typed spelling,
+// so collation-equal spellings of one address share it (CR-01).
 func (a *Account) Login(ctx context.Context, in LoginInput) (LoginResult, error) {
-	email := normaliseEmail(in.Email)
+	email := common.CanonicalEmail(in.Email)
 	if email == "" || in.Password == "" {
 		return LoginResult{}, &ValidationError{Msg: "email and password are required"}
 	}
@@ -208,12 +211,18 @@ func (a *Account) Login(ctx context.Context, in LoginInput) (LoginResult, error)
 	if err := a.limiter.Hit(ctx, "login:ip:"+ipKey(in.ClientIP), rl.LoginPerIP, win); err != nil {
 		return LoginResult{}, err
 	}
-	ek := "login:email:" + emailKey(email)
+	user, err := a.store.FindUserByEmail(ctx, email)
+	if err != nil && !errors.Is(err, dao.ErrNotFound) {
+		return LoginResult{}, dbFailure("user lookup", err)
+	}
+	if err != nil {
+		user = nil
+	}
+	ek := "login:email:" + emailKey(accountSubject(user, email))
 	if err := a.limiter.Check(ctx, ek, rl.LoginFailuresPerEmail); err != nil {
 		return LoginResult{}, err
 	}
-	user, err := a.authenticate(ctx, email, in.Password)
-	if err != nil {
+	if err := a.authenticate(user, in.Password); err != nil {
 		if errors.Is(err, ErrInvalidCredentials) {
 			if ferr := a.limiter.Fail(ctx, ek, win); ferr != nil {
 				return LoginResult{}, ferr
@@ -227,21 +236,17 @@ func (a *Account) Login(ctx context.Context, in LoginInput) (LoginResult, error)
 	return a.complete(ctx, user)
 }
 
-// authenticate returns the user only for a valid account with the right password. Every other
-// outcome performs one hash verification and returns ErrInvalidCredentials.
-func (a *Account) authenticate(ctx context.Context, email, password string) (*entity.User, error) {
-	user, err := a.store.FindUserByEmail(ctx, email)
-	if err != nil && !errors.Is(err, dao.ErrNotFound) {
-		return nil, err
-	}
+// authenticate accepts only a valid account with the right password. Every other outcome performs
+// one hash verification and returns ErrInvalidCredentials.
+func (a *Account) authenticate(user *entity.User, password string) error {
 	if user == nil || user.Password == nil || user.Status == nil || *user.Status != "1" {
 		common.VerifyPassword(password, dummyHash)
-		return nil, ErrInvalidCredentials
+		return ErrInvalidCredentials
 	}
 	if !common.VerifyPassword(password, *user.Password) {
-		return nil, ErrInvalidCredentials
+		return ErrInvalidCredentials
 	}
-	return user, nil
+	return nil
 }
 
 func (a *Account) complete(ctx context.Context, user *entity.User) (LoginResult, error) {
