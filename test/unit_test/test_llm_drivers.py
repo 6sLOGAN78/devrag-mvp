@@ -4,6 +4,8 @@ Ollama and Azure are proven here only (no live key exists for them, D-03). Backo
 """
 from __future__ import annotations
 
+import asyncio
+import gc
 import logging
 import subprocess
 import sys
@@ -318,6 +320,53 @@ def test_sync_chat_and_streaming_work_outside_an_event_loop(fake_provider):  # n
     assert llm.chat("s", HISTORY, {}) == (CHAT_TEXT, 16)
     assert list(llm.chat_streamly("s", HISTORY, {})) == list(CHAT_PIECES)
     assert llm.last_usage == EXPECTED_USAGE
+
+
+@pytest.fixture
+def gc_at_loop_teardown(monkeypatch):
+    """Run a full GC right where the private loop is wound down: the moment an unclosed async generator gets finalized.
+
+    The suite runs with ``filterwarnings=error``, so a generator that is finalized on a dead loop fails the test it lands in;
+    without this fixture that happens only when allocation pressure triggers the collector at that instant (intermittent).
+    """
+    real_shutdown, real_close = asyncio.BaseEventLoop.shutdown_asyncgens, asyncio.BaseEventLoop.close
+
+    async def shutdown_asyncgens(self):
+        gc.collect()
+        await real_shutdown(self)
+
+    def close(self):
+        gc.collect()
+        real_close(self)
+
+    monkeypatch.setattr(asyncio.BaseEventLoop, "shutdown_asyncgens", shutdown_asyncgens)
+    monkeypatch.setattr(asyncio.BaseEventLoop, "close", close)
+
+
+def test_sync_streaming_and_chat_leak_no_async_generator_when_gc_runs_mid_stream(fake_provider, gc_at_loop_teardown):  # noqa: F811
+    llm = make("OpenAI", "gpt-4o-mini", fake_provider.base_url)
+    pieces = []
+    for piece in llm.chat_streamly("s", HISTORY, {}):
+        pieces.append(piece)
+        gc.collect()
+    assert pieces == list(CHAT_PIECES)
+    assert llm.chat("s", HISTORY, {}) == (CHAT_TEXT, 16)
+    gc.collect()
+
+
+@pytest.mark.parametrize("provider", ["OpenAI", "Ollama"])
+def test_sync_streaming_early_exit_leaks_nothing_and_the_driver_stays_usable(fake_provider, gc_at_loop_teardown, provider):  # noqa: F811
+    """A consumer that stops after the first piece (generator close) must release every stream and the private loop."""
+    llm = make(provider, "llama3" if provider == "Ollama" else "gpt-4o-mini", fake_provider.ollama_url if provider == "Ollama" else fake_provider.base_url)
+    for _ in range(3):
+        stream = llm.chat_streamly("s", HISTORY, {})
+        assert next(stream) == CHAT_PIECES[0]
+        gc.collect()
+        stream.close()
+        del stream
+        gc.collect()
+    assert list(llm.chat_streamly("s", HISTORY, {})) == list(CHAT_PIECES)
+    gc.collect()
 
 
 async def test_sync_chat_inside_a_running_loop_is_refused(fake_provider):  # noqa: F811
