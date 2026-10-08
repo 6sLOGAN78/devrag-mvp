@@ -64,7 +64,7 @@ patterns-established:
   - "A new registry row flips to implemented together with a BUILDERS or NO_ID_CHECKS entry and a sweep exerciser; the guards fail otherwise"
   - "Tests that need the dockerised app to reach a fake third party use running_stack_fake_provider (0.0.0.0, two ephemeral ports, one recorder, host.docker.internal) and register fake keys built from parts"
 
-requirements-completed: [LLM-23, LLM-24, LLM-25, LLM-26, LLM-27, SEC-02, SEC-03, TEN-13]
+requirements-completed: [LLM-16, LLM-23, LLM-24, LLM-25, LLM-26, LLM-27, SEC-02, SEC-03, TEN-13]
 
 duration: ~1h30m
 completed: 2026-10-09

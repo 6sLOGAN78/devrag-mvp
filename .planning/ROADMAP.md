@@ -236,7 +236,7 @@ Plans:
 
 **Wave 5** *(blocked on Wave 4 completion)*
 
-- [ ] 03-12-PLAN.md — Provider routes with e2e, matrix and leak sweep
+- [x] 03-12-PLAN.md — Provider routes with e2e, matrix and leak sweep
 
 **Wave 6** *(blocked on Wave 5 completion)*
 

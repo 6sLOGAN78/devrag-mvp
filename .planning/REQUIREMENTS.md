@@ -271,7 +271,7 @@ Requirements for initial release. Each maps to exactly one roadmap phase.
 - [x] **LLM-23**: User can list providers via `GET /providers`
 - [x] **LLM-24**: Admin/owner can add or update a provider's credentials via `PUT /providers`
 - [x] **LLM-25**: Admin/owner can delete a provider via `DELETE /providers/<provider_id_or_name>`
-- [ ] **LLM-26**: User can list a provider's models via `GET /providers/<provider>/models`
+- [x] **LLM-26**: User can list a provider's models via `GET /providers/<provider>/models`
 - [x] **LLM-27**: Admin/owner can create and view provider instances via `POST /providers/<provider>/instances` and `GET .../instances/<instance>`
 - [x] **LLM-28**: User can list configured models and tenant defaults via `GET /models`, `GET /models/default`
 - [x] **LLM-29**: Tenant model entities: `TenantModelProvider`, `TenantModelInstance`, `TenantModel`, `TenantModelGroup`, `TenantModelGroupMapping`
@@ -911,7 +911,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | LLM-23 | Phase 3 | Complete |
 | LLM-24 | Phase 3 | Complete |
 | LLM-25 | Phase 3 | Complete |
-| LLM-26 | Phase 3 | Pending |
+| LLM-26 | Phase 3 | Complete |
 | LLM-27 | Phase 3 | Complete |
 | LLM-28 | Phase 3 | Complete |
 | LLM-29 | Phase 3 | Complete |
