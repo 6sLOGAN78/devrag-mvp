@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 03-11-PLAN.md
-last_updated: "2026-10-08T21:50:00.588Z"
+stopped_at: Completed 03-15-PLAN.md
+last_updated: "2026-10-08T21:52:13.625Z"
 last_activity: 2026-10-08
 progress:
   total_phases: 8
   completed_phases: 2
   total_plans: 83
-  completed_plans: 63
+  completed_plans: 64
   percent: 25
 ---
 
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-10-05)
 ## Current Position
 
 Phase: 3 (Models, Knowledge Bases and Upload) — EXECUTING
-Plan: 12 of 31
+Plan: 13 of 31
 Status: Ready to execute
 Last activity: 2026-10-08
 
-Progress: [████████░░] 76%
+Progress: [████████░░] 77%
 
 ## Performance Metrics
 
@@ -75,6 +75,7 @@ Progress: [████████░░] 76%
 | Phase 03 P09 | 70min | 3 tasks | 9 files |
 | Phase 03 P10 | 45min | 3 tasks | 5 files |
 | Phase 03 P11 | 35min | 2 tasks | 3 files |
+| Phase 03 P15 | 15min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -114,6 +115,7 @@ Recent decisions affecting current work:
 - [Phase 03]: Existing models keep max_tokens on re-save; embedding models require a recorded dimension (03-09)
 - [Phase 03]: 03-10: one limiter hit per provider save or add; address equality treats no address and the documented default as equal; tests overriding Settings must rename service hosts so the fake provider is not on the deny list
 - [Phase 03]: LLMBundle usage log fields are usage_in/usage_out/usage_total because the log redactor masks any field name containing 'token'; bundle_error mirrors provider_service._failure; a failed counter write is logged and the answer still returned — 03-11
+- [Phase 03]: 03-15: PDF magic strict at offset 0; extension must be on allow-list and in ALLOWED_MIME_BY_EXT; magic mismatch is unsupported_type; auto_rename_batch added
 
 ### Pending Todos
 
@@ -149,6 +151,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-10-08T21:50:00.577Z
-Stopped at: Completed 03-11-PLAN.md
+Last session: 2026-10-08T21:52:13.614Z
+Stopped at: Completed 03-15-PLAN.md
 Resume file: None

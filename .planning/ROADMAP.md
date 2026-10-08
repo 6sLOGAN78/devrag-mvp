@@ -232,7 +232,7 @@ Plans:
 
 - [x] 03-10-PLAN.md — Provider service: test before save, SSRF and rate guards
 - [x] 03-11-PLAN.md — LLMBundle with usage recording
-- [ ] 03-15-PLAN.md — Upload safety rules
+- [x] 03-15-PLAN.md — Upload safety rules
 
 **Wave 5** *(blocked on Wave 4 completion)*
 

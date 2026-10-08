@@ -81,9 +81,9 @@ Requirements for initial release. Each maps to exactly one roadmap phase.
 ### DOC — Document upload, lifecycle, management
 
 - [ ] **DOC-01**: User can upload one or more files to a dataset as multipart via `POST /api/v1/documents/upload`
-- [ ] **DOC-02**: Upload rejects disallowed extensions / MIME types with HTTP 400
-- [ ] **DOC-03**: Upload enforces max content size and quota limits
-- [ ] **DOC-04**: Upload computes an xxh64 content hash and, on a duplicate within the tenant, reuses the stored blob and only links a new `Document`
+- [x] **DOC-02**: Upload rejects disallowed extensions / MIME types with HTTP 400
+- [x] **DOC-03**: Upload enforces max content size and quota limits
+- [x] **DOC-04**: Upload computes an xxh64 content hash and, on a duplicate within the tenant, reuses the stored blob and only links a new `Document`
 - [ ] **DOC-05**: Upload writes the binary to object storage and records `location`
 - [ ] **DOC-06**: Upload inserts `File`, `Document`, `File2Document` rows in one transaction with `run='0'`, `progress=0.0`
 - [ ] **DOC-07**: Upload verifies dataset existence and caller permission before storing
@@ -592,7 +592,7 @@ Requirements for initial release. Each maps to exactly one roadmap phase.
 - [x] **SEC-03**: LLM provider keys are encrypted at rest
 - [x] **SEC-04**: Secrets come from environment/config, never hard-coded, never logged
 - [x] **SEC-05**: Restricted unpickler allows only whitelisted modules (`numpy`, `rag_flow`)
-- [ ] **SEC-06**: Upload safety: extension check, sanitized names, UUID object keys, no path traversal
+- [x] **SEC-06**: Upload safety: extension check, sanitized names, UUID object keys, no path traversal
 - [ ] **SEC-07**: Sandboxed code runs as non-root with memory cap, timeout, no-new-privileges, no network, seccomp filter
 - [ ] **SEC-08**: Native document parsing isolated in the `deepdoc` container
 - [x] **SEC-09**: Tokens validated with an HMAC-signed secret key and expiry
@@ -742,9 +742,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | KB-18 | Phase 5 | Pending |
 | KB-19 | Phase 4 | Pending |
 | DOC-01 | Phase 3 | Pending |
-| DOC-02 | Phase 3 | Pending |
-| DOC-03 | Phase 3 | Pending |
-| DOC-04 | Phase 3 | Pending |
+| DOC-02 | Phase 3 | Complete |
+| DOC-03 | Phase 3 | Complete |
+| DOC-04 | Phase 3 | Complete |
 | DOC-05 | Phase 3 | Pending |
 | DOC-06 | Phase 3 | Pending |
 | DOC-07 | Phase 3 | Pending |
@@ -1184,7 +1184,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SEC-03 | Phase 3 | Complete |
 | SEC-04 | Phase 1 | Complete |
 | SEC-05 | Phase 1 | Complete |
-| SEC-06 | Phase 3 | Pending |
+| SEC-06 | Phase 3 | Complete |
 | SEC-07 | Phase 7 | Pending |
 | SEC-08 | Phase 6 | Pending |
 | SEC-09 | Phase 2 | Complete |
