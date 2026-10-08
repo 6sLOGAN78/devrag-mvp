@@ -8,7 +8,7 @@ import { PasswordInput } from "@/components/password-input";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { useAuthRequest } from "@/hooks/use-auth-request";
+import { SignInAfterSignUpError, useAuthRequest } from "@/hooks/use-auth-request";
 import { sanitiseNext } from "@/utils/safe-next";
 import { authErrorMessage } from "./auth-error";
 import { registerSchema, type RegisterValues } from "./schemas";
@@ -16,9 +16,11 @@ import { registerSchema, type RegisterValues } from "./schemas";
 interface SignUpFormProps {
   next: string | null;
   onError: (message: string | null) => void;
+  /** The account exists but signing in failed: the page moves to the sign-in form with this email. */
+  onRegistered: (email: string) => void;
 }
 
-export function SignUpForm({ next, onError }: SignUpFormProps) {
+export function SignUpForm({ next, onError, onRegistered }: SignUpFormProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const auth = useAuthRequest();
@@ -41,6 +43,10 @@ export function SignUpForm({ next, onError }: SignUpFormProps) {
       await auth.signUp(values);
       void navigate(sanitiseNext(next), { replace: true });
     } catch (error) {
+      if (error instanceof SignInAfterSignUpError) {
+        onRegistered(values.email);
+        return;
+      }
       // Every field is kept so the person can correct one thing (duplicate email, a refused nickname).
       onError(authErrorMessage(error, "register", t));
       setResetSignal((value) => value + 1);

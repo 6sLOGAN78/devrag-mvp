@@ -16,9 +16,11 @@ import { loginSchema, type LoginValues } from "./schemas";
 interface SignInFormProps {
   next: string | null;
   onError: (message: string | null) => void;
+  /** Prefilled after a registration whose automatic sign-in failed. */
+  defaultEmail?: string;
 }
 
-export function SignInForm({ next, onError }: SignInFormProps) {
+export function SignInForm({ next, onError, defaultEmail = "" }: SignInFormProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const auth = useAuthRequest();
@@ -26,7 +28,7 @@ export function SignInForm({ next, onError }: SignInFormProps) {
     resolver: zodResolver(loginSchema),
     mode: "onTouched",
     reValidateMode: "onChange",
-    defaultValues: { email: "", password: "" },
+    defaultValues: { email: defaultEmail, password: "" },
   });
   const inFlight = useRef(false);
   const [busy, setBusy] = useState(false);

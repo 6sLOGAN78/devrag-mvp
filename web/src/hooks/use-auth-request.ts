@@ -6,6 +6,14 @@ import { useUserStore } from "@/stores/user-store";
 import { removeAuthorization, setAuthorization } from "@/utils/authorization";
 import { USER_INFO_QUERY_KEY } from "./use-user-info-request";
 
+/** The account was created but the automatic sign-in that follows failed: retrying the registration would only collide. */
+export class SignInAfterSignUpError extends Error {
+  constructor(readonly reason: unknown) {
+    super("account created, automatic sign in failed");
+    this.name = "SignInAfterSignUpError";
+  }
+}
+
 /**
  * Sign in and sign up as plain async calls, not TanStack mutations: a mutation would keep its variables, and so the
  * password, in the mutation cache (T-02-56). Credentials live only in the form until the request body is built.
@@ -28,7 +36,11 @@ export function useAuthRequest() {
     /** Register, then sign in with the same credentials. */
     async function signUp(input: { email: string; password: string; nickname: string }): Promise<void> {
       await authService.register(input);
-      await signIn(input.email, input.password);
+      try {
+        await signIn(input.email, input.password);
+      } catch (error) {
+        throw new SignInAfterSignUpError(error);
+      }
     }
     return { signIn, signUp };
   }, [queryClient]);

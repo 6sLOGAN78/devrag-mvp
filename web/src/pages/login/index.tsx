@@ -39,6 +39,8 @@ function AuthCard() {
   const titleRef = useRef<HTMLHeadingElement>(null);
   const formRef = useRef<HTMLDivElement>(null);
   const userSwitched = useRef(false);
+  // Set when registration succeeded but the automatic sign in did not: the sign-in form opens with this email.
+  const [registeredEmail, setRegisteredEmail] = useState<string | null>(null);
 
   // Initial focus lands on the first field; after a deliberate mode switch it lands on the card title.
   useEffect(() => {
@@ -59,9 +61,18 @@ function AuthCard() {
     setError(message === null ? null : { message, id: errorCount.current });
   };
 
+  const onRegistered = (email: string) => {
+    setError(null);
+    setRegisteredEmail(email);
+    const nextParams = new URLSearchParams(params);
+    nextParams.delete("mode");
+    setParams(nextParams);
+  };
+
   const switchMode = (to: Mode) => {
     userSwitched.current = true;
     setError(null);
+    setRegisteredEmail(null);
     const nextParams = new URLSearchParams(params);
     if (to === "register") nextParams.set("mode", "register");
     else nextParams.delete("mode");
@@ -85,8 +96,17 @@ function AuthCard() {
               {error.message}
             </Alert>
           ) : null}
+          {registeredEmail !== null && mode === "login" ? (
+            <p data-testid="login-notice" role="status" className="rounded-md border bg-card px-3 py-2 text-sm font-normal text-card-foreground">
+              {t("auth.register.createdSignIn")}
+            </p>
+          ) : null}
           <div ref={formRef}>
-            {mode === "register" ? <SignUpForm next={next} onError={showError} /> : <SignInForm next={next} onError={showError} />}
+            {mode === "register" ? (
+              <SignUpForm next={next} onError={showError} onRegistered={onRegistered} />
+            ) : (
+              <SignInForm next={next} onError={showError} defaultEmail={registeredEmail ?? ""} />
+            )}
           </div>
           {mode === "login" && config.registerEnabled ? (
             <p className="text-center text-sm font-normal text-muted-foreground">

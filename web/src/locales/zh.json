@@ -119,6 +119,7 @@
       "title": "创建你的账户",
       "submit": "创建账户",
       "pending": "正在创建你的账户",
+      "createdSignIn": "账号已创建。请登录以继续。",
       "haveAccount": "已有账户?",
       "signIn": "登录"
     },

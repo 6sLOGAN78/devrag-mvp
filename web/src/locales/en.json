@@ -119,6 +119,7 @@
       "title": "Create your account",
       "submit": "Create account",
       "pending": "Creating your account",
+      "createdSignIn": "Account created. Sign in to continue.",
       "haveAccount": "Already have an account?",
       "signIn": "Sign in"
     },

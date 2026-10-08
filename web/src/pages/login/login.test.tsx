@@ -493,6 +493,28 @@ describe("registering", () => {
     expect(useUserStore.getState().user?.id).toBe("u1");
   });
 
+  it("when the account was created but the automatic sign-in fails, moves to the sign-in form with the email kept and says so (IN-F03)", async () => {
+    loginReply = { status: 503, body: { code: 503, message: "service unavailable", data: null } };
+    const user = userEvent.setup();
+    renderAt("/login?mode=register");
+    await screen.findByTestId("register-form");
+    await fillRegister(user);
+    await user.click(screen.getByTestId("register-submit"));
+    expect(await screen.findByTestId("login-form")).toBeInTheDocument();
+    expect(screen.queryByTestId("register-form")).toBeNull();
+    expect(screen.getByTestId("login-notice")).toHaveTextContent("Account created. Sign in to continue.");
+    expect(screen.getByTestId("field-email")).toHaveValue("ada@example.test");
+    expect(screen.getByTestId("field-password")).toHaveValue("");
+    expect(screen.queryByTestId("login-error")).toBeNull();
+    expect(getAuthorization()).toBeNull();
+
+    loginReply = loginOk;
+    await user.type(screen.getByTestId("field-password"), PASSWORD);
+    await user.click(screen.getByTestId("login-submit"));
+    expect(await screen.findByTestId("landed")).toHaveTextContent("/home");
+    expect(callsTo("/api/v1/users")).toHaveLength(1);
+  });
+
   it("honours a safe next after registering and ignores an unsafe one", async () => {
     const user = userEvent.setup();
     const { router } = renderAt(`/login?mode=register&next=${encodeURIComponent("//evil.test")}`);
