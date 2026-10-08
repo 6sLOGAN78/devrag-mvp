@@ -130,5 +130,8 @@ def test_tenant_membership_non_members_get_the_shared_404(ingress: httpx.Client,
 
 def test_tenant_membership_requires_a_session(ingress: httpx.Client, team: tuple[Account, Account, Account]) -> None:
     owner, bee, _ = team
-    assert ingress.patch(f"{_users(owner)}/{bee.user_id}", json={"role": "admin"}).status_code == 401
-    assert ingress.request("DELETE", _users(owner), json={"user_id": bee.user_id}).status_code == 401
+    # a fresh client: the shared ingress client may hold the auth cookie of an earlier login, and a
+    # cookie-only state change is then (correctly) refused by the CSRF check instead
+    with httpx.Client(base_url=BASE_URL, timeout=5.0, follow_redirects=False) as anonymous:
+        assert anonymous.patch(f"{_users(owner)}/{bee.user_id}", json={"role": "admin"}).status_code == 401
+        assert anonymous.request("DELETE", _users(owner), json={"user_id": bee.user_id}).status_code == 401
