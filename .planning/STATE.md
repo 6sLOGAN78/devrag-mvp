@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: executing
-stopped_at: Completed 02-25-PLAN.md
-last_updated: "2026-10-08T08:48:24.072Z"
+status: verifying
+stopped_at: Completed 02-26-PLAN.md
+last_updated: "2026-10-08T09:19:47.179Z"
 last_activity: 2026-10-08
 progress:
   total_phases: 8
   completed_phases: 1
   total_plans: 52
-  completed_plans: 51
+  completed_plans: 52
   percent: 13
 ---
 
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-10-05)
 
 ## Current Position
 
-Phase: 2 (Identity, Tenancy and Authorization) — EXECUTING
-Plan: 26 of 28 (next incomplete; 02-27 and 02-28 already done)
-Status: Ready to execute
+Phase: 2 (Identity, Tenancy and Authorization) — AWAITING VERIFICATION
+Plan: 28 of 28 (all plans complete)
+Status: Phase 2 exit gate green three times; run phase verification
 Last activity: 2026-10-08
 
-Progress: [██████████] 98%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
@@ -87,6 +87,7 @@ Recent decisions affecting current work:
 - [Phase 02]: R-123: permission matrix keyed (area, action); invite never membership; one 404 for invisible tenants; owner-only invite rate limited
 - [Phase 02]: R-124: API tokens page - tokens.action.* labels, owner-only forbidden state and home card, own 409/429/403 messages, aria-disabled pending, caption focus after delete
 - [Phase 02]: R-127: matrix rows generated from routes.yaml with a fixture guard; Nginx access log masks token paths and drops query and Referer; Go and Python loggers mask credential spellings
+- [Phase 02]: R-128: gate stack runs the mail profile and exports SERVICE_CONF and MYSQL_ROOT_PASSWORD for host-run tiers; TEN-01, TEN-05, UI-42 left partial (B-18, B-22)
 
 ### Pending Todos
 
@@ -122,6 +123,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-10-08T08:48:24.058Z
-Stopped at: Completed 02-25-PLAN.md
+Last session: 2026-10-08T09:19:38.252Z
+Stopped at: Completed 02-26-PLAN.md
 Resume file: None

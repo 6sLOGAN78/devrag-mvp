@@ -16,7 +16,7 @@ Every phase ships its API and its UI together and is verified against the real r
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Reconciliation, Guardrails and Dual-Stack Foundation** - Decision register and CI guardrails committed; infrastructure, shared schema and both API servers healthy behind Nginx (completed 2026-10-06)
-- [ ] **Phase 2: Identity, Tenancy and Authorization** - Users register and log in through Go, the same token works on Python, tenants are isolated and roles enforced
+- [ ] **Phase 2: Identity, Tenancy and Authorization** - Users register and log in through Go, the same token works on Python, tenants are isolated and roles enforced (28 of 28 plans done 2026-10-08; awaiting phase verification; TEN-01, TEN-05, UI-42 partial, see BLOCKERS B-18, B-22)
 - [ ] **Phase 3: Models, Knowledge Bases and Upload** - Tenants configure a real model provider, create datasets backed by a real index, and upload documents to object storage
 - [ ] **Phase 4: Ingestion Pipeline** - Uploaded documents are parsed, chunked, embedded and indexed by a reliable background worker with live progress
 - [ ] **Phase 5: Retrieval and Cited Chat (Core Value Gate)** - A question about an uploaded document yields a streamed, cited answer in the UI with no mocked stage
@@ -187,7 +187,7 @@ Plans:
 
 **Wave 13** *(blocked on Wave 12 completion)*
 
-- [ ] 02-26-PLAN.md - Exit gate (clean_room --runs 3) and truthful records
+- [x] 02-26-PLAN.md - Exit gate (clean_room --runs 3) and truthful records
 
 **UI hint**: yes
 
@@ -331,7 +331,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8. Ph
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Reconciliation, Guardrails and Dual-Stack Foundation | 24/24 | Complete | 2026-10-07 |
-| 2. Identity, Tenancy and Authorization | 0/TBD | Not started | - |
+| 2. Identity, Tenancy and Authorization | 28/28 | Awaiting verification | - |
 | 3. Models, Knowledge Bases and Upload | 0/TBD | Not started | - |
 | 4. Ingestion Pipeline | 0/TBD | Not started | - |
 | 5. Retrieval and Cited Chat (Core Value Gate) | 0/TBD | Not started | - |
