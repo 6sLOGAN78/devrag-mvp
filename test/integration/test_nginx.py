@@ -52,10 +52,18 @@ def test_nginx_t_https() -> None:
 
 @pytest.mark.parametrize("directive", [
     "proxy_buffering off;", "proxy_http_version 1.1;", 'proxy_set_header Connection "";',
-    "proxy_read_timeout 3600s;", "proxy_send_timeout 3600s;", "proxy_cache off;",
+    "proxy_cache off;",
 ])
 def test_proxy_conf_is_sse_safe(directive: str) -> None:
     assert directive in (NGINX / "proxy.conf").read_text(encoding="utf-8")
+
+
+@pytest.mark.parametrize("location", ["^~ /api/ ", "^~ /v1/ ", "= /api/v1/mcp ", "^~ /api/v1/searchbots/ "])
+def test_streaming_locations_keep_the_long_upstream_timeouts(location: str) -> None:
+    """The timeouts moved from proxy.conf to the generated locations (WR-04): streaming routes stay at 3600 s."""
+    conf = (NGINX / "ragflow.conf").read_text(encoding="utf-8")
+    block = conf.split(f"location {location}{{", 1)[1].split("\n    }", 1)[0]
+    assert "proxy_read_timeout 3600s;" in block and "proxy_send_timeout 3600s;" in block
 
 
 def test_static_assertions() -> None:
