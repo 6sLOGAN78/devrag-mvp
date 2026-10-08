@@ -127,6 +127,19 @@ function purgeAfterUnauthorised(): void {
   else purgeSession();
 }
 
+/**
+ * Handles a 401 on a request that carried a token. Only the first such answer finds its token still current and
+ * purges; the others (in flight at the same time, or sent with a token that is gone or replaced) end silently, so a
+ * non-silent request never adds a "Request failed" toast next to "Session expired" (IN-F04). Returns false when the
+ * request carried no token, so the caller reports the 401 like any other failure.
+ */
+function handleUnauthorised(config: AxiosRequestConfig | undefined): boolean {
+  const sent = config?.sentToken;
+  if (typeof sent !== "string" || sent.length === 0) return false;
+  if (shouldPurge(config)) purgeAfterUnauthorised();
+  return true;
+}
+
 /** Forgets the signed-in identity and everything fetched under it, without touching the stored token. */
 export function dropSessionState(): void {
   useUserStore.getState().reset();
@@ -192,8 +205,9 @@ http.interceptors.response.use(
       requestId: headerValue(response.headers, "x-request-id"),
       data: body.data,
     });
-    if (body.code === RetCode.UNAUTHORIZED && shouldPurge(response.config)) purgeAfterUnauthorised();
-    else toastFor(error, response.config.silent === true);
+    if (body.code === RetCode.UNAUTHORIZED && handleUnauthorised(response.config)) {
+      /* session ended (or already ended by a concurrent request): no separate toast */
+    } else toastFor(error, response.config.silent === true);
     return Promise.reject(error);
   },
   (failure: AxiosError) => {
@@ -220,8 +234,9 @@ http.interceptors.response.use(
         retryAfter: parseRetryAfter(headerValue(response.headers, "retry-after")),
       });
     }
-    if ((error.status === 401 || error.code === RetCode.UNAUTHORIZED) && shouldPurge(failure.config)) purgeAfterUnauthorised();
-    else toastFor(error, silent);
+    if ((error.status === 401 || error.code === RetCode.UNAUTHORIZED) && handleUnauthorised(failure.config)) {
+      /* session ended (or already ended by a concurrent request): no separate toast */
+    } else toastFor(error, silent);
     return Promise.reject(error);
   },
 );

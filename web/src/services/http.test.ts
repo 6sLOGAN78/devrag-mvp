@@ -124,6 +124,35 @@ describe("unit http client", () => {
     expect(screen.getByText("Sign in again to continue.")).toBeInTheDocument();
   });
 
+  it("concurrent 401s on requests that carried the token end the session once and never add a request-failed toast (IN-F04)", async () => {
+    render(createElement(Toaster));
+    registerQueryClient(new QueryClient());
+    setAuthorization("tok");
+    let open: () => void = () => undefined;
+    const gate = new Promise<void>((resolve) => {
+      open = resolve;
+    });
+    http.defaults.adapter = async (config) => {
+      seen.push(config);
+      await gate;
+      const response: AxiosResponse = {
+        data: { code: 401, message: "Unauthorized", data: null },
+        status: 401,
+        statusText: "401",
+        headers: new AxiosHeaders(),
+        config: config as never,
+      };
+      throw new AxiosError("status 401", "ERR_BAD_REQUEST", config as never, null, response);
+    };
+    const results = Promise.all([request({ url: "/a" }).catch(() => undefined), request({ url: "/b" }).catch(() => undefined), request({ url: "/c" }).catch(() => undefined)]);
+    open();
+    await results;
+    expect(getAuthorization()).toBeNull();
+    expect(await screen.findAllByText(i18n.t("toast.session.title"))).toHaveLength(1);
+    expect(screen.queryByText(i18n.t("toast.apiError.title"))).toBeNull();
+    expect(document.querySelectorAll("[data-sonner-toast]")).toHaveLength(1);
+  });
+
   it("maps a 5xx without an envelope to code -1 and the server error copy", async () => {
     render(createElement(Toaster));
     reply = { status: 502, data: "<html>bad gateway</html>" };
