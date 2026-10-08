@@ -166,6 +166,7 @@ func TestTeamBodiesAreBoundedAndValidated(t *testing.T) {
 	assert.Equal(t, http.StatusRequestEntityTooLarge, r.do(http.MethodPost, path, token, big).Code)
 	assert.Equal(t, http.StatusRequestEntityTooLarge, r.do(http.MethodPatch, "/api/v1/tenants/"+id, token, big).Code)
 	req := httptest.NewRequest(http.MethodPost, path, bytes.NewReader([]byte("{not json")))
+	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Bearer "+token)
 	w := httptest.NewRecorder()
 	r.engine.ServeHTTP(w, req)
@@ -190,6 +191,7 @@ func TestRoleChangeAndRemovalBodiesAreBoundedAndValidated(t *testing.T) {
 			path = users
 		}
 		req := httptest.NewRequest(method, path, bytes.NewReader([]byte("{not json")))
+		req.Header.Set("Content-Type", "application/json")
 		req.Header.Set("Authorization", "Bearer "+token)
 		w := httptest.NewRecorder()
 		r.engine.ServeHTTP(w, req)

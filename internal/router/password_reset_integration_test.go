@@ -243,23 +243,36 @@ func TestForgotOTPMailGoesOnlyToTheStoredAddress(t *testing.T) {
 	assert.NotContains(t, m.Body, "pwned")
 }
 
-func TestForgotOTPIsPublicAndIgnoresCookiesAndOrigin(t *testing.T) {
+func TestForgotOTPIsPublicAndIgnoresCredentials(t *testing.T) {
 	r := newResetRig(t, nil, false)
 	s := r.newAccount(t, "pub")
 	plain := r.forgot(s.email, clientPeer, nil)
 	require.Equal(t, http.StatusOK, plain.Code)
-	r2 := r.forgot(testutil.UniqueEmail("pub2"), clientPeer, map[string]string{"Cookie": "ragflow_auth=" + s.token, "Origin": "https://evil.example", "Authorization": "Bearer not-a-token"})
+	r2 := r.forgot(testutil.UniqueEmail("pub2"), clientPeer, map[string]string{"Cookie": "ragflow_auth=" + s.token, "Authorization": "Bearer not-a-token"})
 	assert.Equal(t, http.StatusOK, r2.Code, "a public route never consults credentials")
 	assert.Equal(t, plain.Body.String(), r2.Body.String())
 	assert.Empty(t, r2.Header().Values("Set-Cookie"))
-	login := r.post("/api/v1/auth/login", map[string]string{"email": s.email, "password": testutil.FixtureCredential()}, clientPeer, map[string]string{"Origin": "https://evil.example"})
-	assert.NotEqual(t, http.StatusForbidden, login.Code, "login has no Origin check, the reset routes behave the same")
 	for _, p := range []string{verifyPath, resetPath} {
-		w := r.post(p, map[string]string{"email": s.email}, clientPeer, map[string]string{"Origin": "https://evil.example"})
+		w := r.post(p, map[string]string{"email": s.email}, clientPeer, nil)
 		assert.NotEqual(t, http.StatusUnauthorized, w.Code, p)
 		assert.NotEqual(t, http.StatusForbidden, w.Code, p)
 		assert.Empty(t, w.Header().Values("Set-Cookie"), p)
 	}
+}
+
+// WR-05 (R-132): a browser that names another site as the Origin of a public write is refused on every
+// public route, before any limiter or lookup; a request without Origin (non-browser client) is unaffected.
+func TestPublicWritesRefuseACrossSiteOrigin(t *testing.T) {
+	r := newResetRig(t, nil, false)
+	s := r.newAccount(t, "xsite")
+	cross := map[string]string{"Origin": "https://evil.example"}
+	for _, p := range []string{"/api/v1/auth/login", "/api/v1/users", forgotPath, verifyPath, resetPath} {
+		w := r.post(p, map[string]string{"email": s.email, "password": testutil.FixtureCredential()}, clientPeer, cross)
+		assert.Equal(t, http.StatusForbidden, w.Code, p)
+		assert.Empty(t, w.Header().Values("Set-Cookie"), p)
+	}
+	ok := r.post("/api/v1/auth/login", map[string]string{"email": s.email, "password": testutil.FixtureCredential()}, clientPeer, nil)
+	assert.Equal(t, http.StatusOK, ok.Code, "no Origin: a non-browser client keeps working")
 }
 
 func TestEmailIntervalLimitReturns429WithRetryAfter(t *testing.T) {

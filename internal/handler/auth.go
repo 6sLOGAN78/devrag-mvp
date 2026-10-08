@@ -59,10 +59,7 @@ var acceptedTypes = map[string][]string{
 // "none" entry is public. Every credential failure, for every credential type, is HTTP 401 with the
 // generic envelope; the cookie is honoured for jwt routes only.
 func AuthGate(resolver PrincipalResolver, allowedOrigins []string) gin.HandlerFunc {
-	origins := make([]string, 0, len(allowedOrigins))
-	for _, o := range allowedOrigins {
-		origins = append(origins, strings.ToLower(strings.TrimRight(o, "/")))
-	}
+	origins := normaliseOrigins(allowedOrigins)
 	return func(c *gin.Context) {
 		r := c.Request
 		if r.Method == http.MethodOptions {
@@ -131,6 +128,14 @@ func extractCredential(r *http.Request, allowCookie bool) (credential string, ok
 		return ck.Value, true, true
 	}
 	return "", false, false
+}
+
+func normaliseOrigins(allowed []string) []string {
+	origins := make([]string, 0, len(allowed))
+	for _, o := range allowed {
+		origins = append(origins, strings.ToLower(strings.TrimRight(o, "/")))
+	}
+	return origins
 }
 
 func safeMethod(m string) bool {

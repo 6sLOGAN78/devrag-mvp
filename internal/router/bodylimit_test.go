@@ -39,6 +39,7 @@ func post(e *gin.Engine, path string, size int, headers map[string]string, chunk
 	if chunked {
 		req.ContentLength = -1
 	}
+	req.Header.Set("Content-Type", "application/json")
 	for k, v := range headers {
 		req.Header.Set(k, v)
 	}
