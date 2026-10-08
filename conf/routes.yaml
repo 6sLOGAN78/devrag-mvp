@@ -107,11 +107,11 @@ endpoints:
   - {method: POST, path: "/api/v1/tenants/{tenant_id}/users", owner: go, auth: jwt, roles: [owner], scope: tenant,
      implemented: true, note: invite by email (D-13 and D-14); rate limited per caller and per tenant (R-123)}
   - {method: DELETE, path: "/api/v1/tenants/{tenant_id}/users", owner: go, auth: jwt, roles: [owner, self], scope: tenant,
-     implemented: false, note: owner removes a member or withdraws an invite; a member removes self; never the owner row (D-16)}
+     implemented: true, note: owner removes a member or withdraws an invite; a member removes self; never the owner row (D-16)}
   - {method: PATCH, path: "/api/v1/tenants/{tenant_id}", owner: go, auth: jwt, roles: [invite], scope: tenant,
      implemented: true, note: accept or decline a pending invitation (D-15); only a row with role invite can change (D-27)}
   - {method: PATCH, path: "/api/v1/tenants/{tenant_id}/users/{user_id}", owner: go, auth: jwt, roles: [owner], scope: tenant,
-     implemented: false, note: role change (R-92)}
+     implemented: true, note: role change to admin or normal for the owner only; never the owner row or a pending invite (R-92 and D-27)}
 
   # --- Phase 2, Go-owned search bots (beta token) ---
   - {method: POST, path: /api/v1/searchbots/ask, owner: go, auth: beta, roles: [], scope: none, implemented: false}

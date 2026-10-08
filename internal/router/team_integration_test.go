@@ -149,8 +149,10 @@ func TestTeamRoutesAnswer503WhenTheDatabaseIsDown(t *testing.T) {
 		{http.MethodGet, "/api/v1/tenants/" + id + "/users"},
 		{http.MethodPost, "/api/v1/tenants/" + id + "/users"},
 		{http.MethodPatch, "/api/v1/tenants/" + id},
+		{http.MethodPatch, "/api/v1/tenants/" + id + "/users/" + id},
+		{http.MethodDelete, "/api/v1/tenants/" + id + "/users"},
 	} {
-		w := r.do(c.method, c.path, token, map[string]string{"email": "a@example.test"})
+		w := r.do(c.method, c.path, token, map[string]string{"email": "a@example.test", "role": "admin", "user_id": id})
 		assert.Equal(t, http.StatusServiceUnavailable, w.Code, c.method+" "+w.Body.String())
 		assert.NotContains(t, w.Body.String(), "sql")
 	}
@@ -172,4 +174,54 @@ func TestTeamBodiesAreBoundedAndValidated(t *testing.T) {
 	assert.Equal(t, http.StatusBadRequest, r.do(http.MethodGet, path+"?page=abc", token, nil).Code)
 	assert.Equal(t, http.StatusBadRequest, r.do(http.MethodGet, path+"?page_size=1000", token, nil).Code)
 	assert.Equal(t, http.StatusOK, r.do(http.MethodGet, path, token, nil).Code)
+}
+
+func TestRoleChangeAndRemovalBodiesAreBoundedAndValidated(t *testing.T) {
+	r := newTeamRig(t, 50, false)
+	_, id, token := r.account(t)
+	users := "/api/v1/tenants/" + id + "/users"
+	one := users + "/" + id
+	big := map[string]string{"role": "admin", "user_id": id, "pad": string(bytes.Repeat([]byte("x"), 4000))}
+	assert.Equal(t, http.StatusRequestEntityTooLarge, r.do(http.MethodPatch, one, token, big).Code)
+	assert.Equal(t, http.StatusRequestEntityTooLarge, r.do(http.MethodDelete, users, token, big).Code)
+	for _, method := range []string{http.MethodPatch, http.MethodDelete} {
+		path := one
+		if method == http.MethodDelete {
+			path = users
+		}
+		req := httptest.NewRequest(method, path, bytes.NewReader([]byte("{not json")))
+		req.Header.Set("Authorization", "Bearer "+token)
+		w := httptest.NewRecorder()
+		r.engine.ServeHTTP(w, req)
+		assert.Equal(t, http.StatusBadRequest, w.Code, method)
+	}
+	assert.Equal(t, http.StatusBadRequest, r.do(http.MethodPatch, one, token, map[string]any{"role": 7}).Code)
+	assert.Equal(t, http.StatusBadRequest, r.do(http.MethodDelete, users, token, map[string]any{"user_id": 7}).Code)
+	// the owner naming themselves is refused with a clear 400 and nothing changes
+	w := r.do(http.MethodDelete, users, token, map[string]string{"user_id": id})
+	assert.Equal(t, http.StatusBadRequest, w.Code, w.Body.String())
+	w = r.do(http.MethodPatch, one, token, map[string]string{"role": "normal"})
+	assert.Equal(t, http.StatusBadRequest, w.Code, w.Body.String())
+	assert.Equal(t, http.StatusOK, r.do(http.MethodGet, users, token, nil).Code)
+}
+
+func TestRoleChangeAndRemovalAreRateLimitedWith429(t *testing.T) {
+	r := newTeamRig(t, 2, false)
+	_, id, token := r.account(t)
+	for i := 0; i < 2; i++ {
+		w := r.do(http.MethodPatch, "/api/v1/tenants/"+id+"/users/"+testutil.UniqueName("x"), token, map[string]string{"role": "admin"})
+		require.Equal(t, http.StatusNotFound, w.Code, w.Body.String())
+	}
+	w := r.do(http.MethodDelete, "/api/v1/tenants/"+id+"/users", token, map[string]string{"user_id": testutil.UniqueName("x")})
+	assert.Equal(t, http.StatusTooManyRequests, w.Code, w.Body.String())
+	assert.NotEmpty(t, w.Header().Get("Retry-After"))
+}
+
+func TestRoleChangeFailsClosedWith503WhenRedisIsDown(t *testing.T) {
+	r := newTeamRig(t, 5, true)
+	_, id, token := r.account(t)
+	w := r.do(http.MethodPatch, "/api/v1/tenants/"+id+"/users/"+testutil.UniqueName("x"), token, map[string]string{"role": "admin"})
+	assert.Equal(t, http.StatusServiceUnavailable, w.Code, w.Body.String())
+	w = r.do(http.MethodDelete, "/api/v1/tenants/"+id+"/users", token, map[string]string{"user_id": testutil.UniqueName("x")})
+	assert.Equal(t, http.StatusServiceUnavailable, w.Code, w.Body.String())
 }

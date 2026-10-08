@@ -93,13 +93,15 @@ func WithProfile(s *handler.Settings, t *handler.Tenant) Option {
 	})
 }
 
-// WithTeam registers member listing, invitation and accept or decline. The three routes are jwt-only in
+// WithTeam registers member listing, invitation, accept or decline, role change and removal. The routes are jwt-only in
 // conf/routes.yaml: API and beta credentials are refused at the gate.
 func WithTeam(t *handler.Tenant) Option {
 	return WithExtraRoutes(func(e *gin.Engine) {
 		e.GET("/api/v1/tenants/:tenant_id/users", t.Members)
 		e.POST("/api/v1/tenants/:tenant_id/users", t.Invite)
 		e.PATCH("/api/v1/tenants/:tenant_id", t.Respond)
+		e.PATCH("/api/v1/tenants/:tenant_id/users/:user_id", t.ChangeRole)
+		e.DELETE("/api/v1/tenants/:tenant_id/users", t.Remove)
 	})
 }
 

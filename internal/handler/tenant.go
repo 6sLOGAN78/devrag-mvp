@@ -136,6 +136,8 @@ func failTeam(c *gin.Context, err error) {
 		common.Fail(c, http.StatusConflict, common.CodeConflict, err.Error())
 	case errors.Is(err, service.ErrUserNotFound):
 		common.Fail(c, http.StatusNotFound, common.CodeNotFound, err.Error())
+	case errors.Is(err, service.ErrOwnerImmutable), errors.Is(err, service.ErrInvitePending):
+		common.Fail(c, http.StatusBadRequest, common.CodeArgumentError, err.Error())
 	default:
 		fail(c, err)
 	}
@@ -239,6 +241,64 @@ func (h *Tenant) Respond(c *gin.Context) {
 		}
 	}
 	if err := h.svc.Respond(c.Request.Context(), p, c.Param("tenant_id"), action); err != nil {
+		failTeam(c, err)
+		return
+	}
+	c.Header("Cache-Control", "no-store")
+	common.OK(c, nil)
+}
+
+// ChangeRole answers PATCH /api/v1/tenants/:tenant_id/users/:user_id. The only input besides the path
+// is the body field role; every other field is ignored, so no id, status or tenant can be set.
+func (h *Tenant) ChangeRole(c *gin.Context) {
+	p, ok := PrincipalFrom(c)
+	if !ok {
+		deny(c)
+		return
+	}
+	raw, ok := readBody(c)
+	if !ok {
+		return
+	}
+	var in struct {
+		Role string `json:"role"`
+	}
+	if len(strings.TrimSpace(string(raw))) > 0 {
+		if err := json.Unmarshal(raw, &in); err != nil {
+			common.Fail(c, http.StatusBadRequest, common.CodeArgumentError, "invalid request")
+			return
+		}
+	}
+	if err := h.svc.ChangeRole(c.Request.Context(), p, c.Param("tenant_id"), c.Param("user_id"), in.Role); err != nil {
+		failTeam(c, err)
+		return
+	}
+	c.Header("Cache-Control", "no-store")
+	common.OK(c, nil)
+}
+
+// Remove answers DELETE /api/v1/tenants/:tenant_id/users with body user_id: the owner removes a member
+// or withdraws an invitation, a member removes themselves (leave). The owner row is never removable.
+func (h *Tenant) Remove(c *gin.Context) {
+	p, ok := PrincipalFrom(c)
+	if !ok {
+		deny(c)
+		return
+	}
+	raw, ok := readBody(c)
+	if !ok {
+		return
+	}
+	var in struct {
+		UserID string `json:"user_id"`
+	}
+	if len(strings.TrimSpace(string(raw))) > 0 {
+		if err := json.Unmarshal(raw, &in); err != nil {
+			common.Fail(c, http.StatusBadRequest, common.CodeArgumentError, "invalid request")
+			return
+		}
+	}
+	if err := h.svc.RemoveMember(c.Request.Context(), p, c.Param("tenant_id"), in.UserID); err != nil {
 		failTeam(c, err)
 		return
 	}

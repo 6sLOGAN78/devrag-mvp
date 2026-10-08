@@ -47,17 +47,6 @@ def test_openapi_json_is_a_protected_registry_row() -> None:
     assert (row["method"], row["owner"], row["auth"], row["implemented"]) == ("GET", "python", "api", True)
 
 
-def test_registry_has_phase2_endpoints_unimplemented() -> None:
-    data = yaml.safe_load(ROUTES.read_text(encoding="utf-8"))
-    rows = {(e["method"], e["path"]): e for e in data["endpoints"]}
-    for key in [
-        ("PATCH", "/api/v1/tenants/{tenant_id}/users/{user_id}"),
-    ]:
-        assert key in rows, key
-        assert rows[key]["owner"] == "go"
-        assert rows[key]["implemented"] is False, key
-
-
 def test_registry_marks_token_management_implemented_and_jwt_only() -> None:
     """Plan 02-20 landed API token create, list and delete; they accept the session token only (R-90)."""
     data = yaml.safe_load(ROUTES.read_text(encoding="utf-8"))
@@ -68,14 +57,16 @@ def test_registry_marks_token_management_implemented_and_jwt_only() -> None:
         assert row["roles"] == ["owner"], key
 
 
-def test_registry_marks_members_invite_and_respond_implemented_and_jwt_only() -> None:
-    """Plan 02-22 landed the member list, the owner-only invite and accept or decline; none accepts an API or beta token."""
+def test_registry_marks_members_invite_respond_role_change_and_removal_implemented_and_jwt_only() -> None:
+    """Plans 02-22 and 02-23 landed the member list, invite, accept or decline, role change and removal; none accepts an API or beta token."""
     data = yaml.safe_load(ROUTES.read_text(encoding="utf-8"))
     rows = {(e["method"], e["path"]): e for e in data["endpoints"]}
     for key, roles in [
         (("GET", "/api/v1/tenants/{tenant_id}/users"), ["owner", "admin", "normal"]),
         (("POST", "/api/v1/tenants/{tenant_id}/users"), ["owner"]),
         (("PATCH", "/api/v1/tenants/{tenant_id}"), ["invite"]),
+        (("PATCH", "/api/v1/tenants/{tenant_id}/users/{user_id}"), ["owner"]),
+        (("DELETE", "/api/v1/tenants/{tenant_id}/users"), ["owner", "self"]),
     ]:
         row = rows[key]
         assert (row["owner"], row["auth"], row["implemented"], row["scope"], row["roles"]) == ("go", "jwt", True, "tenant", roles), key
