@@ -20,5 +20,13 @@
   {"id": "cookie_to_end_of_line", "input": "Cookie: a=1; session=SECRETCOOKIE-fake; x=2", "secrets": ["SECRETCOOKIE-fake", "x=2", "a=1"], "keep": ["Cookie"]},
   {"id": "set_cookie_to_end_of_line", "input": "Set-Cookie: sid=fake-set-cookie; Path=/; HttpOnly", "secrets": ["fake-set-cookie", "HttpOnly"], "keep": ["Set-Cookie"]},
   {"id": "json_escaped_quote", "input": "{\"password\": \"fake\\\"tail-secret\"}", "secrets": ["fake", "tail-secret"], "keep": ["password"]},
-  {"id": "path_token_query", "input": "GET /api/v1/x?token=fake-query-token&page=2", "secrets": ["fake-query-token"], "keep": ["page=2", "/api/v1/x"]}
+  {"id": "path_token_query", "input": "GET /api/v1/x?token=fake-query-token&page=2", "secrets": ["fake-query-token"], "keep": ["page=2", "/api/v1/x"]},
+  {"id": "sdk_message_openrouter", "input": "Incorrect API key provided: sk-or-v1-FAKEFAKEFAKEFAKEFAKE0001. You can find your key", "secrets": ["sk-or-v1-FAKEFAKEFAKEFAKEFAKE0001", "FAKEFAKEFAKEFAKEFAKE0001"], "keep": ["Incorrect API key provided", "You can find your key"]},
+  {"id": "sdk_message_openai", "input": "Incorrect API key provided: sk-FAKEFAKEFAKEFAKEFAKEFAKE0002", "secrets": ["sk-FAKEFAKEFAKEFAKEFAKEFAKE0002", "FAKEFAKEFAKEFAKEFAKEFAKE0002"], "keep": ["Incorrect API key provided"]},
+  {"id": "key_in_url_path", "input": "GET /v1/x/sk-or-v1-FAKEFAKEFAKEFAKEFAKE0003/y", "uri": "/v1/x/sk-or-v1-FAKEFAKEFAKEFAKEFAKE0003/y", "secrets": ["FAKEFAKEFAKEFAKEFAKE0003"], "keep": ["/v1/x/"]},
+  {"id": "key_in_url_path_openai", "input": "GET /proxy/sk-FAKEFAKEFAKEFAKEFAKEFAKE0006/models", "uri": "/proxy/sk-FAKEFAKEFAKEFAKEFAKEFAKE0006/models", "secrets": ["FAKEFAKEFAKEFAKEFAKEFAKE0006"], "keep": ["/proxy/"]},
+  {"id": "key_in_json_value", "input": "{\"detail\": \"bad credential sk-or-v1-FAKEFAKEFAKEFAKEFAKE0004 rejected\"}", "secrets": ["FAKEFAKEFAKEFAKEFAKE0004"], "keep": ["bad credential", "rejected"]},
+  {"id": "key_after_bearer_text", "input": "upstream said Bearer sk-FAKEFAKEFAKEFAKEFAKEFAKE0005 was refused", "secrets": ["FAKEFAKEFAKEFAKEFAKEFAKE0005"], "keep": ["upstream said", "was refused"]},
+  {"id": "keep_short_sk_prefix", "input": "model sk-short-1234 selected", "secrets": [], "keep": ["sk-short-1234", "selected"]},
+  {"id": "keep_ordinary_word", "input": "assigned to task-force-leader-name today", "secrets": [], "keep": ["task-force-leader-name", "today"]}
 ]

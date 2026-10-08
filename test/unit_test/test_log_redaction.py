@@ -99,6 +99,9 @@ _HOSTILE = {
     "dash_run": "a-" * 50000,
     "cookie_colon_repeat": "cookie:" * 14000,
     "scheme_repeat": "a://" * 25000,
+    "key_shape_short_repeat": ("sk-" + "A" * 19 + " ") * 5000,
+    "key_shape_dense_repeat": ("sk-" + "A" * 19) * 5000,
+    "key_shape_or_v1_repeat": ("sk-or-v1-" + "B" * 15 + " ") * 8000,
 }
 TIMING_BOUND_S = 0.25
 

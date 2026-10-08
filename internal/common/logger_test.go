@@ -145,6 +145,8 @@ func TestHostileInputRedactsLinearly(t *testing.T) {
 		"token_repeat": strings.Repeat("token", 20000),
 		"pw_equals":    strings.Repeat("password=", 12000),
 		"scheme":       strings.Repeat("a://", 25000),
+		"key_shape":    strings.Repeat("sk-"+strings.Repeat("A", 19)+" ", 5000),
+		"key_dense":    strings.Repeat("sk-"+strings.Repeat("A", 19), 5000),
 	} {
 		t.Run(name, func(t *testing.T) {
 			started := time.Now()
