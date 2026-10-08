@@ -240,7 +240,7 @@ Plans:
 
 **Wave 6** *(blocked on Wave 5 completion)*
 
-- [ ] 03-13-PLAN.md — Models and default-model routes
+- [x] 03-13-PLAN.md — Models and default-model routes
 
 **Wave 7** *(blocked on Wave 6 completion)*
 
