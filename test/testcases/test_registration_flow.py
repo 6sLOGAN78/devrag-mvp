@@ -12,7 +12,10 @@ from test.helpers.db import root_connection
 
 pytestmark = pytest.mark.e2e
 
-SECRET = stack_env()["SECRET_KEY"]
+
+def _secret() -> str:
+    # Read when a test runs, not at import: machines without docker/.env (CI) must still collect this module.
+    return stack_env()["SECRET_KEY"]
 
 
 def _register(client: httpx.Client, email: str, password: str = TEST_PASSWORD) -> httpx.Response:
@@ -92,7 +95,7 @@ def test_registration_login_returns_token_python_verifies(ingress: httpx.Client,
     resp = ingress.post("/api/v1/auth/login", json={"email": email, "password": TEST_PASSWORD})
     assert resp.status_code == 200, resp.text
     data = resp.json()["data"]
-    inner = verify(data["token"], SECRET)
+    inner = verify(data["token"], _secret())
     assert inner is not None and valid_inner(inner)
     assert data["role"] == "owner" and data["tenant_id"] == data["user"]["id"]
     for col in ("llm_id", "embd_id", "rerank_id"):
@@ -100,7 +103,7 @@ def test_registration_login_returns_token_python_verifies(ingress: httpx.Client,
     cookie = resp.headers.get_list("set-cookie")
     assert any(c.startswith("ragflow_auth=") and "HttpOnly" in c and "SameSite=Lax" in c for c in cookie)
     again = ingress.post("/api/v1/auth/login", json={"email": email, "password": TEST_PASSWORD}).json()["data"]["token"]
-    assert verify(again, SECRET) == inner  # D-10 shared token
+    assert verify(again, _secret()) == inner  # D-10 shared token
     assert "access_token" not in resp.text and "pbkdf2" not in resp.text and "password" not in resp.text
 
 

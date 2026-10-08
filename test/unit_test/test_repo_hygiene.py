@@ -59,3 +59,26 @@ def test_hygiene_fails_when_env_example_exception_removed(repo_root, tmp_path):
     (tmp_path / ".gitignore").write_text("\n".join(kept) + "\n", encoding="utf-8")
     with pytest.raises(AssertionError, match=r"docker/\.env\.example"):
         assert_hygiene(tmp_path)
+
+
+def test_no_test_module_needs_docker_env_at_import_time() -> None:
+    """A machine without docker/.env (CI) must still collect every module: stack_env() is {} there, so a
+    module-level stack_env()["KEY"] raises KeyError during collection and breaks even the unit selection."""
+    import ast
+
+    root = Path(__file__).resolve().parents[2]
+    offenders: list[str] = []
+    for path in sorted((root / "test").rglob("*.py")):
+        tree = ast.parse(path.read_text(encoding="utf-8"))
+        for stmt in tree.body:  # module level only; code inside functions runs after collection
+            if isinstance(stmt, ast.FunctionDef | ast.AsyncFunctionDef | ast.ClassDef):
+                continue
+            for node in ast.walk(stmt):
+                if (
+                    isinstance(node, ast.Subscript)
+                    and isinstance(node.value, ast.Call)
+                    and isinstance(node.value.func, ast.Name)
+                    and node.value.func.id == "stack_env"
+                ):
+                    offenders.append(f"{path.relative_to(root)}:{node.lineno}")
+    assert not offenders, offenders
