@@ -177,7 +177,7 @@ def build_app(state: FakeProvider) -> Quart:
 
     @app.before_request
     async def record() -> None:
-        body = await request.get_json(silent=True)
+        body = await request.get_json(force=True, silent=True)
         state.requests.append(Recorded(request.method, request.path, dict(request.args), {k.lower(): v for k, v in request.headers}, body))
 
     @app.get("/health")
@@ -185,7 +185,7 @@ def build_app(state: FakeProvider) -> Quart:
         return _json({"ok": True})
 
     async def openai_chat(model_hint: str | None = None) -> Response:
-        body = await request.get_json(silent=True) or {}
+        body = await request.get_json(force=True, silent=True) or {}
         model = model_hint or str(body.get("model", ""))
         failure = _scripted_failure(state, model)
         if failure is not None:
@@ -227,7 +227,7 @@ def build_app(state: FakeProvider) -> Quart:
 
     @app.post("/v1/embeddings")
     async def embeddings() -> Response:
-        body = await request.get_json(silent=True) or {}
+        body = await request.get_json(force=True, silent=True) or {}
         model = str(body.get("model", ""))
         failure = _scripted_failure(state, model)
         return failure if failure is not None else _json(_embedding_response(state, model, _inputs(body)))
@@ -246,17 +246,21 @@ def build_app(state: FakeProvider) -> Quart:
         denied = azure_guard()
         if denied is not None:
             return denied
-        body = await request.get_json(silent=True) or {}
+        body = await request.get_json(force=True, silent=True) or {}
         failure = _scripted_failure(state, deployment)
         return failure if failure is not None else _json(_embedding_response(state, deployment, _inputs(body)))
 
     @app.post("/api/chat")
     async def ollama_chat() -> Response:
-        body = await request.get_json(silent=True) or {}
+        body = await request.get_json(force=True, silent=True) or {}
         model = str(body.get("model", ""))
         failure = _scripted_failure(state, model)
         if failure is not None:
             return failure
+        if model == "fake-redirect":
+            response = Response(status=302)
+            response.headers["Location"] = "/v1/redirect-target"
+            return response
         counts = {"prompt_eval_count": PROMPT_TOKENS, "eval_count": COMPLETION_TOKENS}
         if body.get("stream", True):
 
@@ -270,7 +274,7 @@ def build_app(state: FakeProvider) -> Quart:
 
     @app.post("/api/embed")
     async def ollama_embed() -> Response:
-        body = await request.get_json(silent=True) or {}
+        body = await request.get_json(force=True, silent=True) or {}
         model = str(body.get("model", ""))
         failure = _scripted_failure(state, model)
         if failure is not None:

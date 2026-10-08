@@ -10,12 +10,12 @@ import sys
 from pathlib import Path
 
 import pytest
-from rag.llm import resolve_provider
-from rag.llm.chat_model import ALLOWED_GEN_CONF_KEYS, Base, LiteLLMBase, classify_exception, sanitize_gen_conf
-from rag.llm.errors import LLMErrorCode, ModelException
-from rag.llm.stream import Usage
 
 from common.settings import LlmSettings
+from rag.llm import resolve_provider
+from rag.llm.chat_model import ALLOWED_GEN_CONF_KEYS, Base, LiteLLMBase, _estimate_usage, classify_exception, sanitize_gen_conf
+from rag.llm.errors import LLMErrorCode, ModelException
+from rag.llm.stream import Usage
 from test.helpers.fake_provider import CHAT_PIECES, CHAT_TEXT, FAKE_KEY, SECRET_ECHO_KEY, fake_provider  # noqa: F401  (fixture)
 
 pytestmark = pytest.mark.unit
@@ -131,9 +131,15 @@ async def test_usage_is_estimated_when_the_provider_reports_none(fake_provider):
     llm = make("OpenAI", "fake-no-usage", fake_provider.base_url)
     pieces = [p async for p in llm.async_chat_streamly("s", HISTORY, {})]
     assert "".join(pieces) == CHAT_TEXT
-    assert llm.last_usage is not None and llm.last_usage.estimated is True and llm.last_usage.total_tokens > 0
+    assert llm.last_usage is not None and llm.last_usage.total_tokens > 0  # litellm counts a stream that reports none
     text, tokens = await llm.async_chat("s", HISTORY, {})
-    assert text == CHAT_TEXT and tokens > 0 and llm.last_usage.estimated is True
+    assert text == CHAT_TEXT and tokens > 0
+
+
+def test_estimate_usage_is_marked_estimated_and_counts_both_sides():
+    usage = _estimate_usage([{"role": "user", "content": "hello there general"}], "hi back")
+    assert usage.estimated is True and usage.prompt_tokens > 0 and usage.completion_tokens > 0
+    assert usage.total_tokens == usage.prompt_tokens + usage.completion_tokens
 
 
 async def test_reasoning_model_gets_max_completion_tokens_and_no_temperature(fake_provider):  # noqa: F811
@@ -159,7 +165,7 @@ async def test_ollama_posts_to_api_chat_without_v1_and_streams(fake_provider):  
     text, tokens = await llm.async_chat("s", HISTORY, {"temperature": 0.1})
     assert text == CHAT_TEXT and tokens == 16
     (rec,) = chat_requests(fake_provider, "/api/chat")
-    assert rec.method == "POST" and rec.body["model"] == "llama3.1" and rec.body["messages"][-1] == HISTORY[0]
+    assert rec.method == "POST" and rec.body["model"] == "llama3.1" and rec.body["messages"][-1]["content"] == "hello"
     assert "authorization" not in rec.headers
     fake_provider.reset()
     pieces = [p async for p in llm.async_chat_streamly("s", HISTORY, {})]
@@ -214,6 +220,32 @@ async def test_zero_retries_means_one_request(fake_provider):  # noqa: F811
         await llm.async_chat("s", HISTORY, {})
     assert info.value.code == LLMErrorCode.ERROR_RATE_LIMIT and info.value.retryable
     assert len(chat_requests(fake_provider, "/v1/chat/completions")) == 1
+
+
+async def test_ollama_failures_map_through_the_same_path(fake_provider):  # noqa: F811
+    llm = make("Ollama", "fake-401", fake_provider.ollama_url, key=None)
+    with pytest.raises(ModelException) as info:
+        await llm.async_chat("s", HISTORY, {})
+    assert info.value.code == LLMErrorCode.ERROR_AUTHENTICATION and info.value.safe_message == "Incorrect API key provided."
+    assert len(chat_requests(fake_provider, "/api/chat")) == 1
+
+
+async def test_a_redirect_from_ollama_is_not_followed(fake_provider):  # noqa: F811
+    llm = make("Ollama", "fake-redirect", fake_provider.ollama_url, key=None)
+    with pytest.raises(ModelException):
+        await llm.async_chat("s", HISTORY, {})
+    assert fake_provider.hits("/v1/redirect-target") == []
+
+
+async def test_extra_headers_from_a_caller_are_dropped_unless_the_driver_is_trusted(fake_provider):  # noqa: F811
+    conf = {"extra_headers": {"X-Probe": "1"}, "top_p": 0.5}
+    await make("OpenAI", "gpt-4o-mini", fake_provider.base_url).async_chat("s", HISTORY, conf)
+    assert "x-probe" not in chat_requests(fake_provider, "/v1/chat/completions")[0].headers
+    fake_provider.reset()
+    trusted = make("OpenAI", "gpt-4o-mini", fake_provider.base_url)
+    trusted.trust_extra_headers = True
+    await trusted.async_chat("s", HISTORY, conf)
+    assert chat_requests(fake_provider, "/v1/chat/completions")[0].headers["x-probe"] == "1"
 
 
 async def test_a_stream_that_fails_to_open_maps_the_same_way(fake_provider):  # noqa: F811

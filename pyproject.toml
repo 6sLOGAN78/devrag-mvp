@@ -46,7 +46,13 @@ markers = [
     "serial: tests that must not run in parallel with others",
     "smoke: minimal post-deploy sanity checks",
 ]
-filterwarnings = ["error"]
+filterwarnings = [
+    "error",
+    # litellm builds pydantic models lazily on the first streamed chunk; pydantic warns about a ReadOnly TypedDict item in litellm's own types (third-party, not ours)
+    "ignore:Items? .* on TypedDict class .* is using the `ReadOnly` qualifier:UserWarning",
+    # litellm reads pydantic attributes (model_fields and similar) that pydantic 2.11+ deprecates on instances (third-party code path)
+    "ignore:Accessing the '.*' attribute on the instance is deprecated:DeprecationWarning",
+]
 
 [tool.ruff]
 line-length = 200
