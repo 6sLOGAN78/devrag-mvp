@@ -11,7 +11,8 @@
     "openMenu": "Open navigation menu",
     "closeMenu": "Close",
     "profile": "Profile",
-    "apiTokens": "API tokens"
+    "apiTokens": "API tokens",
+    "team": "Team"
   },
   "header": {
     "accountMenu": "Account menu",
@@ -206,12 +207,15 @@
       "role": "Your role",
       "tokens": "API tokens",
       "loadError": "Couldn't load",
-      "retry": "Try again"
+      "retry": "Try again",
+      "members": "Team members",
+      "invitations": "Pending invitations"
     },
     "links": {
       "title": "Manage your account",
       "profile": "Edit your profile",
-      "tokens": "Manage API tokens"
+      "tokens": "Manage API tokens",
+      "team": "Manage your team"
     }
   },
   "role": {
@@ -311,6 +315,110 @@
         "title": "Couldn't delete token",
         "body": "Something went wrong. The token was not deleted. Try again."
       }
+    }
+  },
+  "team": {
+    "title": "Team",
+    "pageTitle": "Team - devRag",
+    "intro": "The owner invites people and manages roles. Admins and members can use the workspace.",
+    "loading": "Loading your team",
+    "invitationsForYou": "Invitations for you",
+    "invitedYou": "{{owner}} invited you to join {{workspace}}",
+    "invitedOn": "Invited {{date}}",
+    "accept": "Accept",
+    "decline": "Decline",
+    "acceptFrom": "Accept invitation from {{owner}}",
+    "declineFrom": "Decline invitation from {{owner}}",
+    "joined": "Joined {{workspace}}",
+    "declined": "Invitation declined",
+    "workspace": {
+      "title": "Your workspace"
+    },
+    "members": {
+      "count_one": "{{count}} member",
+      "count_other": "{{count}} members",
+      "caption": "Workspace members"
+    },
+    "invite": {
+      "email": "Email address",
+      "help": "They need a devRag account already. The invitation appears on their Team page.",
+      "submit": "Send invitation",
+      "sentTitle": "Invitation sent",
+      "sentBody": "{{email}} can accept it from their Team page.",
+      "error": {
+        "fallback": "Something went wrong. Try again.",
+        "forbidden": "Only the workspace owner can invite people.",
+        "rateLimited": "Too many invitations were sent. Try again in a little while.",
+        "rateLimitedIn": "Too many invitations were sent. Try again in {{seconds}} seconds."
+      }
+    },
+    "col": {
+      "member": "Member",
+      "role": "Role",
+      "joined": "Joined",
+      "actions": "Actions"
+    },
+    "roleFor": "Role for {{nickname}}",
+    "role": {
+      "title": "Change {{nickname}}'s role?",
+      "body": "{{nickname}} will become {{role}} in {{workspace}}.",
+      "article": {
+        "admin": "an admin",
+        "normal": "a member"
+      },
+      "keep": "Keep current role",
+      "confirm": "Change role",
+      "updated": "Role updated"
+    },
+    "remove": {
+      "label": "Remove {{nickname}}",
+      "title": "Remove {{nickname}}?",
+      "body": "{{nickname}} loses access to {{workspace}} immediately. You can invite them again later.",
+      "keep": "Keep member",
+      "confirm": "Remove member",
+      "done": "Member removed"
+    },
+    "pending": {
+      "title": "Pending invitations",
+      "none": "No pending invitations."
+    },
+    "withdraw": {
+      "action": "Withdraw",
+      "label": "Withdraw invitation for {{email}}",
+      "title": "Withdraw invitation?",
+      "body": "{{email}} will no longer be able to join {{workspace}}. You can invite them again later.",
+      "keep": "Keep invitation",
+      "confirm": "Withdraw invitation",
+      "done": "Invitation withdrawn"
+    },
+    "noTeammates": "No teammates yet. Invite someone with a devRag account to share this workspace.",
+    "joinedWorkspaces": "Workspaces you've joined",
+    "ownedBy": "Owned by {{owner}}",
+    "leave": {
+      "action": "Leave",
+      "label": "Leave {{workspace}}",
+      "title": "Leave {{workspace}}?",
+      "body": "You lose access to {{workspace}}. The owner would have to invite you again for you to rejoin.",
+      "keep": "Stay in workspace",
+      "confirm": "Leave workspace",
+      "done": "You left {{workspace}}"
+    },
+    "errorNoun": {
+      "members": "team members",
+      "invitations": "invitations"
+    },
+    "failed": {
+      "respond": "Couldn't answer the invitation",
+      "role": "Couldn't change the role",
+      "remove": "Couldn't remove the member",
+      "withdraw": "Couldn't withdraw the invitation",
+      "leave": "Couldn't leave the workspace"
+    },
+    "error": {
+      "gone": "That is no longer available. The list has been refreshed.",
+      "forbidden": "You don't have permission to do that.",
+      "rateLimited": "Too many changes in a short time. Wait a moment, then try again.",
+      "generic": "The change wasn't saved. The list has been refreshed. Try again."
     }
   }
 }

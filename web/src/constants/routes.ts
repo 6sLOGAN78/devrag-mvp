@@ -1,4 +1,4 @@
-import { Activity, House, KeyRound, UserRound, type LucideIcon } from "lucide-react";
+import { Activity, House, KeyRound, UserRound, Users, type LucideIcon } from "lucide-react";
 import type { ComponentType } from "react";
 import { HOME_PATH } from "@/utils/safe-next";
 
@@ -89,6 +89,13 @@ export const routes: readonly RouteEntry[] = [
     auth: "required",
     component: () => import("@/pages/user-setting/api"),
     nav: { labelKey: "nav.apiTokens", icon: KeyRound, order: 4, group: "account" },
+  },
+  {
+    path: "/user-setting/team",
+    layout: "standard",
+    auth: "required",
+    component: () => import("@/pages/user-setting/team"),
+    nav: { labelKey: "nav.team", icon: Users, order: 5, group: "account" },
   },
   {
     path: "*",

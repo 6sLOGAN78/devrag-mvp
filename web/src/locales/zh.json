@@ -11,7 +11,8 @@
     "openMenu": "打开导航菜单",
     "closeMenu": "关闭",
     "profile": "个人资料",
-    "apiTokens": "API 令牌"
+    "apiTokens": "API 令牌",
+    "team": "团队"
   },
   "header": {
     "accountMenu": "账户菜单",
@@ -206,12 +207,15 @@
       "role": "你的角色",
       "tokens": "API 令牌",
       "loadError": "无法加载",
-      "retry": "重试"
+      "retry": "重试",
+      "members": "团队成员",
+      "invitations": "待处理的邀请"
     },
     "links": {
       "title": "管理你的账户",
       "profile": "编辑你的资料",
-      "tokens": "管理 API 令牌"
+      "tokens": "管理 API 令牌",
+      "team": "管理你的团队"
     }
   },
   "role": {
@@ -311,6 +315,110 @@
         "title": "无法删除令牌",
         "body": "出了点问题,令牌未被删除。请重试。"
       }
+    }
+  },
+  "team": {
+    "title": "团队",
+    "pageTitle": "团队 - devRag",
+    "intro": "所有者负责邀请成员并管理角色。管理员和成员可以使用该工作区。",
+    "loading": "正在加载团队",
+    "invitationsForYou": "给你的邀请",
+    "invitedYou": "{{owner}} 邀请你加入 {{workspace}}",
+    "invitedOn": "邀请于 {{date}}",
+    "accept": "接受",
+    "decline": "拒绝",
+    "acceptFrom": "接受来自 {{owner}} 的邀请",
+    "declineFrom": "拒绝来自 {{owner}} 的邀请",
+    "joined": "已加入 {{workspace}}",
+    "declined": "已拒绝邀请",
+    "workspace": {
+      "title": "你的工作区"
+    },
+    "members": {
+      "count_one": "{{count}} 位成员",
+      "count_other": "{{count}} 位成员",
+      "caption": "工作区成员"
+    },
+    "invite": {
+      "email": "邮箱地址",
+      "help": "对方需要已有 devRag 账户。邀请会显示在对方的团队页面。",
+      "submit": "发送邀请",
+      "sentTitle": "邀请已发送",
+      "sentBody": "{{email}} 可以在其团队页面接受邀请。",
+      "error": {
+        "fallback": "出了点问题,请重试。",
+        "forbidden": "只有工作区所有者可以邀请成员。",
+        "rateLimited": "发送的邀请过多,请稍后再试。",
+        "rateLimitedIn": "发送的邀请过多,请在 {{seconds}} 秒后重试。"
+      }
+    },
+    "col": {
+      "member": "成员",
+      "role": "角色",
+      "joined": "加入时间",
+      "actions": "操作"
+    },
+    "roleFor": "{{nickname}} 的角色",
+    "role": {
+      "title": "更改 {{nickname}} 的角色?",
+      "body": "{{nickname}} 将成为 {{workspace}} 的{{role}}。",
+      "article": {
+        "admin": "管理员",
+        "normal": "成员"
+      },
+      "keep": "保持当前角色",
+      "confirm": "更改角色",
+      "updated": "角色已更新"
+    },
+    "remove": {
+      "label": "移除 {{nickname}}",
+      "title": "移除 {{nickname}}?",
+      "body": "{{nickname}} 将立即失去对 {{workspace}} 的访问权限。你以后可以再次邀请对方。",
+      "keep": "保留成员",
+      "confirm": "移除成员",
+      "done": "成员已移除"
+    },
+    "pending": {
+      "title": "待处理的邀请",
+      "none": "没有待处理的邀请。"
+    },
+    "withdraw": {
+      "action": "撤回",
+      "label": "撤回对 {{email}} 的邀请",
+      "title": "撤回邀请?",
+      "body": "{{email}} 将无法再加入 {{workspace}}。你以后可以再次邀请对方。",
+      "keep": "保留邀请",
+      "confirm": "撤回邀请",
+      "done": "邀请已撤回"
+    },
+    "noTeammates": "还没有队友。邀请已有 devRag 账户的人来共享此工作区。",
+    "joinedWorkspaces": "你已加入的工作区",
+    "ownedBy": "所有者:{{owner}}",
+    "leave": {
+      "action": "退出",
+      "label": "退出 {{workspace}}",
+      "title": "退出 {{workspace}}?",
+      "body": "你将失去对 {{workspace}} 的访问权限。所有者需要再次邀请你,你才能重新加入。",
+      "keep": "留在工作区",
+      "confirm": "退出工作区",
+      "done": "你已退出 {{workspace}}"
+    },
+    "errorNoun": {
+      "members": "团队成员",
+      "invitations": "邀请"
+    },
+    "failed": {
+      "respond": "无法处理该邀请",
+      "role": "无法更改角色",
+      "remove": "无法移除成员",
+      "withdraw": "无法撤回邀请",
+      "leave": "无法退出工作区"
+    },
+    "error": {
+      "gone": "该内容已不存在。列表已刷新。",
+      "forbidden": "你没有执行此操作的权限。",
+      "rateLimited": "短时间内更改过多。请稍等片刻后重试。",
+      "generic": "更改未保存。列表已刷新。请重试。"
     }
   }
 }

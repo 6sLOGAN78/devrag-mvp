@@ -303,13 +303,14 @@ describe("invitations for you", () => {
   });
 
   it("tells the user the invitation is gone on 404 and refreshes the list", async () => {
-    forced["PATCH /api/v1/tenants/t9"] = { status: 404, message: "not found" };
     const user = userEvent.setup();
     renderPage();
-    await user.click(await screen.findByRole("button", { name: "Accept invitation from Grace" }));
-    await screen.findByText("That is no longer available. The list has been refreshed.");
+    const accept = await screen.findByRole("button", { name: "Accept invitation from Grace" });
+    // The owner withdrew the invitation after this page loaded.
+    forced["PATCH /api/v1/tenants/t9"] = { status: 404, message: "not found" };
     memberships = [ownMembership];
-    delete forced["PATCH /api/v1/tenants/t9"];
+    await user.click(accept);
+    await screen.findByText("That is no longer available. The list has been refreshed.");
     await waitFor(() => expect(screen.queryByTestId("invitations-for-you")).toBeNull());
   });
 
@@ -492,15 +493,15 @@ describe("role change", () => {
   });
 
   it("handles a member who is already gone (404): message, refreshed list, no crash", async () => {
-    forced["PATCH /api/v1/tenants/t1/users/u2"] = { status: 404, message: "not found" };
     const user = userEvent.setup();
     renderPage();
     await loaded();
     await user.selectOptions(screen.getByRole("combobox", { name: "Role for Bob" }), "admin");
+    // Bob left after this page loaded.
+    forced["PATCH /api/v1/tenants/t1/users/u2"] = { status: 404, message: "not found" };
+    members = members.filter((m) => m.id !== "u2");
     await user.click(await screen.findByRole("button", { name: "Change role" }));
     await screen.findByText("That is no longer available. The list has been refreshed.");
-    members = members.filter((m) => m.id !== "u2");
-    delete forced["PATCH /api/v1/tenants/t1/users/u2"];
     await waitFor(() => expect(screen.queryByRole("combobox", { name: "Role for Bob" })).toBeNull());
   });
 });
@@ -638,14 +639,14 @@ describe("workspaces you've joined", () => {
   });
 
   it("makes the section disappear cleanly when the server says the membership is gone (404)", async () => {
-    forced["DELETE /api/v1/tenants/t9/users"] = { status: 404, message: "not found" };
     const user = userEvent.setup();
     renderPage();
     await user.click(await screen.findByRole("button", { name: "Leave Grace's workspace" }));
+    // The owner removed the caller after this page loaded.
+    forced["DELETE /api/v1/tenants/t9/users"] = { status: 404, message: "not found" };
+    memberships = [ownMembership];
     await user.click(await screen.findByRole("button", { name: "Leave workspace" }));
     await screen.findByText("That is no longer available. The list has been refreshed.");
-    memberships = [ownMembership];
-    delete forced["DELETE /api/v1/tenants/t9/users"];
     await waitFor(() => expect(screen.queryByTestId("joined-workspaces")).toBeNull());
   });
 });
