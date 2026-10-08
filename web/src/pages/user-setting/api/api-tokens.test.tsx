@@ -237,6 +237,27 @@ describe("copy", () => {
     expect(copy).toHaveAttribute("data-copied", "false");
   });
 
+  it("arms no confirmation timer when the row is gone before the clipboard write settles (IN-F11)", async () => {
+    let settle: () => void = () => undefined;
+    const pending = new Promise<void>((resolve) => {
+      settle = resolve;
+    });
+    const user = userEvent.setup();
+    stubClipboard(() => pending);
+    const view = renderPage();
+    await screen.findByTestId("tokens-table");
+    const timers = vi.spyOn(globalThis, "setTimeout");
+    await user.click(within(rowFor("aaa1")).getByTestId("token-copy"));
+    view.unmount();
+    timers.mockClear();
+    await act(async () => {
+      settle();
+      await pending;
+    });
+    expect(timers.mock.calls.filter(([, delay]) => delay === 2000)).toEqual([]);
+    timers.mockRestore();
+  });
+
   it("does not put the token in the toast", async () => {
     const user = newUser();
     renderPage();

@@ -29,15 +29,19 @@ export function TokenRow({ token, onDeleted }: { token: ApiToken; onDeleted: () 
   const tail = tokenTail(token.token);
   const created = createdLabel(token.createTime, i18n.language);
 
-  useEffect(
-    () => () => {
+  const mounted = useRef(true);
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
       if (timer.current !== null) globalThis.clearTimeout(timer.current);
-    },
-    [],
-  );
+    };
+  }, []);
 
   async function copy(): Promise<void> {
     const ok = await copyToken(token.token);
+    // The row may have been deleted while the clipboard write was pending: arm nothing then.
+    if (!mounted.current) return;
     if (!ok) {
       setRevealed(true);
       return;
