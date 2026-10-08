@@ -29,7 +29,8 @@ LONG_TIMEOUT = "3600s"
 BODY_LIMIT_RE = re.compile(r"^[1-9][0-9]{0,5}[km]$")
 # Keys of an expanded route that only Nginx uses; they stay out of the Vite proxy JSON.
 NGINX_ONLY = ("bodyLimit", "streaming")
-
+# Path placeholder that carries a credential: the location serving it must not log its request line (WR-03).
+CREDENTIAL_PLACEHOLDER = "{token}"
 METHODS = {"GET", "POST", "PATCH", "PUT", "DELETE"}
 SCOPES = {"none", "tenant"}
 ROLES = {"owner", "admin", "normal", "invite", "self"}
@@ -428,7 +429,12 @@ def _ordered(routes: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return exact + prefix
 
 
-def _location(r: dict[str, Any]) -> str:
+def credential_prefixes(rows: list[dict[str, Any]]) -> set[str]:
+    """Route paths whose registry rows carry a credential in the URL, for example /api/v1/system/tokens/{token}."""
+    return {r["path"].split(CREDENTIAL_PLACEHOLDER, 1)[0] for r in rows if CREDENTIAL_PLACEHOLDER in r["path"]}
+
+
+def _location(r: dict[str, Any], credential: set[str]) -> str:
     op = "=" if r["match"] == "exact" else "^~"
     timeout = LONG_TIMEOUT if r["streaming"] else SHORT_TIMEOUT
     lines = [
@@ -437,12 +443,16 @@ def _location(r: dict[str, Any]) -> str:
         f"        proxy_read_timeout {timeout};",
         f"        proxy_send_timeout {timeout};",
     ]
+    if r["path"] in credential:
+        # An upstream failure writes `request: "<method> <target> ..."` to the error log at error level, and the target
+        # of this family holds a live API token. Only emergencies are written for these locations (WR-03).
+        lines.append("        error_log /dev/stderr emerg;")
     lines.append("        include proxy.conf;")
     return f"    location {op} {r['path']} {{\n" + "\n".join(lines) + "\n    }\n"
 
 
-def _locations(routes: list[dict[str, Any]]) -> str:
-    out: list[str] = [_location(r) for r in _ordered(routes)]
+def _locations(routes: list[dict[str, Any]], credential: set[str]) -> str:
+    out: list[str] = [_location(r, credential) for r in _ordered(routes)]
     out.append(f"""    location /assets/ {{
         root {WEB_ROOT};
         expires 1y;
@@ -477,16 +487,16 @@ PAYLOAD_TOO_LARGE = """    error_page 413 @payload_too_large;
 """
 
 
-def render_http(routes: list[dict[str, Any]]) -> str:
-    return f"{HEADER}server {{\n    listen 80;\n    server_name _;\n\n{PAYLOAD_TOO_LARGE}{_locations(routes)}}}\n"
+def render_http(routes: list[dict[str, Any]], credential: set[str]) -> str:
+    return f"{HEADER}server {{\n    listen 80;\n    server_name _;\n\n{PAYLOAD_TOO_LARGE}{_locations(routes, credential)}}}\n"
 
 
-def render_https(routes: list[dict[str, Any]]) -> str:
+def render_https(routes: list[dict[str, Any]], credential: set[str]) -> str:
     return (
         f"{HEADER}server {{\n    listen 80;\n    server_name _;\n    return 301 https://$host$request_uri;\n}}\n\n"
         f"server {{\n    listen 443 ssl;\n    server_name _;\n"
         f"    ssl_certificate /etc/nginx/certs/server.crt;\n    ssl_certificate_key /etc/nginx/certs/server.key;\n"
-        f"    ssl_protocols TLSv1.2 TLSv1.3;\n\n{PAYLOAD_TOO_LARGE}{_locations(routes)}}}\n"
+        f"    ssl_protocols TLSv1.2 TLSv1.3;\n\n{PAYLOAD_TOO_LARGE}{_locations(routes, credential)}}}\n"
     )
 
 
@@ -504,8 +514,8 @@ def outputs(root: Path, out_root: Path) -> dict[Path, str]:
         out_root / PY_PERMS: render_py_permissions(perms),
         out_root / GO_POLICY: render_go_policy(routes, rows),
         out_root / PY_POLICY: render_py_policy(routes, rows),
-        out_root / "docker/nginx/ragflow.conf": render_http(routes),
-        out_root / "docker/nginx/ragflow.https.conf": render_https(routes),
+        out_root / "docker/nginx/ragflow.conf": render_http(routes, credential_prefixes(rows)),
+        out_root / "docker/nginx/ragflow.https.conf": render_https(routes, credential_prefixes(rows)),
         out_root / "web/src/constants/api-routes.generated.json": render_json(ports, routes),
     }
 
