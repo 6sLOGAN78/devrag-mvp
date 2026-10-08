@@ -16,6 +16,15 @@ export function isRefusal(error: unknown): boolean {
   return error instanceof ApiError && error.status === 400;
 }
 
+// The ticket refusal reads "This reset session is invalid or has expired...". A password rule reads "new password must
+// be 8 to 128 characters". Both are HTTP 400, but only the first means the single-use ticket is gone (IN-F06).
+const TICKET_WORDS = /\b(session|ticket|expired)\b/i;
+
+/** True for a 400 that rejected the new password itself: the ticket is still valid, so the user stays on step 3. */
+export function isPasswordRejection(error: unknown): boolean {
+  return isRefusal(error) && /\bpassword\b/i.test((error as ApiError).message) && !TICKET_WORDS.test((error as ApiError).message);
+}
+
 /** A short non-empty server message, or the fallback. Rendered as text only (T-02-86). */
 export function serverMessage(error: unknown, fallback: string): string {
   if (!(error instanceof ApiError)) return fallback;

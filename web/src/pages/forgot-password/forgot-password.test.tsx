@@ -183,6 +183,25 @@ describe("step 1 (UI-SPEC Forgot password)", () => {
     expect(texts[0]).not.toMatch(/exist(s)? (and|but)|not found|no account|unknown/i);
   });
 
+  it("keeps the user on step 3 with the server message when the server rejects the password itself (IN-F06)", async () => {
+    resetReply = bad("new password must be 8 to 128 characters");
+    const user = userEvent.setup();
+    renderPage();
+    await toStep3(user);
+    await user.type(screen.getByTestId("field-password"), NEW_PASSWORD);
+    await user.click(screen.getByTestId("forgot-submit"));
+    expect(await screen.findByTestId("forgot-error")).toHaveTextContent("new password must be 8 to 128 characters");
+    expect(screen.getByTestId("forgot-step-3")).toBeInTheDocument();
+    expect(screen.queryByTestId("forgot-step-1")).toBeNull();
+    expect(screen.getByTestId("field-password")).toHaveValue(NEW_PASSWORD);
+    // The ticket was not consumed: a retry with the same ticket goes through.
+    resetReply = ok();
+    await user.click(screen.getByTestId("forgot-submit"));
+    expect(await screen.findByTestId("landed")).toBeInTheDocument();
+    expect(callsTo(RESET)).toHaveLength(2);
+    expect(bodyOf(callsTo(RESET)[1])).toMatchObject({ reset_ticket: TICKET });
+  });
+
   it.each([
     ["429", { status: 429, body: { code: 429, message: "too many requests", data: null }, headers: { "Retry-After": "30" } } satisfies Reply, "Too many attempts. Wait a few minutes, then try again."],
     ["503", { status: 503, body: { code: 503, message: "service unavailable", data: null } } satisfies Reply, "The service is unavailable right now. Try again in a moment."],

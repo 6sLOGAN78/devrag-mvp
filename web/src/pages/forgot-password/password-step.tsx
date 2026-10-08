@@ -7,7 +7,7 @@ import { PasswordInput } from "@/components/password-input";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { usePasswordResetRequest } from "@/hooks/use-password-reset-request";
 import { notifySuccess } from "@/services/notify";
-import { isRefusal, resetErrorMessage, serverMessage } from "./reset-error";
+import { isPasswordRejection, isRefusal, resetErrorMessage, serverMessage } from "./reset-error";
 import { passwordStepSchema, type PasswordStepValues } from "./schemas";
 import { BackToSignIn, StepAlert, SubmitButton, type StepMessage } from "./step-parts";
 
@@ -43,7 +43,7 @@ export function PasswordStep({ email, ticket, onRefused }: PasswordStepProps) {
       notifySuccess(t("auth.forgot.doneTitle"), t("auth.forgot.doneBody"));
       await navigate("/login", { replace: true });
     } catch (failure) {
-      if (isRefusal(failure)) {
+      if (isRefusal(failure) && !isPasswordRejection(failure)) {
         onRefused(serverMessage(failure, t("auth.forgot.sessionFallback")));
         return;
       }
