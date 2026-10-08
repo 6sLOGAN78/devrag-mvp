@@ -76,7 +76,7 @@ def test_redis_outage_reported_by_both_engines_and_recovers(ingress: httpx.Clien
     with stopped("redis", ingress, account.token):
         go = wait_until(_status_is(ingress, "/health", 503, "redis"), timeout=60, interval=1)
         assert go.headers["x-api-source"] == "go"
-        assert go.json()["code"] == 503 or go.json()["code"] != 0
+        assert go.json()["code"] == 503  # the envelope code of a dependency outage (R-114)
         assert go.json()["data"]["checks"]["database"]["status"] == "ok"
         _assert_no_leak(go)
         py = wait_until(_status_is(ingress, "/api/v1/system/status", 503, "redis", headers=auth), timeout=60, interval=1)
