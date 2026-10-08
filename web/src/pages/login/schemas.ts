@@ -14,14 +14,33 @@ const NICKNAME_FORBIDDEN = /[\p{Cc}\p{Cf}<>]/u;
 /** Characters, not UTF-16 units, matching the server's rune count. */
 const length = (value: string): number => Array.from(value).length;
 
-/** Trimmed, lowercased on output. Issues are i18n keys. */
-export const emailField = z
-  .string()
-  .transform((value) => value.trim().toLowerCase())
-  .superRefine((value, ctx) => {
-    if (value === "") ctx.addIssue({ code: z.ZodIssueCode.custom, message: "errors.email.required" });
-    else if (value.length > EMAIL_MAX || !EMAIL_SHAPE.test(value)) ctx.addIssue({ code: z.ZodIssueCode.custom, message: "errors.email.invalid" });
-  });
+// New accounts: printable ASCII without white space after canonicalisation (R-129); an international domain uses xn--.
+const EMAIL_ASCII = /^[\x21-\x7e]+$/;
+
+/**
+ * The server's canonical spelling (R-129): trimmed, Unicode NFKC, ASCII letters lower-cased. Other case folding is left
+ * to the database collation because languages disagree on it, so it is not applied here either.
+ */
+function canonicalEmail(value: string): string {
+  return value.trim().normalize("NFKC").replace(/[A-Z]/g, (letter) => letter.toLowerCase());
+}
+
+function emailSchema(forNewAccount: boolean) {
+  return z
+    .string()
+    .transform(canonicalEmail)
+    .superRefine((value, ctx) => {
+      if (value === "") ctx.addIssue({ code: z.ZodIssueCode.custom, message: "errors.email.required" });
+      else if (value.length > EMAIL_MAX || !EMAIL_SHAPE.test(value)) ctx.addIssue({ code: z.ZodIssueCode.custom, message: "errors.email.invalid" });
+      else if (forNewAccount && !EMAIL_ASCII.test(value)) ctx.addIssue({ code: z.ZodIssueCode.custom, message: "errors.email.ascii" });
+    });
+}
+
+/** Sign in, reset and invitations only canonicalise: an account created under an older rule must keep working. */
+export const emailField = emailSchema(false);
+
+/** Registration additionally requires an ASCII address, the same rule the server applies to new accounts. */
+export const newEmailField = emailSchema(true);
 
 export const nicknameField = z
   .string()
@@ -48,7 +67,7 @@ export const loginSchema = z.object({
 
 export const registerSchema = z.object({
   nickname: nicknameField,
-  email: emailField,
+  email: newEmailField,
   password: newPasswordField,
 });
 

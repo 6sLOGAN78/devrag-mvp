@@ -58,6 +58,34 @@ describe("email", () => {
   });
 });
 
+describe("email canonical form and the ASCII rule for new accounts (R-129)", () => {
+  const register = (value: string) => registerSchema.safeParse({ nickname: "Ada", email: value, password: "password-1" });
+
+  it("registration refuses non-ASCII addresses with a specific message, as the server does", () => {
+    for (const bad of ["ada@exämple.test", "ädä@example.test", "ada@例え.test", "ada\u200b@example.test"]) {
+      expect(issues(register(bad)), bad).toEqual(["email:errors.email.ascii"]);
+    }
+  });
+
+  it("registration accepts what the server canonicalises to ASCII (NFKC), sending the canonical spelling", () => {
+    const result = register("  ＡＤＡ@Example.TEST ");
+    expect(result.success && result.data.email).toBe("ada@example.test");
+  });
+
+  it("registration accepts an international domain in its xn-- form", () => {
+    expect(register("ada@xn--exmple-cua.test").success).toBe(true);
+  });
+
+  it("sign in only canonicalises: an existing account with non-ASCII characters can still sign in", () => {
+    expect(loginSchema.safeParse({ email: "ada@exämple.test", password: "x" }).success).toBe(true);
+  });
+
+  it("lower-cases ASCII letters only and leaves other case folding to the database collation", () => {
+    const result = loginSchema.safeParse({ email: "ÉVA@Example.TEST", password: "x" });
+    expect(result.success && result.data.email).toBe("Éva@example.test");
+  });
+});
+
 describe("loginSchema", () => {
   it("requires a password but applies no length rule (an old short password must still be able to sign in)", () => {
     expect(issues(loginSchema.safeParse({ email, password: "" }))).toEqual(["password:errors.password.required"]);

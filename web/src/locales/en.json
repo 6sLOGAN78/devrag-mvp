@@ -178,7 +178,8 @@
   "errors": {
     "email": {
       "required": "Enter your email address.",
-      "invalid": "Enter a valid email address."
+      "invalid": "Enter a valid email address.",
+      "ascii": "Use only standard characters in the address (letters, digits and symbols found on a keyboard). For an international domain, use its xn-- form."
     },
     "password": {
       "required": "Enter your password.",
