@@ -1,8 +1,10 @@
 """Live checks of the infrastructure services under compose project devrag-stack (run `make infra-up` first)."""
 from __future__ import annotations
 
+import base64
 import json
 import os
+import secrets
 import subprocess
 from pathlib import Path
 
@@ -120,7 +122,9 @@ FAKE_ENV_KEYS = ("MYSQL_PASSWORD", "REDIS_PASSWORD", "MINIO_PASSWORD", "ELASTIC_
 
 def compose_config(files: list[str], profiles: list[str]) -> dict[str, object]:
     """Resolved compose model with fake secrets and no env file, so it does not depend on docker/.env."""
-    env = {**os.environ, **{key: "x" * 32 for key in FAKE_ENV_KEYS}, "SECRET_KEY": "x" * 40}
+    # LLM_KEY_ENCRYPTION_KEY is 32 random bytes in URL-safe base64 (same shape as scripts/init_env.sh); generated per call, never a real secret.
+    fake_llm_key = base64.urlsafe_b64encode(secrets.token_bytes(32)).decode()
+    env = {**os.environ, **{key: "x" * 32 for key in FAKE_ENV_KEYS}, "SECRET_KEY": "x" * 40, "LLM_KEY_ENCRYPTION_KEY": fake_llm_key}
     cmd = ["docker", "compose", "-p", PROJECT, "--env-file", os.devnull]
     for name in files:
         cmd += ["-f", f"docker/{name}"]
