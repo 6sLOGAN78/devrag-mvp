@@ -51,6 +51,15 @@ Every decision in the four discussed sections was chosen by the user on 2026-10-
 - **D-22:** Test discipline: test-first, live tiers against the real stack, no mocks of own services, no fixed sleeps, nothing weakened or skipped. Phase exit is `scripts/clean_room.sh --runs 3` on web port 8088 with at least 4096 MB of available RAM.
 - **D-23:** No secret in logs or responses: provider keys join the existing redaction rules in the Go and Python loggers and the Nginx log format; the leak sweep from Phase 2 is extended to the new routes.
 
+### Settled after research (2026-10-08)
+The user answered the research open questions with "do what you think best for the codebase"; D-24 to D-28 are the orchestrator's choices under that instruction. D-29 is the user's own statement.
+- **D-24:** Package approval (D-21) is given for `litellm==1.103.2` (exact pin, hash-locked), `openai>=2.20,<3`, `ollama`, `xxhash`, `tiktoken` and `pycryptodome`. `litellm` moves from the 1.84.0 baseline in `CLAUDE.md` because research found two OSV advisories on 1.84.0 and none on 1.103.2; the plan records this in `.planning/DECISIONS.md` and updates the `CLAUDE.md` pin.
+- **D-25:** The live key lives in `docker/.env` as `OPENROUTER_API_KEY` (added 2026-10-08). The test models are named in non-secret variables `LIVE_CHAT_MODEL` and `LIVE_EMBED_MODEL`.
+- **D-26:** Admins and members act inside workspaces they have joined, not only their own. This is required by D-07, D-09 and success criterion 2. The server resolves the acting tenant (from the resource id, or an explicit `tenant_id` otherwise) and the SPA gets a workspace selector, whose layout is fixed in the UI design contract. An API-token principal is never treated as owner or admin for provider-key routes.
+- **D-27:** A dataset with permission `me` is strictly private to its creator. Owners and admins of the workspace cannot list or open it; there is no admin override.
+- **D-28:** "Images" in D-12 means the types the docs name: `jpg`, `jpeg` and `png`. `gif`, `bmp`, `tiff` and `webp` are refused with HTTP 400 until a later phase adds them.
+- **D-29:** Agents may read `docker/.env`, including the OpenRouter key, when a task needs it (this relaxes the "never read" handling of D-02). The key is still never committed, never written to logs, test output, planning files or responses, and never stored on GitHub.
+
 ### Claude's Discretion
 - The encryption scheme and key source for provider credentials at rest, within `docs/20-security/secrets.md` and `docs/11-llm/model-providers.md`.
 - Default values for the configurable limits in D-13 and the exact allowed-extension list taken from the docs.
