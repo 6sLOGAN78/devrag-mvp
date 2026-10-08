@@ -19,7 +19,12 @@ A user can upload a document into a knowledge base and get an accurate, cited an
 - ✓ Decision register (87 rows) and blocker log committed; CI gates against placeholders, pickle, fixed sleeps, secrets and generated-file drift — Phase 1
 - ✓ SPA shell with lazy routes and HTTP client; live System status page — Phase 1
 
-Phase 1 covers foundations only: no user-facing RAG capability exists yet, and the Core Value is not yet demonstrated.
+- ✓ Accounts and sessions: register, log in and log out through the Go server; one RAGFlow-compatible access token works on Go and Python; password change, emailed-code password reset, first superuser from environment variables — Phase 2
+- ✓ Default-deny authentication on both servers with a per-route credential policy; API tokens (create, list, delete) resolve to their own tenant — Phase 2
+- ✓ Tenancy and roles: each account gets its own workspace; owner-only invites, accept or decline, role change, remove and leave; a generated cross-tenant isolation test over every tenant-scoped route — Phase 2
+- ✓ SPA for identity: login and register, forgot password, profile and settings, API tokens, team page, English and draft Chinese — Phase 2
+
+Phases 1 and 2 cover foundations and identity only: no user-facing RAG capability exists yet, and the Core Value is not yet demonstrated. Partial after Phase 2 (see BLOCKERS): tenant filtering and the permission matrix cover only the routes that exist so far; es, fr and ja locales are not shipped; the beta token is proven on test routes only.
 
 ### Active
 
@@ -62,6 +67,7 @@ Phase 1 covers foundations only: no user-facing RAG capability exists yet, and t
 - **Prior work**: an earlier Python-only attempt (`api/`, `blueprint/`, Parts 01–05: infrastructure, core backend, auth/tenancy, KB management, document ingestion, chunking & embedding, TenantLLM keys, ES mapping) was deliberately removed. It remains in git history at `github.com/6sLOGAN78/devrag-mvp` (`master`, commit `3fe760d`). This is a fresh start, not a continuation.
 - **`docs/apikey llm.md`**: withheld from agents during initialization and Phase 1; released by the user on 2026-10-07 (no credentials). It specifies token formats and LLM usage tracking that Phase 1 research never saw (DECISIONS R-49); Phase 2 and Phase 3 must read it.
 - **Repository**: pushed to `github.com/6sLOGAN78/devrag-mvp` (public), `master`; the earlier attempt is at branch `archive/mvp-master`. Dev web port on this host is 8088 (R-87).
+- **Open from Phase 2**: per-IP rate limits are shared by all clients behind Docker's port proxy until a trusted proxy range is implemented with the deployment work (B-17, R-135); new accounts accept ASCII-only email addresses (R-129); API tokens are stored as the docs specify, in plain text, until the billing work (B-21); three human checks are pending in `02-HUMAN-UAT.md` (real SMTP delivery, Chinese text, visual pass).
 - **Open from Phase 1**: an unauthenticated CPU denial-of-service in the Python log redactor (CR-02) and smaller hardening items; see `01-VERIFICATION.md` and BLOCKERS B-15. Fix at the start of Phase 2.
 - **Environment**: Linux, Node 22 available. No API keys configured in the session.
 
@@ -105,4 +111,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-10-07 after Phase 1 completion*
+*Last updated: 2026-10-08 after Phase 2 completion*
