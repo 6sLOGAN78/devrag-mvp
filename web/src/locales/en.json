@@ -19,6 +19,30 @@
     "signOut": "Sign out",
     "language": "Change language"
   },
+  "workspace": {
+    "label": "Workspace: {{name}}. Change workspace",
+    "prefix": "Workspace:",
+    "menuCaption": "Workspaces",
+    "roleOwned": "{{role}} · Owned by {{owner}}",
+    "manageTeam": "Manage team",
+    "switched": "Switched to {{workspace}}",
+    "lost": {
+      "title": "You no longer have access to {{workspace}}",
+      "body": "Switched to your own workspace."
+    },
+    "forbidden": "You don't have permission to do that in {{workspace}}. Your role may have changed."
+  },
+  "common": {
+    "notSet": "Not set",
+    "search": {
+      "clear": "Clear search"
+    },
+    "pagination": {
+      "previous": "Previous",
+      "next": "Next",
+      "status": "Page {{page}} of {{pages}}"
+    }
+  },
   "a11y": {
     "skipLink": "Skip to main content",
     "primaryNav": "Primary"

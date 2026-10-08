@@ -6,6 +6,8 @@ import { LanguageSwitch } from "@/components/language-switch";
 import { SkipLink } from "@/components/skip-link";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { UserMenu } from "@/components/user-menu";
+import { WorkspaceSwitch } from "@/components/workspace-switch";
+import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -19,7 +21,7 @@ export function StandardLayout() {
       <div data-testid="layout-standard" className="flex h-dvh flex-col bg-background text-foreground">
         <SkipLink />
         <header className="flex h-14 shrink-0 items-center justify-between border-b bg-card px-4">
-          <div className="flex items-center gap-2">
+          <div className="flex min-w-0 items-center gap-2">
             <Sheet open={open} onOpenChange={setOpen}>
               <SheetTrigger asChild>
                 <Button variant="ghost" size="icon" className="md:hidden" aria-label={t("nav.openMenu")}>
@@ -36,9 +38,11 @@ export function StandardLayout() {
                 </div>
               </SheetContent>
             </Sheet>
-            <span className="text-xl font-semibold leading-tight">{t("app.wordmark")}</span>
+            <span className="hidden text-xl font-semibold leading-tight sm:inline">{t("app.wordmark")}</span>
+            <Separator orientation="vertical" className="h-6" data-testid="header-separator" />
+            <WorkspaceSwitch />
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex shrink-0 items-center gap-2">
             <LanguageSwitch />
             <ThemeToggle />
             <UserMenu />

@@ -9,6 +9,7 @@ import { RetCode } from "@/constants/retcode";
 import type { Envelope } from "@/interfaces/envelope";
 import i18n from "@/i18n";
 import { useUserStore } from "@/stores/user-store";
+import { useWorkspaceStore } from "@/stores/workspace-store";
 import { loginRedirect } from "@/utils/safe-next";
 import { getAuthorization, removeAuthorization } from "@/utils/authorization";
 import { isSigningOut } from "@/utils/sign-out-intent";
@@ -143,6 +144,7 @@ function handleUnauthorised(config: AxiosRequestConfig | undefined): boolean {
 /** Forgets the signed-in identity and everything fetched under it, without touching the stored token. */
 export function dropSessionState(): void {
   useUserStore.getState().reset();
+  useWorkspaceStore.getState().reset();
   queryClient?.clear();
 }
 
