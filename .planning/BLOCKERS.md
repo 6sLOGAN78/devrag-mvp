@@ -137,12 +137,13 @@ Also this phase: WR-16, WR-19, WR-26 (plan 02-02) and CR-02, WR-04, WR-24 (plan 
 - Workaround in repo: `SVR_WEB_HTTP_PORT=8088` in the git-ignored `docker/.env` (R-87); `clean_room.sh` now derives `E2E_BASE_URL`, `MANUAL_BASE_URL` and `LIVE_BASE_URL` from that value.
 
 ## B-17 Per-IP rate limits are effectively global behind Docker's port proxy
-- Status: open
+- Status: decided, implementation pending (deployment work)
 - Affects: AUTH-01, AUTH-05, AUTH-16 (registration, login and OTP rate limits), production deployment
 - Evidence: found in plan 02-09 (2026-10-07). Go takes the client address from `X-Real-IP`, which Nginx sets to `$remote_addr` and Go trusts only from a loopback peer (R-114). With the app container's port published through Docker, Nginx sees the Docker gateway address for every external client, so all clients share one per-IP bucket: the per-IP limits (registration 10/hour, login 30 per 15 min, OTP 20/hour by default) apply to everyone combined, and one abusive client can exhaust them for all. Per-email limits are unaffected. A second observation from the same plan: the per-email login lock also rejects the correct password until the window ends.
 - Needed from user: a decision on how the real client address reaches the container in production (for example host networking, a trusted upstream proxy with `real_ip_header` and a configured trusted range, or accepting global limits and sizing them accordingly), and whether the correct password should bypass the per-email lock.
 - Workaround in repo: none. Limits are configurable (R-112); the dev stack raises the per-IP values so the test suites can run.
 - Backend review addition (WR-02, 2026-10-08, behaviour NOT changed, still waiting for the user): the per-account failure lock (5 failures per 15 minutes, R-94) answers 429 even for the correct password, so anyone who knows an email can keep that person locked out of login with five wrong guesses per window from a single IP (the same holds for the password change, key `pwchange:user:<id>`). Since fix CR-01 the lock is keyed on the account, so no spelling of the address escapes or multiplies it. Options for the user: (a) keep it (simple, strongest against password guessing, but a targeted denial of service); (b) block on (account, client IP) and keep a much higher account-only threshold that only raises an alert or a challenge, which needs a working per-IP signal and therefore the B-17 answer first, because behind the Docker proxy every client shares one IP and (b) degrades to (a); (c) progressive delay instead of a hard refusal; (d) let the correct password through while the lock is on (stops the lockout, but every guess then still has to be checked, so the lock no longer limits guessing speed). Recommendation: decide B-17's client-address question first, then choose (b); until then (a) stays and the dev numbers are unchanged. A related residual of the same kind: five wrong codes destroy a victim's current reset code (D-06), a recovery denial of service; a per-IP limiter on the verify step would bound it and needs the same per-IP signal.
+- 2026-10-08: decided under user delegation (R-135): the per-email lock stays and a password reset is the owner's way out; the client address will come from a configured trusted proxy range, to be implemented with the deployment work. Until then per-IP limits are shared behind Docker's port proxy.
 
 ## B-18 Interface languages es, fr and ja are not shipped (UI-42)
 - Status: open
@@ -187,11 +188,12 @@ Also this phase: WR-16, WR-19, WR-26 (plan 02-02) and CR-02, WR-04, WR-24 (plan 
 - Workaround in repo: Nginx, Go and Python mask the token family and token-shaped segments on every spelling.
 
 ## B-24 Old log files may hold raw token paths
-- Status: open
+- Status: accepted (no action)
 - Affects: local log hygiene, `ragflow-logs/` (git-ignored)
 - Evidence: before the plan 02-25 fixes, Nginx, Go and Python logged the raw path of `DELETE /api/v1/system/tokens/<token>`, and the matrix tests wrote real (test) tokens into it. `ragflow-logs/ragflow_go.log` and `ragflow-logs/ragflow_server.log` were not rewritten and may still hold such lines; Nginx writes to the container's stdout, which `down -v` discards at the start of each gate run.
 - Needed from user: delete or rotate the old files under `ragflow-logs/` if the machine is shared; they are not committed. The tokens were created by tests on throwaway accounts.
 - Workaround in repo: none (no agent deletes user files).
+- 2026-10-08: accepted under user delegation (R-135): the gate removes the database volumes on every run, so any token in old local log files belongs to a deleted account.
 
 ## B-25 Leftover test accounts
 - Status: mitigated
@@ -208,11 +210,12 @@ Also this phase: WR-16, WR-19, WR-26 (plan 02-02) and CR-02, WR-04, WR-24 (plan 
 - Workaround in repo: none.
 
 ## B-27 Local stack secrets appeared in a session transcript (plan 02-19)
-- Status: open
+- Status: accepted (no action)
 - Affects: local development secrets only
 - Evidence: during plan 02-19 a subagent printed the contents of the git-ignored `conf/service_conf.yaml` (rendered from `docker/.env`: database, cache, object-storage and signing secrets) into its session output. Nothing was committed and no file was written; the values are for the local dev stack only.
 - Needed from user: if that transcript is kept or shared, rotate the secrets by regenerating `docker/.env` (`scripts/init_env.sh --force`, which replaces every generated secret) and rebuilding the stack with `down -v`, which also discards the local data and every local session.
 - Workaround in repo: none; `check_secrets` guards committed files only.
+- 2026-10-08: accepted under user delegation (R-135): the values exist only in a local session transcript; regenerate `docker/.env` if that transcript is ever shared.
 
 ## B-28 Python auth lookup threads are bounded but not cancelled on a database stall (WR-07 residual)
 - Status: open (low)

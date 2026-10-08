@@ -115,6 +115,20 @@ Every tick cites a plan SUMMARY and a test tier that ran in the gate.
 - B-03, B-04, B-07 to B-13 are unchanged and still open; B-02 only gained the gate's override note.
 - The Python unit tier has one skipped test (docker-collision test), expected on this host. No Phase 2 test was skipped, weakened or xfailed to reach green.
 
+## Gate re-run after the code review fixes (2026-10-08)
+
+The code review (02-REVIEW-backend, 02-REVIEW-frontend) led to fixes after the first gate, so the gate was run again on the final code: `PREFLIGHT_ALLOW_LOW_MAP_COUNT=1 GOTOOLCHAIN=local scripts/clean_room.sh --runs 3` exited 0 on the first attempt ("clean-room: 3 run(s) passed"). `PREFLIGHT_MIN_RAM_MB` was not lowered; web port 8088.
+
+| Run | Start (UTC) | Duration | RAM at preflight | Time to healthy | Memory total |
+|-----|-------------|----------|------------------|-----------------|--------------|
+| 1 | 2026-10-08T10:38:20Z | 364 s | 5714 MB | 34 s | 1864.8 MiB |
+| 2 | 2026-10-08T10:44:24Z | 409 s | 7277 MB | 40 s | 2017.3 MiB |
+| 3 | 2026-10-08T10:51:13Z | 352 s | 7630 MB | 36 s | 2026.4 MiB |
+
+Identical counts in all three runs: Python unit 833 passed, 1 skipped (the same docker-collision test); integration 97 passed; e2e 212 passed; e2e serial 4 passed; go-race, go-tiers, go-manual, go-cgo PASS; vitest unit 32 files / 621 tests; vitest live 8 files / 36 tests; memory step PASS (budget 3891 MiB). Afterwards the stack was stopped (0 `devrag-stack` containers; 0 containers of the foreign `compose` project, unchanged).
+
+Decisions delegated by the user the same day are recorded in DECISIONS R-135 (B-17 decided, B-24 and B-27 accepted).
+
 ## Known Stubs
 
 None created by this plan.
