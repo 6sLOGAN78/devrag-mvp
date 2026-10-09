@@ -52,7 +52,8 @@ describe("shared shell follows the language (UI-42)", () => {
   });
 
   it("route registry stores label keys and the sidebar resolves them per language", async () => {
-    expect(navEntries().map((entry) => entry.nav?.labelKey)).toEqual(["nav.home", "nav.systemStatus", "nav.profile", "nav.apiTokens", "nav.team"]);
+    expect(navEntries().map((entry) => entry.nav?.labelKey)).toEqual(["nav.home", "nav.systemStatus", "nav.profile", "nav.models", "nav.apiTokens", "nav.team"]);
+    expect(navEntries().map((entry) => entry.nav?.order)).toEqual([1, 3, 4, 5, 6, 7]);
     await act(async () => {
       await setLanguage("zh");
     });

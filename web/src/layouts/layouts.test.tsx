@@ -99,15 +99,17 @@ describe("StandardLayout", () => {
     expect(skip).toHaveAttribute("href", "#main");
   });
 
-  it("lists exactly Home, System status, Profile, API tokens then Team, with System status marked current on /system-status", () => {
+  it("lists exactly Home, System status, Profile, Models, API tokens then Team, with System status marked current on /system-status", () => {
     renderIn(StandardLayout, "/system-status");
     const nav = screen.getByRole("navigation", { name: "Primary" });
     const links = within(nav).getAllByRole("link");
-    expect(links).toHaveLength(5);
-    expect(links[4]).toHaveTextContent("Team");
-    expect(screen.getByTestId("nav-item-user-setting-team")).toBe(links[4]);
-    expect(links[3]).toHaveTextContent("API tokens");
-    expect(screen.getByTestId("nav-item-user-setting-api")).toBe(links[3]);
+    expect(links).toHaveLength(6);
+    expect(links[5]).toHaveTextContent("Team");
+    expect(screen.getByTestId("nav-item-user-setting-team")).toBe(links[5]);
+    expect(links[4]).toHaveTextContent("API tokens");
+    expect(screen.getByTestId("nav-item-user-setting-api")).toBe(links[4]);
+    expect(links[3]).toHaveTextContent("Models");
+    expect(screen.getByTestId("nav-item-user-setting-model")).toBe(links[3]);
     expect(links[2]).toHaveTextContent("Profile");
     expect(links[2]).not.toHaveAttribute("aria-current");
     expect(screen.getByTestId("nav-item-user-setting-profile")).toBe(links[2]);
@@ -218,14 +220,15 @@ describe("FullBleedLayout and BareLayout", () => {
 });
 
 describe("registry", () => {
-  it("contains exactly the entries /, /login, /forgot-password, /home, /system-status, /user-setting/profile, /user-setting/api, /user-setting/team and *", () => {
-    expect(routes.map((r) => r.path)).toEqual(["/", "/login", "/forgot-password", "/home", "/system-status", "/user-setting/profile", "/user-setting/api", "/user-setting/team", "*"]);
-    expect(navEntries().map((r) => i18n.t(r.nav?.labelKey ?? ""))).toEqual(["Home", "System status", "Profile", "API tokens", "Team"]);
+  it("contains exactly the entries /, /login, /forgot-password, /home, /system-status, /user-setting/profile, /user-setting/model, /user-setting/api, /user-setting/team and *", () => {
+    expect(routes.map((r) => r.path)).toEqual(["/", "/login", "/forgot-password", "/home", "/system-status", "/user-setting/profile", "/user-setting/model", "/user-setting/api", "/user-setting/team", "*"]);
+    expect(navEntries().map((r) => i18n.t(r.nav?.labelKey ?? ""))).toEqual(["Home", "System status", "Profile", "Models", "API tokens", "Team"]);
+    expect(navEntries().map((r) => r.nav?.order)).toEqual([1, 3, 4, 5, 6, 7]);
   });
 
   it("navEntries excludes entries without nav", () => {
     const extra: RouteEntry = { path: "/x", layout: "bare", auth: "none", component: () => Promise.reject(new Error("unused")) };
-    expect(navEntries([...routes, extra]).map((r) => r.path)).toEqual(["/home", "/system-status", "/user-setting/profile", "/user-setting/api", "/user-setting/team"]);
+    expect(navEntries([...routes, extra]).map((r) => r.path)).toEqual(["/home", "/system-status", "/user-setting/profile", "/user-setting/model", "/user-setting/api", "/user-setting/team"]);
   });
 });
 
@@ -257,11 +260,12 @@ describe("AppSidebar nav groups", () => {
     expect(within(nav).queryByRole("separator", { hidden: true })).toBeNull();
   });
 
-  it("renders the registry as Platform then Account (Profile, API tokens, Team) with one separator", () => {
+  it("renders the registry as Platform then Account (Profile, Models, API tokens, Team) with one separator", () => {
     const router = createMemoryRouter([{ path: "*", element: <TooltipProvider><AppSidebar /></TooltipProvider> }]);
     render(<RouterProvider router={router} />);
     const nav = screen.getByRole("navigation", { name: "Primary" });
     expect(within(nav).getByRole("group", { name: "Account" })).toContainElement(screen.getByTestId("nav-item-user-setting-profile"));
+    expect(within(nav).getByRole("group", { name: "Account" })).toContainElement(screen.getByTestId("nav-item-user-setting-model"));
     expect(within(nav).getByRole("group", { name: "Account" })).toContainElement(screen.getByTestId("nav-item-user-setting-api"));
     expect(within(nav).getByRole("group", { name: "Account" })).toContainElement(screen.getByTestId("nav-item-user-setting-team"));
     expect(within(nav).getAllByRole("separator", { hidden: true })).toHaveLength(1);

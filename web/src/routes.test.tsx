@@ -214,8 +214,12 @@ describe("the root entry redirect (UI-02)", () => {
     const status = routes.find((r) => r.path === "/system-status");
     expect(status?.auth).toBe("required");
     expect(status?.layout).toBe("standard");
-    expect(status?.nav).toMatchObject({ labelKey: "nav.systemStatus", order: 2, group: "platform" });
+    expect(status?.nav).toMatchObject({ labelKey: "nav.systemStatus", order: 3, group: "platform" });
     expect(status?.nav?.icon).toBe(Activity);
+    const models = routes.find((r) => r.path === "/user-setting/model");
+    expect(models?.auth).toBe("required");
+    expect(models?.layout).toBe("standard");
+    expect(models?.nav).toMatchObject({ labelKey: "nav.models", order: 5, group: "account" });
   });
 });
 
