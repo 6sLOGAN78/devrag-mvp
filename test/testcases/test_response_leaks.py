@@ -27,6 +27,7 @@ from test.helpers.mail import delete_mail_for, extract_code, wait_for_mail
 from test.helpers.uploads import pdf_bytes
 from test.testcases._leak_sweep import CREDENTIAL_ROWS, LOGIN, TOKEN_ROWS, VERIFY, Secret, scan_response
 from test.testcases._matrix_fixtures import (
+    A_CHAT_MODEL,
     A_EMBED_MODEL,
     A_PROVIDER_KEY,
     B_PROVIDER_KEY,
@@ -471,6 +472,61 @@ def sweep_document_rows(s: Sweep, w: World) -> None:
     s.errors(row, "DELETE", team, "PATCH")
 
 
+def sweep_dataset_write_rows(s: Sweep, w: World) -> None:
+    """``PUT /api/v1/datasets/{dataset_id}`` and ``DELETE /api/v1/datasets`` on success and error paths (plan 03-18).
+
+    The datasets they change are made here through the real create route (scanned under the create row), so the world's own datasets stay for the checks that
+    run after the sweep. Deleting runs last for the same reason.
+    """
+    a, b, member = w.a, w.b, w.normal
+    token = str(w.a_tokens[0]["token"])
+    create_row = f"POST {DATASETS}"
+    suffix = uuid.uuid4().hex[:8]
+
+    def make(label: str, **extra: Any) -> str:
+        resp = s.req(create_row, f"dataset for the {label} sweep", "POST", DATASETS, a.token, {"name": f"leak-w-{label}-{suffix}", "permission": "team", **extra})
+        return str(resp.json()["data"]["id"])
+
+    first, second, third, fourth, fifth = make("first"), make("second"), make("third"), make("fourth"), make("fifth")
+
+    row = f"PUT {DATASETS}/{{dataset_id}}"
+    path = f"{DATASETS}/{first}"
+    s.req(row, "success (description and permission)", "PUT", path, a.token, {"description": "leak sweep", "permission": "team"})
+    s.req(row, "success (rename)", "PUT", path, a.token, {"name": f"leak-w-renamed-{suffix}"})
+    s.req(row, "success (same embedding model)", "PUT", path, a.token, {"embd_id": f"{A_EMBED_MODEL}@{COMPAT}"})
+    s.req(row, "success (parser configuration)", "PUT", path, a.token, {"parser_config": {"chunk_token_num": 256}})
+    s.req(row, "success with an API token", "PUT", path, token, {"description": "by token"})
+    s.req(row, "duplicate name", "PUT", path, a.token, {"name": f"leak-w-second-{suffix}".upper()})
+    s.req(row, "unknown embedding model", "PUT", path, a.token, {"embd_id": f"no-such-model@{COMPAT}"})
+    s.req(row, "chat model as embedding model", "PUT", path, a.token, {"embd_id": f"{A_CHAT_MODEL}@{COMPAT}"})
+    s.req(row, "invalid parser", "PUT", path, a.token, {"parser_id": "bogus"})
+    s.req(row, "null name", "PUT", path, a.token, {"name": None})
+    s.req(row, "no changes", "PUT", path, a.token, {})
+    s.req(row, "unknown field", "PUT", path, a.token, {"description": "x", "created_by": a.user_id})
+    s.req(row, "plain member of a team dataset", "PUT", path, member.token, {"description": "member"})
+    s.req(row, "private dataset as a member", "PUT", f"{DATASETS}/{w.a_private_dataset['id']}", member.token, {"description": "member"})
+    s.req(row, "absent id", "PUT", f"{DATASETS}/{uuid.uuid4().hex}", a.token, {"description": "x"})
+    s.req(row, "malformed id", "PUT", f"{DATASETS}/not-an-id", a.token, {"description": "x"})
+    s.req(row, "as an outsider", "PUT", path, b.token, {"description": "outsider"})
+    s.errors(row, "PUT", path, "PATCH")
+
+    row = f"DELETE {DATASETS}"
+    s.req(row, "success as owner", "DELETE", DATASETS, a.token, {"ids": [third]})
+    s.req(row, "repeated delete", "DELETE", DATASETS, a.token, {"ids": [third]})
+    s.req(row, "success with an API token", "DELETE", DATASETS, token, {"ids": [fourth], "tenant_id": a.tenant_id})
+    s.req(row, "plain member of a team dataset", "DELETE", DATASETS, member.token, {"ids": [first], "tenant_id": a.tenant_id})
+    s.req(row, "private dataset as a member", "DELETE", DATASETS, member.token, {"ids": [str(w.a_private_dataset["id"])], "tenant_id": a.tenant_id})
+    s.req(row, "ids that are not ids", "DELETE", DATASETS, a.token, {"ids": ["not-hex"]})
+    s.req(row, "empty ids", "DELETE", DATASETS, a.token, {"ids": []})
+    s.req(row, "unknown field", "DELETE", DATASETS, a.token, {"ids": [first], "created_by": a.user_id})
+    s.req(row, "unknown dataset", "DELETE", DATASETS, a.token, {"ids": [uuid.uuid4().hex]})
+    s.req(row, "one unknown id with a real one", "DELETE", DATASETS, a.token, {"ids": [first, uuid.uuid4().hex]})
+    s.req(row, "as an outsider", "DELETE", DATASETS, b.token, {"ids": [first]})
+    s.req(row, "as an outsider naming the workspace", "DELETE", DATASETS, b.token, {"ids": [first], "tenant_id": a.tenant_id})
+    s.errors(row, "DELETE", DATASETS, "PATCH")
+    s.req(row, "success with several ids", "DELETE", DATASETS, a.token, {"ids": [first, second, fifth], "tenant_id": a.tenant_id})
+
+
 def collect_database_secrets(s: Sweep) -> None:
     """Hashes and stored access tokens of every account the sweep touched, read back from MySQL."""
     ids = [acc.user_id for acc in s.registry.created]
@@ -522,6 +578,7 @@ def sweep(ingress: httpx.Client) -> Iterator[Sweep]:
             sweep_dataset_rows(s, world)
             sweep_upload_rows(s, world)
             sweep_document_rows(s, world)
+            sweep_dataset_write_rows(s, world)
             collect_database_secrets(s)
             s.secrets.extend(infrastructure_secrets())
             yield s

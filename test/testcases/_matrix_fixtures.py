@@ -400,6 +400,11 @@ def _dataset_detail(w: World) -> Target:
     return Target({"dataset_id": str(w.a_team_dataset["id"])}, _sender("GET", DATASETS + "/{dataset_id}", extra_fields=set()), w.snapshot_datasets)
 
 
+def _update_dataset(w: World) -> Target:
+    """PUT on A's team dataset: only its visibility keeps an outsider from it. The model takes only its own fields, so nothing else is smuggled in."""
+    return Target({"dataset_id": str(w.a_team_dataset["id"])}, _sender("PUT", DATASETS + "/{dataset_id}", {"description": "matrix-rewrite"}, extra_fields=set()), w.snapshot_datasets)
+
+
 def _list_documents(w: World) -> Target:
     return Target({"dataset_id": str(w.a_team_dataset["id"])}, _sender("GET", DATASETS + "/{dataset_id}/documents", extra_fields=set()), w.snapshot_documents)
 
@@ -411,6 +416,7 @@ def _delete_documents(w: World) -> Target:
 
 BUILDERS: dict[str, Builder] = {
     "GET /api/v1/datasets/{dataset_id}": _dataset_detail,
+    "PUT /api/v1/datasets/{dataset_id}": _update_dataset,
     "GET /api/v1/datasets/{dataset_id}/documents": _list_documents,
     "DELETE /api/v1/datasets/{dataset_id}/documents": _delete_documents,
     "DELETE /api/v1/providers/{provider}": _delete_provider,
@@ -739,7 +745,51 @@ def check_documents_upload(w: World) -> None:
     assert w.snapshot() == before
 
 
+def check_datasets_delete(w: World) -> None:
+    """DELETE /api/v1/datasets: outsiders reach none of A's datasets, alone or mixed with a dataset of their own, and nothing of theirs is deleted either.
+
+    A's own members get 403 for a dataset they did not create and the one 404 for a private dataset of the owner; A's datasets, documents and blobs never change.
+    """
+    before = w.snapshot()
+    assert w.registry is not None and w.fake is not None
+    own = w.registry.register(prefix="mxd")
+    embed = "matrix-d-embed-" + uuid.uuid4().hex[:8]
+    saved = {"provider": COMPAT, "base_url": w.fake.stack_base_url, "api_key": "-".join(("matrix", "d", "provider", "key", "0004")), "models": [{"name": embed, "type": "embedding"}]}
+    _ok(call(w.client, "PUT", PROVIDERS, own.token, {}, body=saved), "the extra workspace saves a provider")
+    mine = _ok(call(w.client, "POST", DATASETS, own.token, {}, body={"name": "matrix-d-own-" + uuid.uuid4().hex[:8], "embd_id": f"{embed}@{COMPAT}"}), "it creates a dataset")["data"]
+    own_token = str(_ok(call(w.client, "POST", TOKENS, own.token, {}), "it creates an API token")["data"]["token"])
+
+    def own_list() -> Any:
+        return call(w.client, "GET", DATASETS, own.token, {}).json()["data"]
+
+    own_state = own_list()
+    team, private = str(w.a_team_dataset["id"]), str(w.a_private_dataset["id"])
+    smuggle = {"tenant_id": w.a.tenant_id}
+    absent = triple(call(w.client, "DELETE", DATASETS, w.b.token, {}, body={"ids": [uuid.uuid4().hex]}))
+    assert absent == NOT_FOUND
+    outsiders = (
+        (w.b.token, "B"), (w.pending.token, "the pending invitee"), (w.b_api_token, "B's API token"),
+        (own.token, "another workspace's owner"), (own_token, "another workspace's API token"),
+    )  # fmt: skip
+    for token, label in outsiders:
+        for ids in ([team], [private], [team, private], [str(mine["id"]), team], [team, str(mine["id"])]):
+            for extra in ({}, smuggle):
+                resp = call(w.client, "DELETE", DATASETS, token, {}, body={"ids": ids, **extra})
+                assert triple(resp) == NOT_FOUND, f"{label} with {len(ids)} id(s) and {sorted(extra)}: {triple(resp)}"
+                _assert_no_a_data(resp.text, w, f"the refused dataset delete of {label}")
+        assert own_list() == own_state, f"{label}'s refused requests deleted a dataset of the extra workspace"
+    # A's members: a normal member did not create A's datasets (403 for the visible one, the one 404 for the private one); an admin cannot see the private one.
+    assert triple(call(w.client, "DELETE", DATASETS, w.normal.token, {}, body={"ids": [team], **smuggle})) == (403, 403, "forbidden")
+    assert triple(call(w.client, "DELETE", DATASETS, w.normal.token, {}, body={"ids": [team, private], **smuggle})) == NOT_FOUND, "an invisible id wins over a forbidden one"
+    assert triple(call(w.client, "DELETE", DATASETS, w.admin.token, {}, body={"ids": [private], **smuggle})) == NOT_FOUND, "no admin override for a private dataset (D-27)"
+    token = str(w.a_tokens[0]["token"])
+    for body in ({"ids": [uuid.uuid4().hex]}, {"ids": [team], "tenant_id": w.b.tenant_id}):
+        assert triple(call(w.client, "DELETE", DATASETS, token, {}, body=body)) == NOT_FOUND
+    assert w.snapshot() == before and own_list() == own_state
+
+
 NO_ID_CHECKS: dict[str, NoIdCheck] = {
+    "DELETE /api/v1/datasets": check_datasets_delete,
     "POST /api/v1/documents/upload": check_documents_upload,
     "GET /api/v1/datasets": check_datasets_list,
     "POST /api/v1/datasets": check_datasets_create,

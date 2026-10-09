@@ -14,7 +14,7 @@ export interface paths {
         get: operations["get_list_datasets"];
         put?: never;
         post: operations["post_create_dataset"];
-        delete?: never;
+        delete: operations["delete_delete_datasets"];
         options?: never;
         head?: never;
         patch?: never;
@@ -28,7 +28,7 @@ export interface paths {
             cookie?: never;
         };
         get: operations["get_get_dataset"];
-        put?: never;
+        put: operations["put_update_dataset"];
         post?: never;
         delete?: never;
         options?: never;
@@ -334,6 +334,11 @@ export interface components {
             /** Deleted */
             deleted: number;
         };
+        /** DeletedDatasets */
+        DeletedDatasets: {
+            /** Deleted */
+            deleted: string[];
+        };
         /** DeletedView */
         DeletedView: {
             /** Deleted */
@@ -599,6 +604,43 @@ export interface operations {
             };
         };
     };
+    delete_delete_datasets: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": {
+                    /** Ids */
+                    ids: string[];
+                    /**
+                     * Tenant Id
+                     * @default null
+                     */
+                    tenant_id?: string | null;
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Code */
+                        code: number;
+                        data: components["schemas"]["DeletedDatasets"];
+                        /** Message */
+                        message: string;
+                    };
+                };
+            };
+        };
+    };
     get_get_dataset: {
         parameters: {
             query?: never;
@@ -609,6 +651,80 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Code */
+                        code: number;
+                        data: components["schemas"]["DatasetView"];
+                        /** Message */
+                        message: string;
+                    };
+                };
+            };
+        };
+    };
+    put_update_dataset: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                dataset_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": {
+                    /**
+                     * Avatar
+                     * @default null
+                     */
+                    avatar?: string | null;
+                    /**
+                     * Description
+                     * @default null
+                     */
+                    description?: string | null;
+                    /**
+                     * Embd Id
+                     * @default null
+                     */
+                    embd_id?: string | null;
+                    /**
+                     * Language
+                     * @default null
+                     */
+                    language?: string | null;
+                    /**
+                     * Name
+                     * @default null
+                     */
+                    name?: string | null;
+                    /**
+                     * Parser Config
+                     * @default null
+                     */
+                    parser_config?: {
+                        [key: string]: unknown;
+                    } | null;
+                    /**
+                     * Parser Id
+                     * @default null
+                     */
+                    parser_id?: string | null;
+                    /**
+                     * Permission
+                     * @default null
+                     */
+                    permission?: string | null;
+                };
+            };
+        };
         responses: {
             200: {
                 headers: {

@@ -21,7 +21,7 @@ from test.helpers.accounts import Account, AccountRegistry
 from test.helpers.fake_provider import FakeProvider, fake_provider_stack  # noqa: F401  (fixture)
 from test.helpers.uploads import pdf_bytes, snapshot, sql, tenant_object_keys, tenant_row_counts
 from test.testcases.test_dataset_flow import DATASETS, DEFAULTS, DTO_KEYS, EMBED_ID, assert_clean, create, reason_of
-from test.testcases.test_provider_flow import CHAT, COMPAT, EMBED, NOT_FOUND, PROVIDERS, TOKENS, _bearer, api, join, ok, registry, save_body  # noqa: F401  (registry is a fixture)
+from test.testcases.test_provider_flow import CHAT, COMPAT, COMPAT_SLUG, EMBED, NOT_FOUND, PROVIDERS, TOKENS, _bearer, api, join, ok, registry, save_body  # noqa: F401  (registry is a fixture)
 from test.testcases.test_upload_flow import one, post_files
 
 pytestmark = pytest.mark.e2e
@@ -55,7 +55,8 @@ def remove(ingress: httpx.Client, who: Account, ids: object, **extra: object) ->
 def workspace(ingress: httpx.Client, accounts: AccountRegistry, fake: FakeProvider, prefix: str) -> Account:
     """A fresh owner with the fake chat model and two embedding models; the first is the workspace default."""
     owner = accounts.register(prefix=prefix)
-    ok(api(ingress, "PUT", PROVIDERS, owner.token, body=save_body(fake, models=[CHAT, EMBED, SECOND_EMBED])))
+    ok(api(ingress, "PUT", PROVIDERS, owner.token, body=save_body(fake, models=[CHAT, EMBED])))
+    ok(api(ingress, "POST", f"{PROVIDERS}/{COMPAT_SLUG}/instances", owner.token, body={"models": [SECOND_EMBED]}))
     ok(api(ingress, "PATCH", DEFAULTS, owner.token, body={"embedding": EMBED_ID}))
     return owner
 
@@ -152,9 +153,10 @@ def test_bad_updates_carry_a_reason_and_change_nothing(ingress: httpx.Client, re
 def test_server_owned_fields_cannot_be_assigned_by_an_update(ingress: httpx.Client, registry: AccountRegistry, fake_provider_stack: FakeProvider, field: str) -> None:  # noqa: F811
     owner = workspace(ingress, registry, fake_provider_stack, "lfmass")
     made = ok(create(ingress, owner, "Fixed"))
+    before = ok(api(ingress, "GET", dataset_path(made["id"]), owner.token))
     resp = update(ingress, owner, made["id"], {"description": "x", field: 99 if field.endswith("_num") else uuid.uuid4().hex})
     assert resp.status_code == 400, resp.text
-    assert ok(api(ingress, "GET", dataset_path(made["id"]), owner.token)) == made, "nothing in the refused request was applied"
+    assert ok(api(ingress, "GET", dataset_path(made["id"]), owner.token)) == before, "nothing in the refused request was applied"
 
 
 def test_only_the_creator_the_owner_and_admins_update_and_a_private_dataset_stays_invisible(ingress: httpx.Client, registry: AccountRegistry, fake_provider_stack: FakeProvider) -> None:  # noqa: F811

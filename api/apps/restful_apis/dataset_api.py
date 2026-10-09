@@ -1,4 +1,11 @@
-"""Dataset routes: create, list, open (plan 03-14; KB-01..05, KB-08, KB-09, TEN-13, TEN-16, SEC-02, D-08, D-18, D-19, D-20, D-26, D-27).
+"""Dataset routes: create, list, open (plan 03-14), update and delete (plan 03-18).
+
+Update and delete (plan 03-18; KB-06..09, TEN-13, TEN-16, D-09, D-10, D-20, D-27):
+
+* ``PUT /api/v1/datasets/<dataset_id>`` changes the fields named in the body (an absent key is not a change; ``model_fields_set`` tells absent from null).
+  The workspace comes from the dataset. A dataset the caller cannot see is the one 404, a visible one they may not manage is 403.
+* ``DELETE /api/v1/datasets`` with ``{"ids": [...], "tenant_id"?}`` deletes up to 20 datasets, all authorised before any change, and answers
+  ``{"deleted": [ids]}``. A failure part-way is 503 ``index_unavailable`` or ``busy`` with ``data.deleted`` listing the ids already finished.
 
 Three thin handlers in the order the other workspace-scoped routes use: resolve the acting workspace (a foreign or malformed one is the
 single not-found body), check the permission matrix, run the blocking service call in a bounded executor, map ``ServiceError`` to the
@@ -22,7 +29,7 @@ from api.db.services.knowledgebase_service import CreateRequest
 from api.db.services.service_errors import Kind, ServiceError
 from api.utils import reasons
 from api.utils.api_utils import json_result
-from api.utils.blocking import DB_EXECUTOR, DOCSTORE_EXECUTOR, run_blocking
+from api.utils.blocking import DB_EXECUTOR, DOCSTORE_EXECUTOR, STORAGE_EXECUTOR, run_blocking
 from common.settings import Settings
 
 dataset_bp = Blueprint("dataset", __name__)
@@ -36,6 +43,8 @@ MANAGE = "manage_dataset"
 LOOKUP_TIMEOUT_SECONDS = 10.0
 # The service waits up to 10 s for the creation lock and gives the index engine 30 s; the handler waits longer so the typed errors win.
 CREATE_TIMEOUT_SECONDS = 45.0
+UPDATE_TIMEOUT_SECONDS = 45.0  # a rename waits up to 10 s for the creation lock; an embedding change adds the upload lock and the index call
+DELETE_TIMEOUT_SECONDS = 60.0  # per-document batches, the index and the dataset lock (30 s) each have their own deadline inside
 DEFAULT_PAGE_SIZE = 12
 MAX_PAGE_SIZE = 100
 MAX_KEYWORDS = 128
@@ -57,6 +66,40 @@ class CreateDatasetBody(BaseModel):
     avatar: str | None = None
     parser_config: dict[str, Any] | None = None
     tenant_id: str | None = Field(default=None, pattern=_TENANT_ID_PATTERN)
+
+
+class UpdateDatasetBody(BaseModel):
+    """The editable fields only. A key that is absent is not a change; an explicit null clears ``description`` and ``avatar`` and is refused for the rest."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    name: str | None = None
+    description: str | None = None
+    permission: str | None = None
+    avatar: str | None = None
+    language: str | None = None
+    parser_id: str | None = None
+    parser_config: dict[str, Any] | None = None
+    embd_id: str | None = None
+
+
+class DeleteDatasetsBody(BaseModel):
+    """Only ``ids`` and the optional workspace. The number and shape of the ids are the service's check, so a bad one is a typed ``ids_invalid``."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    ids: list[str]
+    tenant_id: str | None = Field(default=None, pattern=_TENANT_ID_PATTERN)
+
+
+class DeletedDatasets(BaseModel):
+    deleted: list[str]
+
+
+class DeletedDatasetsEnvelope(BaseModel):
+    code: int
+    message: str
+    data: DeletedDatasets
 
 
 class UploadLimitsView(BaseModel):
@@ -180,6 +223,46 @@ async def get_dataset(dataset_id: str) -> Response:
         return service_error_response(exc)
 
 
+@validate_request(UpdateDatasetBody)
+@document_response(DatasetEnvelope, 200)
+async def update_dataset(dataset_id: str, data: UpdateDatasetBody) -> Response:
+    try:
+        settings = _settings()  # read here, on the loop
+        principal = g.principal
+        changes = {name: getattr(data, name) for name in data.model_fields_set}
+        visible = await run_blocking(DB_EXECUTOR, knowledgebase_service.load_visible_dataset, principal, dataset_id, timeout=LOOKUP_TIMEOUT_SECONDS)
+        denied = forbid_unless(visible.scope, AREA, MANAGE)
+        if denied is not None:
+            return denied
+        view = await run_blocking(DOCSTORE_EXECUTOR, knowledgebase_service.update_view, settings, visible, principal.user_id, changes, timeout=UPDATE_TIMEOUT_SECONDS)
+        return json_result(view)
+    except ServiceError as exc:
+        return service_error_response(exc)
+
+
+@validate_request(DeleteDatasetsBody)
+@document_response(DeletedDatasetsEnvelope, 200)
+async def delete_datasets(data: DeleteDatasetsBody) -> Response:
+    try:
+        scope = await acting_scope(data.tenant_id)
+        if scope is None:
+            return not_found_response()
+        denied = forbid_unless(scope, AREA, MANAGE)  # the coarse check; the service decides per dataset who may manage it
+        if denied is not None:
+            return denied
+        settings, principal, ids, tenant_id = _settings(), g.principal, list(data.ids), data.tenant_id
+        deleted = await run_blocking(
+            STORAGE_EXECUTOR,
+            lambda: knowledgebase_service.delete_datasets(settings, principal, ids, tenant_id=tenant_id),
+            timeout=DELETE_TIMEOUT_SECONDS,
+        )
+        return json_result({"deleted": deleted})
+    except ServiceError as exc:
+        return service_error_response(exc)
+
+
 dataset_bp.add_url_rule(DATASETS, endpoint="create_dataset", view_func=create_dataset, methods=["POST"])
 dataset_bp.add_url_rule(DATASETS, endpoint="list_datasets", view_func=list_datasets, methods=["GET"])
 dataset_bp.add_url_rule(DATASET, endpoint="get_dataset", view_func=get_dataset, methods=["GET"])
+dataset_bp.add_url_rule(DATASET, endpoint="update_dataset", view_func=update_dataset, methods=["PUT"])
+dataset_bp.add_url_rule(DATASETS, endpoint="delete_datasets", view_func=delete_datasets, methods=["DELETE"])

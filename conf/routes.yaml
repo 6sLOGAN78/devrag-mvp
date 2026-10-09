@@ -160,9 +160,9 @@ endpoints:
      note: "plan 03-14 lists datasets; a me dataset is visible to its creator only (D-27)"}
   - {method: GET, path: "/api/v1/datasets/{dataset_id}", owner: python, auth: api, roles: [owner, admin, normal], scope: tenant, implemented: true,
      note: "plan 03-14 reads a dataset; invisible and foreign ids answer the one 404 (D-20)"}
-  - {method: PUT, path: "/api/v1/datasets/{dataset_id}", owner: python, auth: api, roles: [owner, admin, normal], scope: tenant, implemented: false,
+  - {method: PUT, path: "/api/v1/datasets/{dataset_id}", owner: python, auth: api, roles: [owner, admin, normal], scope: tenant, implemented: true,
      note: "plan 03-18 updates a dataset; manage means creator, owner or admin (D-09)"}
-  - {method: DELETE, path: "/api/v1/datasets", owner: python, auth: api, roles: [owner, admin, normal], scope: tenant, implemented: false,
+  - {method: DELETE, path: "/api/v1/datasets", owner: python, auth: api, roles: [owner, admin, normal], scope: tenant, implemented: true,
      note: "plan 03-18 deletes datasets by id list; manage means creator, owner or admin (D-09)"}
   - {method: POST, path: "/api/v1/documents/upload", owner: python, auth: api, roles: [owner, admin, normal], scope: tenant, implemented: true,
      note: "plan 03-16 streams an upload into a dataset; the dataset must be visible to the caller (D-27)"}
