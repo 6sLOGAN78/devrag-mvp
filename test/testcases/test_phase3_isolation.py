@@ -402,7 +402,8 @@ def test_a_token_is_judged_as_its_user_not_elevated_to_the_workspace_role(world:
     w = world
     token = str(w.a_tokens[1]["token"])
     scope = {"tenant_id": w.a.tenant_id}
-    shared = _ok_data(call(w.client, "POST", DATASETS, w.normal.token, {}, body={"name": _unique("iso-member-team"), "permission": "team", "tenant_id": w.a.tenant_id}), "the member creates a team dataset")
+    body = {"name": _unique("iso-member-team"), "permission": "team", "tenant_id": w.a.tenant_id}
+    shared = _ok_data(call(w.client, "POST", DATASETS, w.normal.token, {}, body=body), "the member creates a team dataset")
     dataset_id = str(shared["id"])
     # another member's document in the member's team dataset: the owner's session may manage both, the owner's token may not
     member_doc = _ok_data(upload_file(w, w.victim.token, dataset_id, query=scope), "another member uploads into the team dataset")[0]
