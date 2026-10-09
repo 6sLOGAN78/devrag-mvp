@@ -50,6 +50,8 @@ A_EMBED_MODEL = "matrix-a-embed-" + uuid.uuid4().hex[:8]
 # Dataset names that belong to A's side only.
 A_TEAM_DATASET = "matrix-a-team-" + uuid.uuid4().hex[:8]
 A_PRIVATE_DATASET = "matrix-a-private-" + uuid.uuid4().hex[:8]
+# A private dataset that a normal member of A's workspace created in A's workspace (plan 03-19): its creator is not the owner.
+A_NORMAL_PRIVATE_DATASET = "matrix-a-member-private-" + uuid.uuid4().hex[:8]
 
 
 @dataclass(frozen=True)
@@ -149,6 +151,8 @@ class World:
     a_private_dataset: dict[str, Any] = field(default_factory=dict)  # A's dataset with permission me
     a_team_documents: list[dict[str, Any]] = field(default_factory=list)  # two documents A uploaded into the team dataset (plan 03-17)
     a_private_documents: list[dict[str, Any]] = field(default_factory=list)  # one document A uploaded into the private dataset
+    a_normal_private_dataset: dict[str, Any] = field(default_factory=dict)  # a `me` dataset the normal member created in A's workspace (plan 03-19)
+    scratch: dict[str, Any] = field(default_factory=dict)  # per-call disposable resources of the isolation table (plan 03-19)
 
     # reads performed as A -----------------------------------------------------------------------------------------
     def list_tokens(self, who: Account) -> list[dict[str, Any]]:
@@ -237,7 +241,7 @@ class World:
             out += [str(tok["token"]), str(tok["beta"])]
         if self.fake is not None:
             out += [A_PROVIDER_KEY, A_CHAT_MODEL, A_EMBED_MODEL]
-        for dataset in (self.a_team_dataset, self.a_private_dataset):
+        for dataset in (self.a_team_dataset, self.a_private_dataset, self.a_normal_private_dataset):
             out += [str(dataset.get("id", "")), str(dataset.get("name", ""))]
         for doc in (*self.a_team_documents, *self.a_private_documents):
             out += [str(doc.get("id", "")), str(doc.get("name", ""))]
@@ -306,6 +310,10 @@ def build_world(client: httpx.Client, registry: AccountRegistry, fake: FakeProvi
         _ok(call(client, "PATCH", MODELS_DEFAULT, a.token, {}, body={"embedding": a_embed_id()}), "A chooses its embedding default")
         world.a_team_dataset = _ok(call(client, "POST", DATASETS, a.token, {}, body={"name": A_TEAM_DATASET, "permission": "team"}), "A creates a team dataset")["data"]
         world.a_private_dataset = _ok(call(client, "POST", DATASETS, a.token, {}, body={"name": A_PRIVATE_DATASET}), "A creates a private dataset")["data"]
+        # The normal member creates a private dataset of its own in A's workspace: it is visible to nobody else, the owner included (D-27).
+        world.a_normal_private_dataset = _ok(
+            call(client, "POST", DATASETS, normal.token, {}, body={"name": A_NORMAL_PRIVATE_DATASET, "tenant_id": a.tenant_id}), "the normal member creates a private dataset in A"
+        )["data"]
         # Documents go in through the real upload route: two into the team dataset, one into the private one.
         plan = (
             (world.a_team_dataset, world.a_team_documents, ("matrix-team-one.pdf", "matrix-team-two.pdf")),
