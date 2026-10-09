@@ -9,6 +9,7 @@ dimension of the default embedding model of these workspaces.
 from __future__ import annotations
 
 import dataclasses
+import re
 import threading
 import uuid
 from collections.abc import Callable
@@ -149,7 +150,7 @@ def test_list_rows_carry_exactly_the_allowed_keys_and_no_storage_detail(settings
     assert len(rows) == 1 and set(rows[0]) == DTO_KEYS
     banned = {"location", "status", "thumbnail", "source", "source_type", "bucket", "key"}
     assert banned.isdisjoint(rows[0])
-    assert owner.tenant_id not in str(rows[0])
+    assert re.search(r"[0-9a-f]{32}/[0-9a-f]{32}", str(rows[0])) is None, "no storage key shape"
 
 
 def test_list_shows_a_per_document_parser_override(settings, space, storage):

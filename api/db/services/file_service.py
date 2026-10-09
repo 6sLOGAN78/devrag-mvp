@@ -7,6 +7,10 @@
   and never links another member's file. The candidate's ``file`` row is locked ``FOR UPDATE`` first, so a delete that removes the last link
   and the blob either commits before the lookup (no candidate) or sees the new link (blob kept).
 * ``release_blobs`` is the compensation: it removes the blobs a failed request created, best effort, and logs the operation only.
+* ``release_files`` (plan 03-17) is the delete side: inside the caller's transaction it removes documents' tasks, links and rows, and returns the
+  keys whose last link went. It takes the affected ``file`` rows ``FOR UPDATE`` first (sorted by id), so it serialises with ``reuse_or_store``
+  on the same rows, and counts the remaining links with a locking read, so a link an upload committed while it waited is seen (a plain read
+  would use the transaction's older snapshot and wrongly free a blob that was just reused).
 
 The module imports no web framework. Storage drivers are blocking; callers run this in the storage executor.
 """
@@ -14,10 +18,10 @@ The module imports no web framework. Storage drivers are blocking; callers run t
 from __future__ import annotations
 
 import logging
-from collections.abc import Iterator
+from collections.abc import Iterator, Sequence
 from dataclasses import dataclass
 
-from api.db.models import Document, File, File2Document
+from api.db.models import Document, File, File2Document, Task
 from api.db.services.upload_rules import SeekableReader, streams_equal
 from common.constants import BUCKET_NAME
 from rag.utils.storage_base import DEFAULT_CHUNK_SIZE, Storage, StorageError, StorageNotFound, new_object_key
@@ -132,12 +136,44 @@ def reuse_or_store(storage: Storage, tenant_id: str, stream: SeekableReader, con
     return None, key, True
 
 
-def release_blobs(storage: Storage, keys: list[str]) -> None:
+def release_blobs(storage: Storage, keys: Sequence[str], operation: str = "upload") -> None:
     """Remove ``keys`` best effort. A failure is logged with the operation only (never the key) and does not stop the others."""
     for key in keys:
         try:
             storage.rm(BUCKET_NAME, key)
         except StorageError:
-            logger.warning("upload cleanup could not remove a blob")
+            logger.warning("%s cleanup could not remove a blob", operation)
         except Exception as exc:  # noqa: BLE001 - cleanup must reach the remaining keys whatever the driver raised
-            logger.warning("upload cleanup failed unexpectedly error=%s", type(exc).__name__)
+            logger.warning("%s cleanup failed unexpectedly error=%s", operation, type(exc).__name__)
+
+
+def release_files(document_ids: Sequence[str]) -> list[str]:
+    """Delete the tasks, links and rows of ``document_ids`` and return the blob keys nothing references any more.
+
+    Call inside a transaction with an open connection. Order (it matters): lock the affected ``file`` rows sorted by id; delete tasks,
+    ``file2document`` rows and documents; then, per file, count the links that remain (all datasets of the workspace, locking read) and delete
+    the ``file`` row when none do. The returned keys are removed from storage by the caller after the commit.
+    """
+    ids = sorted(set(document_ids))
+    if not ids:
+        return []
+    linked = File2Document.select(File2Document.file_id).where(File2Document.document_id.in_(ids))
+    file_ids = sorted({link.file_id for link in linked if link.file_id})
+    locations: dict[str, str | None] = {}
+    if file_ids:
+        locked = File.select(File.id, File.location).where(File.id.in_(file_ids)).order_by(File.id).for_update()
+        locations = {row.id: row.location for row in locked}
+    Task.delete().where(Task.doc_id.in_(ids)).execute()
+    File2Document.delete().where(File2Document.document_id.in_(ids)).execute()
+    Document.delete().where(Document.id.in_(ids)).execute()
+    freed: list[str] = []
+    for file_id in file_ids:
+        if file_id not in locations:  # the row is already gone: nothing to free
+            continue
+        remaining = list(File2Document.select(File2Document.id).where(File2Document.file_id == file_id).limit(1).for_update())
+        if remaining:
+            continue
+        File.delete().where(File.id == file_id).execute()
+        if locations[file_id]:
+            freed.append(str(locations[file_id]))
+    return freed

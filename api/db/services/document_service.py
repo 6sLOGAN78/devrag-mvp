@@ -12,6 +12,17 @@ Order of ``upload_documents`` (Pattern 9; Pitfalls 1 to 3):
    ``knowledgebase.doc_num``.
 4. If anything fails after a blob was written, the blobs created by this request (never reused ones) are removed and the transaction is rolled back.
 
+Listing and deletion (plan 03-17; DOC-08, DOC-14, DOC-15):
+
+* ``list_documents`` / ``list_view``: one page of a visible dataset's documents, newest first, optional escaped ``LIKE`` on the name.
+* ``delete_documents`` is all-or-nothing. Every id must belong to the dataset (one ``NOT_FOUND`` otherwise) and the caller must be allowed to
+  remove each (``FORBIDDEN``) before anything changes. The index is pruned first (``DocStoreConnection.delete`` by ``doc_id``; an unavailable
+  index is ``UNAVAILABLE`` ``index_unavailable`` and nothing else changes). Then, under the same dataset lock uploads use and in one transaction,
+  the documents are locked again (a concurrent delete of the same ids loses with ``NOT_FOUND``), their tasks, links and rows go, the dataset's
+  counters drop, and ``file_service.release_files`` frees a ``file`` row only when no link in the workspace still points to it. The freed blobs
+  are removed after the commit, best effort. A caller with an API token is not given its owner's role: only the uploader or the dataset's
+  creator may remove (``tenant_scope.can_remove_document`` is called with the permission subject, D-26, Pitfall 6).
+
 The module imports no web framework; files arrive as small readable streams. Storage drivers are blocking: the caller runs this in the storage
 executor with an explicit deadline.
 """
@@ -20,10 +31,13 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 import uuid
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from typing import Any
+
+import peewee
 
 from api.apps.permissions_gen import allowed
 from api.db.database import DB, DatabaseLock, LockError, LockTimeoutError, transaction
@@ -33,6 +47,7 @@ from api.db.services import file_service
 from api.db.services.auth_service import Principal
 from api.db.services.knowledgebase_service import MAX_PARSER_CONFIG, PARSER_IDS, DatasetRecord, VisibleDataset, load_visible_dataset
 from api.db.services.service_errors import Kind, ServiceError
+from api.db.services.tenant_scope import can_remove_document
 from api.db.services.upload_rules import (
     HEAD_BYTES,
     SeekableReader,
@@ -44,7 +59,9 @@ from api.db.services.upload_rules import (
     validate_file,
 )
 from api.utils import reasons
+from common.doc_store.doc_store_base import DocStoreConnection, DocStoreError, index_name
 from common.settings import Settings, UploadSettings
+from rag.utils.es_conn import get_doc_store
 from rag.utils.storage_base import Storage, StorageError
 from rag.utils.storage_factory import get_storage
 
@@ -58,6 +75,12 @@ _VALID = "1"  # knowledgebase.status: 1 is a live dataset
 _SOURCE_LOCAL = "local"
 _FILE_SOURCE = "knowledgebase"
 _NOT_STARTED = "0"
+MAX_PAGE_SIZE = 100
+MAX_KEYWORDS = 128
+MAX_DELETE_IDS = 100
+DEADLOCK_ATTEMPTS = 3
+_MYSQL_DEADLOCK = 1213
+_ID = re.compile(r"[0-9a-f]{32}")
 
 
 @dataclass
@@ -83,6 +106,14 @@ def authorize_upload(principal: Principal, dataset_id: str) -> VisibleDataset:
     if not allowed(visible.scope.subject, AREA, MANAGE_DOCUMENT):
         raise ServiceError(Kind.FORBIDDEN, reasons.FORBIDDEN, "forbidden")
     return visible
+
+
+def authorize_removal(principal: Principal, dataset_id: str) -> VisibleDataset:
+    """The dataset the caller may remove documents from: the same visibility and ``datasets.manage_document`` rule as an upload.
+
+    Which documents the caller may remove is decided per document by ``delete_documents``.
+    """
+    return authorize_upload(principal, dataset_id)
 
 
 def _parser_invalid(message: str) -> ServiceError:
@@ -260,3 +291,140 @@ def _store(
         raise
     logger.info("upload tenant=%s dataset=%s files=%d reused=%d created=%d", tenant_id, dataset.id, len(items), reused, len(created_keys))
     return made
+
+
+# ----------------------------------------------------------------------------- list
+
+
+def _escape_like(text: str) -> str:
+    return text.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+
+
+def _query_invalid(message: str) -> ServiceError:
+    return ServiceError(Kind.INVALID, reasons.QUERY_INVALID, message)
+
+
+def list_documents(visible: VisibleDataset, *, page: int, page_size: int, keywords: str | None) -> tuple[list[dict[str, Any]], int]:
+    """One page of the dataset's documents, newest first, and the number of matches.
+
+    ``page`` below 1 is 1 and ``page_size`` is held to 1..100 (the handler refuses out-of-range values; the service never lets a caller read more).
+    ``keywords`` (at most 128 characters) is a case-insensitive substring of the name; ``%`` and ``_`` in it are literal.
+    """
+    if keywords is not None and (not isinstance(keywords, str) or len(keywords) > MAX_KEYWORDS):
+        raise _query_invalid(f"keywords must be at most {MAX_KEYWORDS} characters")
+    page = max(1, int(page))
+    page_size = min(max(1, int(page_size)), MAX_PAGE_SIZE)
+    where = Document.kb_id == visible.dataset.id
+    if keywords:
+        pattern = f"%{_escape_like(keywords)}%"
+        where = where & peewee.NodeList((Document.name, peewee.SQL("LIKE"), pattern, peewee.SQL("ESCAPE '\\\\'")))
+    columns = (
+        Document.id, Document.name, Document.size, Document.type, Document.suffix, Document.run, Document.progress, Document.kb_id,
+        Document.created_by, Document.parser_id, Document.chunk_num, Document.token_num, Document.create_time, Document.update_time,
+    )  # fmt: skip  # not the thumbnail or the progress message: they can be large and are never returned
+    with DB.connection_context():
+        total = Document.select().where(where).count()
+        rows = Document.select(*columns).where(where).order_by(Document.create_time.desc(), Document.id).paginate(page, page_size)
+        return [document_dto(row) for row in rows], total
+
+
+def list_view(principal: Principal, dataset_id: str, *, page: int, page_size: int, keywords: str | None) -> dict[str, Any]:
+    """``{"items": [...], "total": n}`` for a dataset the caller can see; the one ``NOT_FOUND`` otherwise."""
+    visible = load_visible_dataset(principal, dataset_id)
+    items, total = list_documents(visible, page=page, page_size=page_size, keywords=keywords)
+    return {"items": items, "total": total}
+
+
+# ----------------------------------------------------------------------------- delete
+
+
+def _clean_ids(ids: object) -> list[str]:
+    """The unique, well-formed ids of a delete request in request order: 1 to 100 of them, each 32 lowercase hex characters."""
+    if not isinstance(ids, (list, tuple)) or not 1 <= len(ids) <= MAX_DELETE_IDS:
+        raise ServiceError(Kind.INVALID, reasons.IDS_INVALID, f"send between 1 and {MAX_DELETE_IDS} document ids")
+    clean: list[str] = []
+    for value in ids:
+        if not isinstance(value, str) or _ID.fullmatch(value) is None:
+            raise ServiceError(Kind.INVALID, reasons.IDS_INVALID, "a document id is not valid")
+        if value not in clean:
+            clean.append(value)
+    return clean
+
+
+def _not_found() -> ServiceError:
+    return ServiceError(Kind.NOT_FOUND, reasons.DATASET_NOT_FOUND, "not found")
+
+
+def delete_documents(
+    settings: Settings,
+    visible: VisibleDataset,
+    user_id: str,
+    ids: Sequence[str],
+    *,
+    storage: Storage | None = None,
+    doc_store: DocStoreConnection | None = None,
+) -> int:
+    """Remove the documents ``ids`` of the dataset, all or none, and return how many. See the module note for the order of the steps."""
+    wanted = _clean_ids(ids)
+    dataset, scope = visible.dataset, visible.scope
+    with DB.connection_context():
+        found = list(Document.select(Document.id, Document.created_by).where(Document.id.in_(wanted) & (Document.kb_id == dataset.id)))
+    if len(found) != len(wanted):
+        raise _not_found()
+    for doc in found:
+        if not can_remove_document(doc.created_by, dataset.created_by, user_id, scope.subject):
+            raise ServiceError(Kind.FORBIDDEN, reasons.FORBIDDEN, "forbidden")
+
+    engine = doc_store if doc_store is not None else get_doc_store(settings)
+    try:
+        engine.delete({"doc_id": wanted}, index_name(scope.tenant_id), dataset.id)
+    except DocStoreError as exc:
+        logger.warning("document delete could not prune the index tenant=%s dataset=%s error=%s", scope.tenant_id, dataset.id, type(exc).__name__)
+        raise ServiceError(Kind.UNAVAILABLE, reasons.INDEX_UNAVAILABLE, "the search index is not available, try again shortly") from None
+
+    blobs = storage if storage is not None else get_storage(settings)
+    lock = DatabaseLock(upload_lock_name(dataset.id), LOCK_TIMEOUT_SECONDS)
+    try:
+        lock.acquire()
+    except (LockTimeoutError, LockError):
+        raise ServiceError(Kind.UNAVAILABLE, reasons.BUSY, "another change to this dataset is running, try again shortly") from None
+    try:
+        with DB.connection_context():
+            freed = _remove_rows(dataset.id, wanted)
+    finally:
+        try:
+            lock.release()
+        except LockError:
+            logger.warning("delete lock was not held at release dataset=%s", dataset.id)
+    file_service.release_blobs(blobs, freed, "delete")  # after the commit: a failure here leaves an orphan blob, never a document without one
+    logger.info("delete tenant=%s dataset=%s documents=%d blobs=%d", scope.tenant_id, dataset.id, len(wanted), len(freed))
+    return len(wanted)
+
+
+def _remove_rows(dataset_id: str, wanted: list[str]) -> list[str]:
+    """One transaction: lock the documents, release their files, lower the dataset's counters. Retried when MySQL picks it as a deadlock victim."""
+    for attempt in range(1, DEADLOCK_ATTEMPTS + 1):
+        try:
+            with transaction():
+                # By primary key only, so no range of the dataset is locked; the dataset is checked on the rows that come back.
+                locked = list(Document.select(Document.id, Document.kb_id, Document.chunk_num, Document.token_num).where(Document.id.in_(wanted)).order_by(Document.id).for_update())
+                if len(locked) != len(wanted) or any(doc.kb_id != dataset_id for doc in locked):
+                    raise _not_found()  # a concurrent delete got there first: nothing is changed
+                freed = file_service.release_files(wanted)
+                chunks = sum(int(doc.chunk_num or 0) for doc in locked)
+                tokens = sum(int(doc.token_num or 0) for doc in locked)
+                now = current_timestamp_ms()
+                Knowledgebase.update(
+                    doc_num=peewee.fn.GREATEST(Knowledgebase.doc_num - len(wanted), 0),
+                    chunk_num=peewee.fn.GREATEST(Knowledgebase.chunk_num - chunks, 0),
+                    token_num=peewee.fn.GREATEST(Knowledgebase.token_num - tokens, 0),
+                    update_time=now,
+                    update_date=timestamp_to_date(now),
+                ).where(Knowledgebase.id == dataset_id).execute()
+            return freed
+        except peewee.OperationalError as exc:
+            if exc.args and exc.args[0] == _MYSQL_DEADLOCK and attempt < DEADLOCK_ATTEMPTS:
+                logger.warning("delete transaction was a deadlock victim dataset=%s attempt=%d", dataset_id, attempt)
+                continue
+            raise
+    raise AssertionError("unreachable: the last attempt returns or raises")
