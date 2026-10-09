@@ -58,15 +58,15 @@ Requirements for initial release. Each maps to exactly one roadmap phase.
 
 ### KB — Knowledge bases (datasets)
 
-- [ ] **KB-01**: User can create a dataset with `name`, `parser_id`, `embd_id` via `POST /api/v1/datasets`; duplicate name within the tenant is rejected
-- [ ] **KB-02**: Creating a dataset validates the embedding model against tenant models and resolves its vector dimension
-- [ ] **KB-03**: Creating a dataset provisions the docstore index with the matching dense-vector schema and analyzers
-- [ ] **KB-04**: User can list datasets with `page`, `page_size`, `keywords` via `GET /api/v1/datasets`
-- [ ] **KB-05**: User can get one dataset's detail via `GET /datasets/<dataset_id>`
+- [x] **KB-01**: User can create a dataset with `name`, `parser_id`, `embd_id` via `POST /api/v1/datasets`; duplicate name within the tenant is rejected
+- [x] **KB-02**: Creating a dataset validates the embedding model against tenant models and resolves its vector dimension
+- [x] **KB-03**: Creating a dataset provisions the docstore index with the matching dense-vector schema and analyzers
+- [x] **KB-04**: User can list datasets with `page`, `page_size`, `keywords` via `GET /api/v1/datasets`
+- [x] **KB-05**: User can get one dataset's detail via `GET /datasets/<dataset_id>`
 - [ ] **KB-06**: User can update dataset name, parser, and parser config via `PUT /api/v1/datasets/<dataset_id>`
 - [ ] **KB-07**: User can delete dataset(s) via `DELETE /api/v1/datasets`; documents, chunks, and the vector index are removed
-- [ ] **KB-08**: Dataset stores `parser_config` JSON: `chunk_token_num`, `delimiter`, `pages`, `table_context_size`, `image_context_size`, layout-model toggle, auto-keyword count
-- [ ] **KB-09**: Dataset stores avatar, language (default `English`), description, and status
+- [x] **KB-08**: Dataset stores `parser_config` JSON: `chunk_token_num`, `delimiter`, `pages`, `table_context_size`, `image_context_size`, layout-model toggle, auto-keyword count
+- [x] **KB-09**: Dataset stores avatar, language (default `English`), description, and status
 - [ ] **KB-10**: User can aggregate tags across datasets via `GET /datasets/tags/aggregation`
 - [ ] **KB-11**: User can list and delete tags of a dataset via `GET` / `DELETE /datasets/<dataset_id>/tags`
 - [ ] **KB-12**: User can fetch flattened metadata across datasets via `GET /datasets/metadata/flattened`
@@ -618,7 +618,7 @@ Requirements for initial release. Each maps to exactly one roadmap phase.
 
 - [x] **E2E-01**: User registration creates user, tenant, owner link — passes against the real stack with no mocks (covers AUTH-01..04; flow: `21-end-to-end-flows/user-registration.md`)
 - [x] **E2E-02**: Login returns token, user, tenant, default models — passes against the real stack with no mocks (covers AUTH-05..07; flow: `21-.../login.md`) — *login returns token, user, tenant, role and the default model id fields through the real stack; the model ids are empty until configured (D-22, B-09)*
-- [ ] **E2E-03**: Create knowledge base provisions DB row and docstore index — passes against the real stack with no mocks (covers KB-01..03, IDX-05; flow: `21-.../create-knowledge-base.md`)
+- [x] **E2E-03**: Create knowledge base provisions DB row and docstore index — passes against the real stack with no mocks (covers KB-01..03, IDX-05; flow: `21-.../create-knowledge-base.md`)
 - [ ] **E2E-04**: Upload document stores blob and creates UNSTART document — passes against the real stack with no mocks (covers DOC-01..07, STOR; flow: `21-.../upload-document.md`)
 - [ ] **E2E-05**: Document processing: parse request, queue, worker, DeepDoc, chunks — passes against the real stack with no mocks (covers DOC-09, ING, PARSE, CHUNK; flow: `21-.../document-processing.md`)
 - [ ] **E2E-06**: Indexing: embed, optional enrichment, bulk insert, document finished — passes against the real stack with no mocks (covers IDX, CHUNK-22..26; flow: `21-.../indexing.md`)
@@ -722,15 +722,15 @@ Which phases cover which requirements. Updated during roadmap creation.
 | TEN-14 | Phase 8 | Pending |
 | TEN-15 | Phase 8 | Pending |
 | TEN-16 | Phase 3 | Complete |
-| KB-01 | Phase 3 | Pending |
-| KB-02 | Phase 3 | Pending |
-| KB-03 | Phase 3 | Pending |
-| KB-04 | Phase 3 | Pending |
-| KB-05 | Phase 3 | Pending |
+| KB-01 | Phase 3 | Complete |
+| KB-02 | Phase 3 | Complete |
+| KB-03 | Phase 3 | Complete |
+| KB-04 | Phase 3 | Complete |
+| KB-05 | Phase 3 | Complete |
 | KB-06 | Phase 3 | Pending |
 | KB-07 | Phase 3 | Pending |
-| KB-08 | Phase 3 | Pending |
-| KB-09 | Phase 3 | Pending |
+| KB-08 | Phase 3 | Complete |
+| KB-09 | Phase 3 | Complete |
 | KB-10 | Phase 6 | Pending |
 | KB-11 | Phase 6 | Pending |
 | KB-12 | Phase 6 | Pending |
@@ -1204,7 +1204,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | TEST-12 | Phase 8 | Pending |
 | E2E-01 | Phase 2 | Complete |
 | E2E-02 | Phase 2 | Complete (as decided, D-22) |
-| E2E-03 | Phase 3 | Pending |
+| E2E-03 | Phase 3 | Complete |
 | E2E-04 | Phase 3 | Pending |
 | E2E-05 | Phase 4 | Pending |
 | E2E-06 | Phase 4 | Pending |

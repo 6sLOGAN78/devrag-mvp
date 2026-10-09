@@ -244,7 +244,7 @@ Plans:
 
 **Wave 7** *(blocked on Wave 6 completion)*
 
-- [ ] 03-14-PLAN.md — Dataset create, list and detail with index provisioning (E2E-03)
+- [x] 03-14-PLAN.md — Dataset create, list and detail with index provisioning (E2E-03)
 
 **Wave 8** *(blocked on Wave 7 completion)*
 
