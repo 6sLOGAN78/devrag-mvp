@@ -671,7 +671,8 @@ def test_a_delete_racing_an_upload_leaves_no_orphan_document_link_or_blob(settin
     outcomes: list[str] = []
     for round_number in range(ROUNDS):
         doomed = make(settings, owner, f"doomed-{round_number}-{uuid.uuid4().hex[:6]}")
-        upload(settings, owner, doomed, [item("seed.pdf", pdf_bytes(f"seed{round_number}"))], storage=store)
+        if round_number % 2:  # an empty dataset makes the delete fast, a seeded one slow: the upload then lands on either side of the final transaction
+            upload(settings, owner, doomed, [item("seed.pdf", pdf_bytes(f"seed{round_number}"))], storage=store)
         visible = docs.authorize_upload(principal_of(owner), doomed.id)
         data = survivor_bytes if shared else pdf_bytes(f"race{round_number}")
 

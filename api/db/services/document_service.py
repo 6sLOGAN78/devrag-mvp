@@ -45,7 +45,7 @@ from api.db.models import Document, File, File2Document, Knowledgebase
 from api.db.models.base import current_timestamp_ms, timestamp_to_date
 from api.db.services import file_service
 from api.db.services.auth_service import Principal
-from api.db.services.knowledgebase_service import MAX_PARSER_CONFIG, PARSER_IDS, DatasetRecord, VisibleDataset, load_visible_dataset
+from api.db.services.knowledgebase_service import MAX_PARSER_CONFIG, PARSER_IDS, DatasetRecord, VisibleDataset, load_visible_dataset, upload_lock_name
 from api.db.services.service_errors import Kind, ServiceError
 from api.db.services.tenant_scope import can_remove_document
 from api.db.services.upload_rules import (
@@ -69,7 +69,6 @@ logger = logging.getLogger(__name__)
 
 AREA = "datasets"
 MANAGE_DOCUMENT = "manage_document"
-LOCK_PREFIX = "kb-upload:"
 LOCK_TIMEOUT_SECONDS = 30
 _VALID = "1"  # knowledgebase.status: 1 is a live dataset
 _SOURCE_LOCAL = "local"
@@ -90,11 +89,6 @@ class UploadItem:
     name: str
     mime: str
     stream: SeekableReader
-
-
-def upload_lock_name(dataset_id: str) -> str:
-    """``kb-upload:`` plus a 32-character dataset id: 42 characters, within the 64 MySQL allows."""
-    return f"{LOCK_PREFIX}{dataset_id}"
 
 
 def authorize_upload(principal: Principal, dataset_id: str) -> VisibleDataset:
