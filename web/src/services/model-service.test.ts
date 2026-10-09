@@ -1,7 +1,7 @@
 import { AxiosHeaders, type AxiosAdapter, type InternalAxiosRequestConfig } from "axios";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { http } from "./http";
-import { getDefaults, listModels, listProviders } from "./model-service";
+import { addModel, deleteProvider, getDefaults, listModels, listProviders, registeredModelFor, saveProvider, type ProviderView } from "./model-service";
 
 const originalAdapter = http.defaults.adapter;
 let body: unknown;
@@ -98,5 +98,102 @@ describe("model service mapping (T-03-20-01)", () => {
     expect(seen[0]?.params).toEqual({ tenant_id: "t1" });
     body = success(null);
     await expect(getDefaults("t1")).resolves.toEqual({ chat: "", embedding: "" });
+  });
+});
+
+describe("model service writes (plan 03-21)", () => {
+  // Obviously fake, assembled from parts.
+  const KEY = ["fake", "write", "key", "0002"].join("-");
+
+  it("saves a provider with PUT, the workspace in the body, a 45 second timeout, silent, and maps the answer", async () => {
+    body = success(providerDto);
+    const saved = await saveProvider({
+      tenantId: "t1",
+      provider: "openrouter",
+      apiKey: KEY,
+      models: [{ name: "baai/bge-m3", type: "embedding" }],
+    });
+    expect(saved.slug).toBe("openrouter");
+    expect(saved.instances[0]?.last4).toBe("ab12");
+    expect(seen).toHaveLength(1);
+    expect(seen[0]?.method).toBe("put");
+    expect(seen[0]?.url).toBe("/api/v1/providers");
+    expect(seen[0]?.timeout).toBe(45000);
+    expect(seen[0]?.silent).toBe(true);
+    expect(seen[0]?.params).toBeUndefined();
+    expect(JSON.parse(String(seen[0]?.data))).toEqual({
+      tenant_id: "t1",
+      provider: "openrouter",
+      instance_name: "default",
+      api_key: KEY,
+      models: [{ name: "baai/bge-m3", type: "embedding" }],
+    });
+  });
+
+  it("omits an empty or missing key, address and version instead of sending them blank", async () => {
+    body = success(providerDto);
+    await saveProvider({ tenantId: "t1", provider: "ollama", apiKey: "", baseUrl: "http://localhost:11434", apiVersion: undefined, models: [{ name: "llama3.1", type: "chat" }] });
+    expect(JSON.parse(String(seen[0]?.data))).toEqual({
+      tenant_id: "t1",
+      provider: "ollama",
+      instance_name: "default",
+      base_url: "http://localhost:11434",
+      models: [{ name: "llama3.1", type: "chat" }],
+    });
+  });
+
+  it("passes the abort signal to the request", async () => {
+    body = success(providerDto);
+    const controller = new AbortController();
+    await saveProvider({ tenantId: "t1", provider: "openai", apiKey: KEY, models: [{ name: "m", type: "chat" }] }, controller.signal);
+    expect(seen[0]?.signal).toBe(controller.signal);
+  });
+
+  it("rejects a success body that is not a provider", async () => {
+    body = success(null);
+    await expect(saveProvider({ tenantId: "t1", provider: "openai", apiKey: KEY, models: [{ name: "m", type: "chat" }] })).rejects.toThrow(/Malformed response/);
+  });
+
+  it("adds a model with POST to the instances path and sends only the models", async () => {
+    body = success(providerDto);
+    await addModel({ tenantId: "t1", provider: "openrouter", model: { name: "baai/bge-m3", type: "embedding" } });
+    expect(seen[0]?.method).toBe("post");
+    expect(seen[0]?.url).toBe("/api/v1/providers/openrouter/instances");
+    expect(seen[0]?.timeout).toBe(45000);
+    expect(seen[0]?.silent).toBe(true);
+    expect(JSON.parse(String(seen[0]?.data))).toEqual({ tenant_id: "t1", instance_name: "default", models: [{ name: "baai/bge-m3", type: "embedding" }] });
+  });
+
+  it("deletes a provider's credentials with the workspace as a query parameter and a 30 second timeout", async () => {
+    body = success({ deleted: true });
+    await expect(deleteProvider("t1", "openai-compatible")).resolves.toEqual({ deleted: true });
+    expect(seen[0]?.method).toBe("delete");
+    expect(seen[0]?.url).toBe("/api/v1/providers/openai-compatible");
+    expect(seen[0]?.params).toEqual({ tenant_id: "t1" });
+    expect(seen[0]?.timeout).toBe(30000);
+    expect(seen[0]?.silent).toBe(true);
+  });
+
+  describe("registeredModelFor", () => {
+    const provider = (models: Array<[string, string]>): ProviderView => ({
+      name: "P",
+      slug: "p",
+      configured: true,
+      instances: [],
+      models: models.map(([name, type]) => ({ id: `${name}@P`, name, provider: "P", type, dimension: null, maxTokens: 0, instance: "default", usedTokens: 0 })),
+    });
+
+    it("takes the first chat model, name and type only", () => {
+      expect(registeredModelFor(provider([["e1", "embedding"], ["c1", "chat"], ["c2", "chat"]]))).toEqual([{ name: "c1", type: "chat" }]);
+    });
+
+    it("takes the first embedding model when there is no chat model", () => {
+      expect(registeredModelFor(provider([["e1", "embedding"], ["e2", "embedding"]]))).toEqual([{ name: "e1", type: "embedding" }]);
+    });
+
+    it("returns nothing for a provider without models or for no provider", () => {
+      expect(registeredModelFor(provider([]))).toEqual([]);
+      expect(registeredModelFor(undefined)).toEqual([]);
+    });
   });
 });

@@ -178,12 +178,19 @@ describe("Models page structure (UI-37, D-15)", () => {
     expect(screen.getByRole("heading", { level: 2, name: "Providers" })).toBeInTheDocument();
   });
 
-  it("renders no action button: set up, add model, change key and delete arrive with the dialogs", async () => {
+  it("renders the write actions for an owner: Set up on the four unconfigured rows, Add model, Change key and Delete on the configured one", async () => {
     renderPage();
     await screen.findByTestId("provider-row-openai");
-    expect(screen.queryAllByRole("button")).toHaveLength(0);
+    expect(screen.getAllByRole("button").map((button) => button.getAttribute("aria-label"))).toEqual([
+      "Set up OpenAI",
+      "Set up Azure OpenAI",
+      "Set up Ollama",
+      "Add a model to OpenRouter",
+      "Change the key for OpenRouter",
+      "Delete OpenRouter credentials",
+      "Set up OpenAI-compatible",
+    ]);
   });
-});
 
 describe("Owner and admin view (D-07, D-17)", () => {
   it("shows the masked key, the base URL and the models with type, dimensions and the default badge", async () => {
@@ -219,6 +226,7 @@ describe("Owner and admin view (D-07, D-17)", () => {
     await waitFor(() => expect(within(rowOf("openrouter")).getAllByTestId("model-row")).toHaveLength(2));
     expect(screen.getByTestId("models-page").innerHTML).not.toMatch(/sk-/);
     expect(document.querySelectorAll("input")).toHaveLength(0);
+    expect(screen.queryByTestId("provider-dialog")).toBeNull();
   });
 });
 
