@@ -55,3 +55,26 @@ export function tenantPath(tenantId: string): string {
 export function tenantUserPath(tenantId: string, userId: string): string {
   return resolveUnder("go", "/api/v1/tenants/", `${encodeURIComponent(tenantId)}/users/${encodeURIComponent(userId)}`);
 }
+
+/** Model providers of one workspace (GET list with models; PUT save). The workspace goes in `tenant_id`. */
+export const providersPath = resolve("python", "/api/v1/providers");
+/** One provider (DELETE removes its credentials and models). */
+export function providerPath(provider: string): string {
+  return resolveUnder("python", "/api/v1/providers/", encodeURIComponent(provider));
+}
+/** The models of one provider (GET). */
+export function providerModelsPath(provider: string): string {
+  return resolveUnder("python", "/api/v1/providers/", `${encodeURIComponent(provider)}/models`);
+}
+/** Instances of one provider (POST adds an instance or models to one). */
+export function providerInstancesPath(provider: string): string {
+  return resolveUnder("python", "/api/v1/providers/", `${encodeURIComponent(provider)}/instances`);
+}
+/** One instance of a provider (GET, owner and admin session only). */
+export function providerInstancePath(provider: string, instance: string): string {
+  return resolveUnder("python", "/api/v1/providers/", `${encodeURIComponent(provider)}/instances/${encodeURIComponent(instance)}`);
+}
+/** The workspace's configured models (GET, optional `type` filter). */
+export const modelsPath = resolve("python", "/api/v1/models");
+/** The workspace's default chat and embedding model (GET; PATCH arrives with the defaults card). */
+export const modelsDefaultPath = resolve("python", "/api/v1/models/default");
