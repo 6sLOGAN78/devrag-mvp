@@ -260,7 +260,7 @@ Plans:
 
 **Wave 11** *(blocked on Wave 10 completion)*
 
-- [ ] 03-19-PLAN.md — Role, visibility and key-leak proof across all Phase 3 routes
+- [x] 03-19-PLAN.md — Role, visibility and key-leak proof across all Phase 3 routes
 
 **Wave 12** *(blocked on Wave 11 completion)*
 
