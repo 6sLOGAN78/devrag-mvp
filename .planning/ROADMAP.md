@@ -256,7 +256,7 @@ Plans:
 
 **Wave 10** *(blocked on Wave 9 completion)*
 
-- [ ] 03-18-PLAN.md — Dataset update and permanent delete
+- [x] 03-18-PLAN.md — Dataset update and permanent delete
 
 **Wave 11** *(blocked on Wave 10 completion)*
 

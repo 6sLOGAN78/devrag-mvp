@@ -63,8 +63,8 @@ Requirements for initial release. Each maps to exactly one roadmap phase.
 - [x] **KB-03**: Creating a dataset provisions the docstore index with the matching dense-vector schema and analyzers
 - [x] **KB-04**: User can list datasets with `page`, `page_size`, `keywords` via `GET /api/v1/datasets`
 - [x] **KB-05**: User can get one dataset's detail via `GET /datasets/<dataset_id>`
-- [ ] **KB-06**: User can update dataset name, parser, and parser config via `PUT /api/v1/datasets/<dataset_id>`
-- [ ] **KB-07**: User can delete dataset(s) via `DELETE /api/v1/datasets`; documents, chunks, and the vector index are removed
+- [x] **KB-06**: User can update dataset name, parser, and parser config via `PUT /api/v1/datasets/<dataset_id>`
+- [x] **KB-07**: User can delete dataset(s) via `DELETE /api/v1/datasets`; documents, chunks, and the vector index are removed
 - [x] **KB-08**: Dataset stores `parser_config` JSON: `chunk_token_num`, `delimiter`, `pages`, `table_context_size`, `image_context_size`, layout-model toggle, auto-keyword count
 - [x] **KB-09**: Dataset stores avatar, language (default `English`), description, and status
 - [ ] **KB-10**: User can aggregate tags across datasets via `GET /datasets/tags/aggregation`
@@ -727,8 +727,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | KB-03 | Phase 3 | Complete |
 | KB-04 | Phase 3 | Complete |
 | KB-05 | Phase 3 | Complete |
-| KB-06 | Phase 3 | Pending |
-| KB-07 | Phase 3 | Pending |
+| KB-06 | Phase 3 | Complete |
+| KB-07 | Phase 3 | Complete |
 | KB-08 | Phase 3 | Complete |
 | KB-09 | Phase 3 | Complete |
 | KB-10 | Phase 6 | Pending |
