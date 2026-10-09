@@ -189,6 +189,84 @@
         "title": "DeletedView",
         "type": "object"
       },
+      "DocumentView": {
+        "properties": {
+          "chunk_num": {
+            "title": "Chunk Num",
+            "type": "integer"
+          },
+          "create_time": {
+            "title": "Create Time",
+            "type": "integer"
+          },
+          "created_by": {
+            "title": "Created By",
+            "type": "string"
+          },
+          "dataset_id": {
+            "title": "Dataset Id",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "parser_id": {
+            "title": "Parser Id",
+            "type": "string"
+          },
+          "progress": {
+            "title": "Progress",
+            "type": "number"
+          },
+          "run": {
+            "title": "Run",
+            "type": "string"
+          },
+          "size": {
+            "title": "Size",
+            "type": "integer"
+          },
+          "suffix": {
+            "title": "Suffix",
+            "type": "string"
+          },
+          "token_num": {
+            "title": "Token Num",
+            "type": "integer"
+          },
+          "type": {
+            "title": "Type",
+            "type": "string"
+          },
+          "update_time": {
+            "title": "Update Time",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "size",
+          "type",
+          "suffix",
+          "run",
+          "progress",
+          "dataset_id",
+          "created_by",
+          "parser_id",
+          "chunk_num",
+          "token_num",
+          "create_time",
+          "update_time"
+        ],
+        "title": "DocumentView",
+        "type": "object"
+      },
       "HealthData": {
         "properties": {
           "checks": {
@@ -739,6 +817,47 @@
                     "data"
                   ],
                   "title": "DatasetEnvelope",
+                  "type": "object"
+                }
+              }
+            },
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/v1/documents/upload": {
+      "post": {
+        "operationId": "post_upload_documents",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "title": "Code",
+                      "type": "integer"
+                    },
+                    "data": {
+                      "items": {
+                        "$ref": "#/components/schemas/DocumentView"
+                      },
+                      "title": "Data",
+                      "type": "array"
+                    },
+                    "message": {
+                      "title": "Message",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message",
+                    "data"
+                  ],
+                  "title": "DocumentListEnvelope",
                   "type": "object"
                 }
               }

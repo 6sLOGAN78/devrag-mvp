@@ -24,6 +24,7 @@ from test.helpers.accounts import TEST_PASSWORD, Account, AccountRegistry, uniqu
 from test.helpers.db import root_connection
 from test.helpers.fake_provider import running_stack_fake_provider
 from test.helpers.mail import delete_mail_for, extract_code, wait_for_mail
+from test.helpers.uploads import pdf_bytes
 from test.testcases._leak_sweep import CREDENTIAL_ROWS, LOGIN, TOKEN_ROWS, VERIFY, Secret, scan_response
 from test.testcases._matrix_fixtures import (
     A_EMBED_MODEL,
@@ -35,6 +36,7 @@ from test.testcases._matrix_fixtures import (
     MODELS_DEFAULT,
     PROVIDER_SLUG,
     PROVIDERS,
+    UPLOAD,
     World,
     build_world,
 )
@@ -62,10 +64,14 @@ class Sweep:
     responses: list[tuple[str, str, httpx.Response]] = field(default_factory=list)
     secrets: list[Secret] = field(default_factory=list)
 
-    def req(self, row: str, label: str, method: str, path: str, token: str | None = None, body: Any = None) -> httpx.Response:
+    def req(
+        self, row: str, label: str, method: str, path: str, token: str | None = None, body: Any = None, *, files: Any = None, content: bytes | None = None, content_type: str | None = None
+    ) -> httpx.Response:
         self.client.cookies.clear()  # only the bearer under test authenticates
         headers = {"Authorization": f"Bearer {token}"} if token else {}
-        resp = self.client.request(method, path, headers=headers, json=body)
+        if content_type:
+            headers["Content-Type"] = content_type
+        resp = self.client.request(method, path, headers=headers, json=body if files is None and content is None else None, files=files, content=content)
         self.responses.append((row, label, resp))
         return resp
 
@@ -388,6 +394,34 @@ def sweep_dataset_rows(s: Sweep, w: World) -> None:
     s.errors(row, "GET", detail, "PATCH")
 
 
+def sweep_upload_rows(s: Sweep, w: World) -> None:
+    """``POST /api/v1/documents/upload`` on success and error paths (plan 03-16). Uploads land in A's team dataset; the registry removes them with A's workspace."""
+    a, b, member = w.a, w.b, w.normal
+    token = str(w.a_tokens[0]["token"])
+    row = f"POST {UPLOAD}"
+    team = f"{UPLOAD}?dataset_id={w.a_team_dataset['id']}"
+    private = f"{UPLOAD}?dataset_id={w.a_private_dataset['id']}"
+
+    def pdf(name: str) -> list[tuple[str, tuple[str, bytes, str]]]:
+        return [("file", (name, pdf_bytes("leak"), "application/pdf"))]
+
+    s.req(row, "success as owner", "POST", team, a.token, files=pdf("leak-one.pdf"))
+    s.req(row, "success as member (team)", "POST", team, member.token, files=pdf("leak-two.pdf"))
+    s.req(row, "success with an API token", "POST", team, token, files=pdf("leak-three.pdf"))
+    s.req(row, "success with a parser override", "POST", team + "&parser_id=book", a.token, files=pdf("leak-four.pdf"))
+    s.req(row, "bad extension", "POST", team, a.token, files=[("file", ("leak.exe", b"MZ\x90\x00", "application/octet-stream"))])
+    s.req(row, "wrong magic bytes", "POST", team, a.token, files=[("file", ("leak.pdf", b"not a pdf", "application/pdf"))])
+    s.req(row, "traversal name", "POST", team, a.token, files=pdf("../../etc/passwd.pdf"))
+    s.req(row, "invalid parser", "POST", team + "&parser_id=bogus", a.token, files=pdf("leak-five.pdf"))
+    s.req(row, "no files", "POST", team, a.token, content=b"{}", content_type="application/json")
+    s.req(row, "private dataset as a member", "POST", private, member.token, files=pdf("leak-six.pdf"))
+    s.req(row, "absent dataset", "POST", f"{UPLOAD}?dataset_id={uuid.uuid4().hex}", a.token, files=pdf("leak-seven.pdf"))
+    s.req(row, "malformed dataset id", "POST", f"{UPLOAD}?dataset_id=not-an-id", a.token, files=pdf("leak-eight.pdf"))
+    s.req(row, "no dataset id", "POST", UPLOAD, a.token, files=pdf("leak-nine.pdf"))
+    s.req(row, "as an outsider", "POST", team, b.token, files=pdf("leak-ten.pdf"))
+    s.errors(row, "POST", team, "PATCH")
+
+
 def collect_database_secrets(s: Sweep) -> None:
     """Hashes and stored access tokens of every account the sweep touched, read back from MySQL."""
     ids = [acc.user_id for acc in s.registry.created]
@@ -437,6 +471,7 @@ def sweep(ingress: httpx.Client) -> Iterator[Sweep]:
             sweep_provider_rows(s, world)
             sweep_model_rows(s, world)
             sweep_dataset_rows(s, world)
+            sweep_upload_rows(s, world)
             collect_database_secrets(s)
             s.secrets.extend(infrastructure_secrets())
             yield s

@@ -36,6 +36,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/documents/upload": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["post_upload_documents"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/language": {
         parameters: {
             query?: never;
@@ -302,6 +318,37 @@ export interface components {
             /** Deleted */
             deleted: boolean;
         };
+        /** DocumentView */
+        DocumentView: {
+            /** Chunk Num */
+            chunk_num: number;
+            /** Create Time */
+            create_time: number;
+            /** Created By */
+            created_by: string;
+            /** Dataset Id */
+            dataset_id: string;
+            /** Id */
+            id: string;
+            /** Name */
+            name: string;
+            /** Parser Id */
+            parser_id: string;
+            /** Progress */
+            progress: number;
+            /** Run */
+            run: string;
+            /** Size */
+            size: number;
+            /** Suffix */
+            suffix: string;
+            /** Token Num */
+            token_num: number;
+            /** Type */
+            type: string;
+            /** Update Time */
+            update_time: number;
+        };
         /** HealthData */
         HealthData: {
             checks: components["schemas"]["Checks"];
@@ -544,6 +591,32 @@ export interface operations {
                         /** Code */
                         code: number;
                         data: components["schemas"]["DatasetView"];
+                        /** Message */
+                        message: string;
+                    };
+                };
+            };
+        };
+    };
+    post_upload_documents: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Code */
+                        code: number;
+                        /** Data */
+                        data: components["schemas"]["DocumentView"][];
                         /** Message */
                         message: string;
                     };

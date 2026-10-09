@@ -164,7 +164,7 @@ endpoints:
      note: "plan 03-18 updates a dataset; manage means creator, owner or admin (D-09)"}
   - {method: DELETE, path: "/api/v1/datasets", owner: python, auth: api, roles: [owner, admin, normal], scope: tenant, implemented: false,
      note: "plan 03-18 deletes datasets by id list; manage means creator, owner or admin (D-09)"}
-  - {method: POST, path: "/api/v1/documents/upload", owner: python, auth: api, roles: [owner, admin, normal], scope: tenant, implemented: false,
+  - {method: POST, path: "/api/v1/documents/upload", owner: python, auth: api, roles: [owner, admin, normal], scope: tenant, implemented: true,
      note: "plan 03-16 streams an upload into a dataset; the dataset must be visible to the caller (D-27)"}
   - {method: GET, path: "/api/v1/datasets/{dataset_id}/documents", owner: python, auth: api, roles: [owner, admin, normal], scope: tenant, implemented: false,
      note: "plan 03-17 lists documents of a visible dataset (D-27)"}

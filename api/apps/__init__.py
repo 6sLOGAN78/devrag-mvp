@@ -9,6 +9,7 @@ from quart_schema import QuartSchema
 from api.apps.auth import Resolver, register_auth_gate
 from api.apps.errors import register_error_handlers
 from api.apps.middleware import register_middleware
+from api.apps.request_body import CappedRequest
 from api.db.services import auth_service
 from common.settings import Settings, get_settings
 
@@ -29,6 +30,7 @@ def create_app(
     settings = settings or get_settings()
     # No static folder: this server serves the API only (the SPA is served by Nginx), so no route is undeclared.
     app = Quart("ragflow_server", static_folder=None)
+    app.request_class = CappedRequest  # a body that can be capped per request; routes that never cap it are unchanged
     app.config["MAX_CONTENT_LENGTH"] = 1024 * 1024 * 1024
     app.extensions["ragflow_settings"] = settings
     # Docs UIs are disabled; the schema itself is served at OPENAPI_PATH (API-08).
@@ -46,6 +48,7 @@ def create_app(
     register_auth_gate(app, settings, principal_resolver or auth_service.make_resolver(settings.security.secret_key))
 
     from api.apps.restful_apis.dataset_api import dataset_bp
+    from api.apps.restful_apis.document_api import document_bp
     from api.apps.restful_apis.models_api import models_bp
     from api.apps.restful_apis.provider_api import provider_bp
     from api.apps.restful_apis.system_api import system_bp
@@ -54,6 +57,7 @@ def create_app(
     app.register_blueprint(provider_bp)
     app.register_blueprint(models_bp)
     app.register_blueprint(dataset_bp)
+    app.register_blueprint(document_bp)
     for blueprint in extra_blueprints:
         app.register_blueprint(blueprint)
     return app

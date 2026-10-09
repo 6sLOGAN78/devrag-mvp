@@ -27,6 +27,7 @@ import yaml
 
 from test.helpers.accounts import Account, AccountRegistry
 from test.helpers.fake_provider import FakeProvider
+from test.helpers.uploads import pdf_bytes, tenant_object_keys
 from test.testcases._routes import ROUTES_FILE  # conf/routes.yaml
 
 _PLACEHOLDER = re.compile(r"\{(\w+)\}")
@@ -35,6 +36,7 @@ PROVIDERS = "/api/v1/providers"
 MODELS = "/api/v1/models"
 MODELS_DEFAULT = "/api/v1/models/default"
 DATASETS = "/api/v1/datasets"
+UPLOAD = "/api/v1/documents/upload"
 PROVIDER_SLUG = "openai-compatible"
 COMPAT = "OpenAI-API-Compatible"
 NOT_FOUND = (404, 404, "not found")
@@ -142,6 +144,7 @@ class World:
     b_api_token: str = ""
     fake: FakeProvider | None = None  # the stack-mode fake provider A's provider points at
     provider_url: str = ""
+    registry: AccountRegistry | None = None  # the registry that owns (and cleans up) every account of this world
     a_team_dataset: dict[str, Any] = field(default_factory=dict)  # A's dataset with permission team
     a_private_dataset: dict[str, Any] = field(default_factory=dict)  # A's dataset with permission me
 
@@ -182,6 +185,10 @@ class World:
         assert resp.status_code == 200, resp.text
         return resp.json()["data"]
 
+    def snapshot_objects(self) -> list[str]:
+        """Every object A's workspace holds in MinIO (by exact tenant prefix): an upload that crosses the boundary would add one."""
+        return tenant_object_keys(self.a.tenant_id)
+
     def snapshot_tokens(self) -> Any:
         return sorted(self.list_tokens(self.a), key=lambda t: t["token"])
 
@@ -204,6 +211,7 @@ class World:
             "models": self.snapshot_models(),
             "defaults": self.snapshot_defaults(),
             "datasets": self.snapshot_datasets(),
+            "objects": self.snapshot_objects(),
         }
 
     def a_identifiers(self) -> list[str]:
@@ -240,6 +248,8 @@ def resource_of(row: Row) -> str:
         return "models"
     if row.path.startswith(DATASETS):
         return "datasets"
+    if row.path.startswith(UPLOAD):
+        return "objects"
     return "members"
 
 
@@ -255,7 +265,7 @@ def build_world(client: httpx.Client, registry: AccountRegistry, fake: FakeProvi
     normal = registry.register(prefix="mxn")
     victim = registry.register(prefix="mxv")
     spare = registry.register(prefix="mxs")
-    world = World(client, a, b, pending, admin, normal, victim, spare)
+    world = World(client, a, b, pending, admin, normal, victim, spare, registry=registry)
     users = "/api/v1/tenants/{tenant_id}/users"
     ids = {"tenant_id": a.tenant_id}
     for member in (admin, normal, victim, pending):
@@ -649,7 +659,51 @@ def check_datasets_create(w: World) -> None:
     assert w.snapshot() == snapshot
 
 
+def upload_file(w: World, token: str, dataset_id: str, *, query: Mapping[str, str] | None = None, name: str = "matrix-note.pdf") -> httpx.Response:
+    """One multipart upload with the bearer under test. The dataset id travels in the query, where the route reads it."""
+    w.client.cookies.clear()
+    params = {"dataset_id": dataset_id, **(query or {})}
+    return w.client.post(UPLOAD, headers=bearer(token), params=params, files=[("file", (name, pdf_bytes("matrix"), "application/pdf"))], timeout=60.0)
+
+
+def check_documents_upload(w: World) -> None:
+    """POST /api/v1/documents/upload: nobody outside A reaches A's datasets, nothing appears under A's prefix, and a workspace uploads into its own."""
+    before = w.snapshot()
+    assert before["objects"] == [], "A starts empty"
+    smuggle = {"tenant_id": w.a.tenant_id, "user_id": w.a.user_id}
+    for dataset in (w.a_team_dataset, w.a_private_dataset):
+        dataset_id = str(dataset["id"])
+        for token, label in ((w.b.token, "B"), (w.pending.token, "the pending invitee"), (w.b_api_token, "B's API token")):
+            for query in (None, smuggle):
+                resp = upload_file(w, token, dataset_id, query=query)
+                assert triple(resp) == NOT_FOUND, f"{label}: {triple(resp)}"
+                _assert_no_a_data(resp.text, w, f"the refused upload of {label}")
+    absent = triple(upload_file(w, w.b.token, uuid.uuid4().hex))
+    assert absent == NOT_FOUND
+    for member in (w.normal, w.admin, w.victim):
+        assert triple(upload_file(w, member.token, str(w.a_private_dataset["id"]))) == absent, "nobody but the creator reaches a private dataset (D-27)"
+    assert triple(upload_file(w, w.b.token, "not-an-id")) == absent
+    assert w.snapshot_objects() == [] and w.snapshot_datasets() == before["datasets"], "no object appeared under A's prefix and no counter moved"
+
+    # A workspace uploads into its own dataset, with a session and with its API token; neither credential reaches the other workspace.
+    assert w.registry is not None and w.fake is not None
+    own = w.registry.register(prefix="mxu")
+    embed = "matrix-u-embed-" + uuid.uuid4().hex[:8]
+    saved = {"provider": COMPAT, "base_url": w.fake.stack_base_url, "api_key": "-".join(("matrix", "u", "provider", "key", "0003")), "models": [{"name": embed, "type": "embedding"}]}
+    _ok(call(w.client, "PUT", PROVIDERS, own.token, {}, body=saved), "the extra workspace saves a provider")
+    made = _ok(call(w.client, "POST", DATASETS, own.token, {}, body={"name": "matrix-own-" + uuid.uuid4().hex[:8], "embd_id": f"{embed}@{COMPAT}"}), "it creates a dataset")["data"]
+    uploaded = upload_file(w, own.token, str(made["id"]))
+    assert uploaded.status_code == 200 and uploaded.json()["data"][0]["dataset_id"] == made["id"], uploaded.text
+    own_token = str(_ok(call(w.client, "POST", TOKENS, own.token, {}), "it creates an API token")["data"]["token"])
+    assert upload_file(w, own_token, str(made["id"]), name="by-token.pdf").status_code == 200
+    assert len(tenant_object_keys(own.tenant_id)) == 2
+    assert triple(upload_file(w, own_token, str(w.a_team_dataset["id"]))) == NOT_FOUND, "a token is pinned to its own workspace"
+    assert triple(upload_file(w, str(w.a_tokens[0]["token"]), str(made["id"]))) == NOT_FOUND, "A's token cannot reach another workspace's dataset"
+    assert w.snapshot() == before
+
+
 NO_ID_CHECKS: dict[str, NoIdCheck] = {
+    "POST /api/v1/documents/upload": check_documents_upload,
     "GET /api/v1/datasets": check_datasets_list,
     "POST /api/v1/datasets": check_datasets_create,
     "GET /api/v1/providers": check_providers_list,

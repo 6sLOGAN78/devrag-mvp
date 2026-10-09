@@ -8,10 +8,10 @@ from __future__ import annotations
 import dataclasses
 
 import pytest
-from api.apps.restful_apis.document_api import apply_upload_limits, read_upload_files
 from quart import Blueprint, Quart, current_app, request
 
 from api.apps import create_app
+from api.apps.restful_apis.document_api import apply_upload_limits, close_upload_streams, read_upload_files
 from api.apps.service_errors import service_error_response
 from api.db.services.service_errors import ServiceError
 from api.utils.api_utils import json_result
@@ -50,6 +50,7 @@ def build_app(**upload: int) -> Quart:
         except ServiceError as exc:
             return service_error_response(exc)
         first = items[0].stream.read() if items else b""
+        close_upload_streams()
         return json_result(
             {
                 "names": [i.name for i in items],
