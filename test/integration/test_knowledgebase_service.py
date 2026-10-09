@@ -114,7 +114,7 @@ def scope_of(account: Account, role: str = "owner") -> ActingScope:
 
 
 def request(name: str | None = None, **kw) -> kb.CreateRequest:
-    return kb.CreateRequest(name=name or unique_name("kb"), **kw)
+    return kb.CreateRequest(name=unique_name("kb") if name is None else name, **kw)
 
 
 def make(settings, account: Account, name: str | None = None, **kw) -> kb.DatasetRecord:
