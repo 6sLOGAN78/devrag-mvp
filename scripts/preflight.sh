@@ -137,6 +137,17 @@ for port in $PORTS; do
   fi
 done
 
+# Provider key (D-04, D-29): only presence is reported, never the value. The value is not stored in a variable.
+# The gate sets PREFLIGHT_REQUIRE_LIVE_KEY=1, because the live_model step fails without the key; otherwise the
+# check is informational so `make up` still works on a machine with no provider account.
+if [ -n "$(env_value OPENROUTER_API_KEY '')" ]; then
+  echo "OK openrouter key: present"
+elif [ "${PREFLIGHT_REQUIRE_LIVE_KEY:-0}" = "1" ]; then
+  fail "openrouter key" "missing" "add OPENROUTER_API_KEY to docker/.env (see docker/.env.example)"
+else
+  echo "INFO openrouter key: missing (the live_model tier and the Phase 3 gate need OPENROUTER_API_KEY in docker/.env)"
+fi
+
 check_project
 
 if [ "$FAILED" -ne 0 ]; then

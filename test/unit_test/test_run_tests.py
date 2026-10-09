@@ -95,3 +95,44 @@ def test_real_failures_are_returned_and_first_nonzero_wins(monkeypatch):
 def test_allow_empty_still_returns_real_failures(monkeypatch):
     run_tests, _ = _stub_codes(monkeypatch, [5, 1])
     assert run_tests.main(["-p", "--allow-empty"]) == 1
+
+
+# --- Plan 03-27: the live_model marker is invisible to every default selection (D-04) -----------------------------
+
+GATE_SELECTIONS = ["unit", "integration", "e2e and not serial", "e2e and serial"]
+
+
+def _synthetic_collect(tmp_path, expression):
+    (tmp_path / "pytest.ini").write_text("[pytest]\naddopts = --strict-markers -p no:anyio\nmarkers =\n    unit\n    integration\n    e2e\n    serial\n    live_model\n")
+    (tmp_path / "test_synthetic.py").write_text("import pytest\n\npytestmark = pytest.mark.live_model\n\n\ndef test_only_live():\n    assert True\n")
+    return subprocess.run(
+        [sys.executable, "-m", "pytest", "--collect-only", "-q", "-m", expression, "-c", str(tmp_path / "pytest.ini"), "--rootdir", str(tmp_path), str(tmp_path / "test_synthetic.py")],
+        capture_output=True,
+        text=True,
+        check=False,
+        cwd=tmp_path,
+    )
+
+
+def test_live_model_marker_is_passed_through_unchanged(repo_root):
+    out = dry_run(repo_root, "-m", "live_model")
+    assert out.returncode == 0
+    assert out.stdout.strip() == "-m pytest -m live_model"
+
+
+@pytest.mark.parametrize("expression", GATE_SELECTIONS)
+def test_gate_selections_do_not_pick_up_a_live_model_only_test(tmp_path, expression):
+    result = _synthetic_collect(tmp_path, expression)
+    assert result.returncode == 5, result.stdout + result.stderr
+    assert "test_only_live" not in result.stdout
+
+
+def test_live_model_selection_does_pick_it_up(tmp_path):
+    result = _synthetic_collect(tmp_path, "live_model")
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "test_only_live" in result.stdout
+
+
+def test_live_model_marker_is_registered_in_pyproject(repo_root):
+    text = (repo_root / "pyproject.toml").read_text()
+    assert '"live_model:' in text

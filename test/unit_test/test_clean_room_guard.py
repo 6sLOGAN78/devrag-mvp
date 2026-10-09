@@ -247,3 +247,29 @@ def test_production_compose_has_no_mail_service_and_r94_rate_limit_defaults() ->
         assert not [svc for svc, body in services.items() if "mail" in (body.get("profiles") or [])], name
     for key, default in R94_DEFAULTS.items():
         assert f"{key}: ${{{key}:-{default}}}" in prod_text, key
+
+
+# --- Plan 03-27: the live_model gate step (D-02, D-04, D-29) ----------------------------------------------------
+
+def test_live_model_step_sits_between_e2e_serial_and_go_race() -> None:
+    names = [line.strip().split()[1] for line in SCRIPT.read_text().splitlines() if line.strip().startswith("step ") and len(line.strip().split()) > 2]
+    assert "live-model" in names
+    assert names.index("live-model") == names.index("e2e-serial") + 1
+    assert names.index("live-model") == names.index("go-race") - 1
+
+
+def test_live_model_step_command_is_exactly_the_marker_run() -> None:
+    lines = [line.strip() for line in SCRIPT.read_text().splitlines() if line.strip().startswith("step live-model ")]
+    assert lines == ["step live-model uv run python run_tests.py -m live_model"]
+
+
+def test_gate_script_never_names_or_exports_the_provider_key() -> None:
+    code = [line for line in SCRIPT.read_text().splitlines() if not line.lstrip().startswith("#")]
+    assert not [line for line in code if "OPENROUTER" in line]
+    assert not [line for line in code if line.lstrip().startswith("export") and "KEY" in line.upper()]
+
+
+def test_gate_preflight_requires_the_live_key() -> None:
+    lines = [line.strip() for line in SCRIPT.read_text().splitlines() if line.strip().startswith("step preflight ")]
+    assert lines == ["step preflight env PREFLIGHT_REQUIRE_LIVE_KEY=1 scripts/preflight.sh"]
+

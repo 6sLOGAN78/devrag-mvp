@@ -45,6 +45,7 @@ markers = [
     "e2e: end-to-end flows through the real pipeline",
     "serial: tests that must not run in parallel with others",
     "smoke: minimal post-deploy sanity checks",
+    "live_model: needs the real provider key in docker/.env; fails, not skips, when absent (D-04)",
 ]
 filterwarnings = [
     "error",

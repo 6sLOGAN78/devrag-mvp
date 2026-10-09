@@ -76,7 +76,7 @@ for run in $(seq 1 "$RUNS"); do
   # Stop this project's own containers first: preflight checks free ports and available RAM, and a
   # running devrag-stack would fail both against itself. Non-destructive (no volumes removed here).
   step stop "${COMPOSE[@]}" stop
-  step preflight scripts/preflight.sh
+  step preflight env PREFLIGHT_REQUIRE_LIVE_KEY=1 scripts/preflight.sh
   "${COMPOSE[@]}" down -v
   step up "${COMPOSE[@]}" up -d --build
   step wait_stack scripts/wait_stack.sh --timeout 600
@@ -85,6 +85,7 @@ for run in $(seq 1 "$RUNS"); do
   step integration uv run python run_tests.py -m integration
   step e2e uv run python run_tests.py -m "e2e and not serial"
   step e2e-serial uv run python run_tests.py -m "e2e and serial"
+  step live-model uv run python run_tests.py -m live_model
   step go-race go test -race -count=1 ./internal/... ./cmd/...
   step go-tiers go test -count=1 -tags=integration,e2e ./...
   step go-manual go test -count=1 -tags=manual ./internal/testutil/...
