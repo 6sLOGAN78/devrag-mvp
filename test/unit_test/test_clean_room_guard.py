@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import os
 import subprocess
+import sys
 from pathlib import Path
 
 import pytest
@@ -273,3 +274,30 @@ def test_gate_preflight_requires_the_live_key() -> None:
     lines = [line.strip() for line in SCRIPT.read_text().splitlines() if line.strip().startswith("step preflight ")]
     assert lines == ["step preflight env PREFLIGHT_REQUIRE_LIVE_KEY=1 scripts/preflight.sh"]
 
+
+
+def test_live_test_file_carries_the_fixed_failure_message_and_no_skip() -> None:
+    text = (ROOT / "test" / "testcases" / "test_live_models.py").read_text()
+    assert "OPENROUTER_API_KEY is missing from docker/.env" in text
+    assert "pytest.fail(" in text
+    assert "skip" not in text and "xfail" not in text
+    assert "pytestmark = pytest.mark.live_model" in text
+    assert "pytest.mark.e2e" not in text and "pytest.mark.integration" not in text
+
+
+def test_without_the_key_the_live_tier_fails_and_does_not_skip(tmp_path: Path) -> None:
+    """The fixture's lookup is pointed at an empty environment; no network and no provider call is involved."""
+    (tmp_path / "no_key_plugin.py").write_text(
+        "def pytest_configure(config):\n"
+        "    import test.testcases.test_live_models as live\n"
+        "    live.stack_env = lambda: {}\n"
+    )
+    env = {**os.environ, "PYTHONPATH": f"{tmp_path}{os.pathsep}{ROOT}"}
+    result = subprocess.run(
+        [sys.executable, "-m", "pytest", "-p", "no_key_plugin", "-m", "live_model", "-q", "-k", "test_provider_saves", "test/testcases/test_live_models.py"],
+        capture_output=True, text=True, env=env, check=False, cwd=ROOT,
+    )
+    output = result.stdout + result.stderr
+    assert result.returncode != 0, output
+    assert "OPENROUTER_API_KEY is missing from docker/.env" in output
+    assert "skipped" not in output.lower()

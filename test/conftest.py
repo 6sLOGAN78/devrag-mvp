@@ -1,6 +1,8 @@
 """Shared fixtures for the devRag test suite."""
 from __future__ import annotations
 
+import asyncio
+import gc
 from pathlib import Path
 
 import pytest
@@ -26,3 +28,24 @@ def stack_env(root: Path = REPO_ROOT) -> dict[str, str]:
         key, _, value = line.partition("=")
         values[key.strip()] = value.strip().strip("'\"")
     return values
+
+
+@pytest.fixture
+def gc_at_loop_teardown(monkeypatch):
+    """Run a full GC right where the private loop is wound down: the moment an unclosed async generator gets finalized.
+
+    The suite runs with ``filterwarnings=error``, so a generator that is finalized on a dead loop fails the test it lands in;
+    without this fixture that happens only when allocation pressure triggers the collector at that instant (intermittent).
+    """
+    real_shutdown, real_close = asyncio.BaseEventLoop.shutdown_asyncgens, asyncio.BaseEventLoop.close
+
+    async def shutdown_asyncgens(self):
+        gc.collect()
+        await real_shutdown(self)
+
+    def close(self):
+        gc.collect()
+        real_close(self)
+
+    monkeypatch.setattr(asyncio.BaseEventLoop, "shutdown_asyncgens", shutdown_asyncgens)
+    monkeypatch.setattr(asyncio.BaseEventLoop, "close", close)
