@@ -1,4 +1,4 @@
-import { Activity, House, KeyRound, UserRound, Users, type LucideIcon } from "lucide-react";
+import { Activity, Cpu, House, KeyRound, UserRound, Users, type LucideIcon } from "lucide-react";
 import type { ComponentType } from "react";
 import { HOME_PATH } from "@/utils/safe-next";
 
@@ -74,28 +74,35 @@ export const routes: readonly RouteEntry[] = [
     layout: "standard",
     auth: "required",
     component: () => import("@/pages/system-status"),
-    nav: { labelKey: "nav.systemStatus", icon: Activity, order: 2, group: "platform" },
+    nav: { labelKey: "nav.systemStatus", icon: Activity, order: 3, group: "platform" },
   },
   {
     path: "/user-setting/profile",
     layout: "standard",
     auth: "required",
     component: () => import("@/pages/user-setting/profile"),
-    nav: { labelKey: "nav.profile", icon: UserRound, order: 3, group: "account" },
+    nav: { labelKey: "nav.profile", icon: UserRound, order: 4, group: "account" },
+  },
+  {
+    path: "/user-setting/model",
+    layout: "standard",
+    auth: "required",
+    component: () => import("@/pages/user-setting/model"),
+    nav: { labelKey: "nav.models", icon: Cpu, order: 5, group: "account" },
   },
   {
     path: "/user-setting/api",
     layout: "standard",
     auth: "required",
     component: () => import("@/pages/user-setting/api"),
-    nav: { labelKey: "nav.apiTokens", icon: KeyRound, order: 4, group: "account" },
+    nav: { labelKey: "nav.apiTokens", icon: KeyRound, order: 6, group: "account" },
   },
   {
     path: "/user-setting/team",
     layout: "standard",
     auth: "required",
     component: () => import("@/pages/user-setting/team"),
-    nav: { labelKey: "nav.team", icon: Users, order: 5, group: "account" },
+    nav: { labelKey: "nav.team", icon: Users, order: 7, group: "account" },
   },
   {
     path: "*",

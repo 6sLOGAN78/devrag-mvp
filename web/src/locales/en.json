@@ -11,6 +11,7 @@
     "openMenu": "Open navigation menu",
     "closeMenu": "Close",
     "profile": "Profile",
+    "models": "Models",
     "apiTokens": "API tokens",
     "team": "Team"
   },
@@ -446,6 +447,64 @@
       "forbidden": "You don't have permission to do that.",
       "rateLimited": "Too many changes in a short time. Wait a moment, then try again.",
       "generic": "The change wasn't saved. The list has been refreshed. Try again."
+    }
+  },
+  "models": {
+    "title": "Models",
+    "documentTitle": "Models - devRag",
+    "intro": "Model providers and default models for {{workspace}}.",
+    "readOnly": "Only the workspace owner and admins can change model settings.",
+    "loading": "Loading model providers",
+    "providers": {
+      "title": "Providers"
+    },
+    "provider": {
+      "openai": {
+        "description": "Chat and embedding models from OpenAI."
+      },
+      "azure": {
+        "description": "OpenAI models deployed in your own Azure resource."
+      },
+      "ollama": {
+        "description": "Models served by an Ollama server you run."
+      },
+      "openrouter": {
+        "description": "Many chat and embedding models behind one key."
+      },
+      "compatible": {
+        "name": "OpenAI-compatible",
+        "description": "Any service that speaks the OpenAI API at a base URL you provide."
+      }
+    },
+    "status": {
+      "configured": "Configured",
+      "notConfigured": "Not configured"
+    },
+    "credential": {
+      "key": "API key",
+      "baseUrl": "Base URL"
+    },
+    "type": {
+      "chat": "Chat",
+      "embedding": "Embedding"
+    },
+    "dimensions": "{{count}} dimensions",
+    "badge": {
+      "defaultChat": "Default chat",
+      "defaultEmbedding": "Default embedding"
+    },
+    "empty": {
+      "heading": "No models configured yet",
+      "body": "Ask the workspace owner or an admin to add a model provider."
+    },
+    "errorNoun": {
+      "providers": "model providers"
+    },
+    "refused": {
+      "generic": "The configuration wasn't saved. Try again."
+    },
+    "delete": {
+      "failed": "The credentials weren't deleted. Nothing was removed. Try again."
     }
   }
 }

@@ -11,6 +11,7 @@
     "openMenu": "打开导航菜单",
     "closeMenu": "关闭",
     "profile": "个人资料",
+    "models": "模型",
     "apiTokens": "API 令牌",
     "team": "团队"
   },
@@ -446,6 +447,64 @@
       "forbidden": "你没有执行此操作的权限。",
       "rateLimited": "短时间内更改过多。请稍等片刻后重试。",
       "generic": "更改未保存。列表已刷新。请重试。"
+    }
+  },
+  "models": {
+    "title": "模型",
+    "documentTitle": "模型 - devRag",
+    "intro": "{{workspace}}的模型提供商和默认模型。",
+    "readOnly": "只有工作区所有者和管理员可以更改模型设置。",
+    "loading": "正在加载模型提供商",
+    "providers": {
+      "title": "提供商"
+    },
+    "provider": {
+      "openai": {
+        "description": "来自 OpenAI 的对话和嵌入模型。"
+      },
+      "azure": {
+        "description": "部署在你自己的 Azure 资源中的 OpenAI 模型。"
+      },
+      "ollama": {
+        "description": "由你运行的 Ollama 服务器提供的模型。"
+      },
+      "openrouter": {
+        "description": "一个密钥即可使用众多对话和嵌入模型。"
+      },
+      "compatible": {
+        "name": "OpenAI 兼容",
+        "description": "任何在你提供的基础 URL 上支持 OpenAI API 的服务。"
+      }
+    },
+    "status": {
+      "configured": "已配置",
+      "notConfigured": "未配置"
+    },
+    "credential": {
+      "key": "API 密钥",
+      "baseUrl": "基础 URL"
+    },
+    "type": {
+      "chat": "对话",
+      "embedding": "嵌入"
+    },
+    "dimensions": "{{count}} 维",
+    "badge": {
+      "defaultChat": "默认对话",
+      "defaultEmbedding": "默认嵌入"
+    },
+    "empty": {
+      "heading": "尚未配置模型",
+      "body": "请联系工作区所有者或管理员添加模型提供商。"
+    },
+    "errorNoun": {
+      "providers": "模型提供商"
+    },
+    "refused": {
+      "generic": "配置未保存。请重试。"
+    },
+    "delete": {
+      "failed": "凭据未删除，未移除任何内容。请重试。"
     }
   }
 }

@@ -127,6 +127,10 @@ function renderPage() {
   );
 }
 
+/** The memberships the way the store keeps them (camelCase), derived from the server rows. */
+const stored = (rows: readonly Row[]) =>
+  rows.map((r) => ({ tenantId: r.tenant_id, tenantName: r.tenant_name, ownerNickname: r.owner_nickname, ownerAvatar: r.owner_avatar, role: r.role, joinedTime: r.joined_time }));
+
 const rowOf = (slug: string) => screen.getByTestId(`provider-row-${slug}`);
 
 beforeEach(() => {
@@ -139,7 +143,7 @@ beforeEach(() => {
   useUserStore.getState().reset();
   useWorkspaceStore.getState().reset();
   useUserStore.getState().setUser(OWNER);
-  useWorkspaceStore.getState().initialise("u1", "t1", [OWN as never]);
+  useWorkspaceStore.getState().initialise("u1", "t1", stored([OWN]));
   setAuthorization("tok-session");
   http.defaults.adapter = adapter;
 });
@@ -221,7 +225,7 @@ describe("Owner and admin view (D-07, D-17)", () => {
 describe("Member view (D-17, D-26)", () => {
   beforeEach(() => {
     memberships = [OWN, joined("normal")];
-    useWorkspaceStore.getState().initialise("u1", "t1", memberships as never);
+    useWorkspaceStore.getState().initialise("u1", "t1", stored(memberships));
     useWorkspaceStore.getState().setActive("t9");
   });
 
@@ -265,7 +269,7 @@ describe("Workspace switching (D-26)", () => {
     await screen.findByTestId("provider-row-openai");
     expect(screen.queryByTestId("models-readonly-notice")).toBeNull();
     await act(async () => {
-      useWorkspaceStore.getState().initialise("u1", "t1", memberships as never);
+      useWorkspaceStore.getState().initialise("u1", "t1", stored(memberships));
       useWorkspaceStore.getState().setActive("t9");
     });
     expect(await screen.findByTestId("models-readonly-notice")).toBeInTheDocument();
