@@ -191,6 +191,7 @@ describe("Models page structure (UI-37, D-15)", () => {
       "Set up OpenAI-compatible",
     ]);
   });
+});
 
 describe("Owner and admin view (D-07, D-17)", () => {
   it("shows the masked key, the base URL and the models with type, dimensions and the default badge", async () => {

@@ -145,7 +145,6 @@ function failure(config: InternalAxiosRequestConfig, f: Forced) {
 }
 
 const bodyOf = (config: InternalAxiosRequestConfig): Record<string, unknown> => JSON.parse(String(config.data ?? "{}")) as Record<string, unknown>;
-const tenantOf = (config: InternalAxiosRequestConfig) => String((config.params as { tenant_id?: string } | undefined)?.tenant_id ?? "");
 const view = (provider: Provider) => provider;
 const isWrite = (config: InternalAxiosRequestConfig) => ["put", "post", "delete"].includes(String(config.method).toLowerCase()) && String(config.url).startsWith("/api/v1/providers");
 
@@ -204,7 +203,7 @@ const adapter: AxiosAdapter = async (config) => {
   if (hold !== null && isWrite(config)) {
     const gate = hold;
     await new Promise<void>((resolve, reject) => {
-      config.signal?.addEventListener("abort", () => {
+      config.signal?.addEventListener?.("abort", () => {
         aborted.push(config);
         reject(new CanceledError("canceled", config));
       });

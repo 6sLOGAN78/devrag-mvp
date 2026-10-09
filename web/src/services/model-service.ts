@@ -1,10 +1,10 @@
-import { modelsDefaultPath, modelsPath, providersPath } from "@/constants/api-paths";
-import { request } from "./http";
+import { modelsDefaultPath, modelsPath, providerInstancesPath, providerPath, providersPath } from "@/constants/api-paths";
+import { expectRecord, request } from "./http";
 
 /**
  * Read side of the model APIs (plans 03-12 and 03-13). Every mapper copies an explicit list of fields and nothing
  * else, so a field the server should never send (a key, a ciphertext) cannot reach component state (T-03-20-01).
- * Write calls arrive with the provider dialogs in plan 03-21.
+ * The write calls (plan 03-21) carry a typed key to the server and return the mapped provider view, which has no key.
  */
 
 /** One registered model. `id` is the composite id (`model@provider`, or `model@instance@provider`) the selects use. */
@@ -146,4 +146,81 @@ export async function getDefaults(tenantId: string): Promise<DefaultsView> {
   const dto = await request<unknown>({ url: modelsDefaultPath, method: "GET", params: { tenant_id: tenantId } }, { silent: true });
   const record = asRecord(dto) as Partial<DefaultsDto>;
   return { chat: text(record.chat), embedding: text(record.embedding) };
+}
+
+/** A request that tests a provider with real calls can take two server tests of 20 seconds each (Pitfall 8). */
+export const PROVIDER_TEST_TIMEOUT_MS = 45_000;
+const DELETE_TIMEOUT_MS = 30_000;
+/** Every provider write names the one instance the Models page manages. */
+const DEFAULT_INSTANCE = "default";
+
+/** A model to register: the provider's own id for it and its type. */
+export interface RegisteredModel {
+  name: string;
+  type: ModelType;
+}
+
+export interface SaveProviderInput {
+  tenantId: string;
+  /** Slug of the provider (`openrouter`). */
+  provider: string;
+  /** The typed key. Held only for the length of the call; empty or missing means "send none". */
+  apiKey?: string;
+  baseUrl?: string;
+  apiVersion?: string;
+  /** One or two models; the server tests each with the key and address it was given. */
+  models: RegisteredModel[];
+}
+
+export interface AddModelInput {
+  tenantId: string;
+  provider: string;
+  model: RegisteredModel;
+}
+
+/** Blank values are left out of a body, so the server sees "absent" rather than an empty string. */
+function present(value: string | undefined): string | undefined {
+  return value === undefined || value.trim() === "" ? undefined : value;
+}
+
+/**
+ * The one model a Change key or Change address call sends. The server re-tests whatever models it is given with the
+ * new key or address and keeps the models already registered, so one is enough: the first chat model, else the first
+ * embedding model. Name and type only. An empty list means the provider has no model to test with.
+ */
+export function registeredModelFor(provider: ProviderView | undefined): RegisteredModel[] {
+  const models = provider?.models ?? [];
+  const chosen = models.find((m) => m.type === "chat") ?? models.find((m) => m.type === "embedding");
+  return chosen === undefined ? [] : [{ name: chosen.name, type: chosen.type === "embedding" ? "embedding" : "chat" }];
+}
+
+/**
+ * PUT /api/v1/providers: tests the models with the given credentials and stores them only if the tests pass. The key
+ * is in the body and nowhere else (never the URL or query string), and the answer carries none.
+ */
+export async function saveProvider(input: SaveProviderInput, signal?: AbortSignal): Promise<ProviderView> {
+  const data = {
+    tenant_id: input.tenantId,
+    provider: input.provider,
+    instance_name: DEFAULT_INSTANCE,
+    api_key: present(input.apiKey),
+    base_url: present(input.baseUrl),
+    api_version: present(input.apiVersion),
+    models: input.models,
+  };
+  const raw = await request<unknown>({ url: providersPath, method: "PUT", data, timeout: PROVIDER_TEST_TIMEOUT_MS, signal }, { silent: true });
+  return toProvider(expectRecord(raw, "the provider save", ["slug"]));
+}
+
+/** POST /api/v1/providers/{provider}/instances with models only: tested with the stored key and added. */
+export async function addModel(input: AddModelInput, signal?: AbortSignal): Promise<ProviderView> {
+  const data = { tenant_id: input.tenantId, instance_name: DEFAULT_INSTANCE, models: [input.model] };
+  const raw = await request<unknown>({ url: providerInstancesPath(input.provider), method: "POST", data, timeout: PROVIDER_TEST_TIMEOUT_MS, signal }, { silent: true });
+  return toProvider(expectRecord(raw, "the model add", ["slug"]));
+}
+
+/** DELETE /api/v1/providers/{provider}: removes the workspace's credentials and models for that provider. */
+export async function deleteProvider(tenantId: string, provider: string, signal?: AbortSignal): Promise<{ deleted: true }> {
+  await request<unknown>({ url: providerPath(provider), method: "DELETE", params: { tenant_id: tenantId }, timeout: DELETE_TIMEOUT_MS, signal }, { silent: true });
+  return { deleted: true };
 }

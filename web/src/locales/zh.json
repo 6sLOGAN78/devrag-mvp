@@ -224,6 +224,21 @@
     },
     "code": {
       "invalid": "请输入 6 位验证码。"
+    },
+    "provider": {
+      "keyRequired": "请输入 API 密钥。",
+      "baseUrlRequired": "请输入基础 URL。",
+      "baseUrlInvalid": "请输入以 http:// 或 https:// 开头的完整 URL。",
+      "baseUrlCredentials": "请从 URL 中移除用户名和密码。",
+      "ollamaV1": "请使用末尾不带 /v1 的服务器地址。",
+      "apiVersionRequired": "请输入 API 版本。",
+      "modelRequired": "请输入对话模型、嵌入模型,或两者都输入。",
+      "keyNewAddress": "请重新输入 API 密钥以使用不同的地址。"
+    },
+    "model": {
+      "idRequired": "请输入模型 ID。",
+      "idInvalid": "模型 ID 不能包含空格或 @。",
+      "idMax": "请使用 128 个字符或更少。"
     }
   },
   "home": {
@@ -501,10 +516,70 @@
       "providers": "模型提供商"
     },
     "refused": {
-      "generic": "配置未保存。请重试。"
+      "generic": "配置未保存。请重试。",
+      "title": "{{provider}} 拒绝了此配置",
+      "fallback": "请检查密钥、基础 URL 和模型 ID,然后重试。"
     },
     "delete": {
-      "failed": "凭据未删除，未移除任何内容。请重试。"
-    }
+      "failed": "凭据未删除，未移除任何内容。请重试。",
+      "title": "删除 {{provider}} 凭据?",
+      "body_one": "已保存的凭据和来自 {{provider}} 的 {{count}} 个模型将从 {{workspace}} 中移除。来自 {{provider}} 的默认模型将被清除,使用其嵌入模型的数据集在你重新添加之前无法为新内容建立索引。此操作无法撤销。",
+      "body_other": "已保存的凭据和来自 {{provider}} 的 {{count}} 个模型将从 {{workspace}} 中移除。来自 {{provider}} 的默认模型将被清除,使用其嵌入模型的数据集在你重新添加之前无法为新内容建立索引。此操作无法撤销。",
+      "keep": "保留提供商",
+      "confirm": "删除提供商"
+    },
+    "action": {
+      "setUp": "设置",
+      "setUpLabel": "设置 {{provider}}",
+      "addModel": "添加模型",
+      "addModelLabel": "向 {{provider}} 添加模型",
+      "changeKey": "更换密钥",
+      "changeKeyLabel": "更换 {{provider}} 的密钥",
+      "changeAddress": "更改地址",
+      "changeAddressLabel": "更改 {{provider}} 的地址",
+      "deleteLabel": "删除 {{provider}} 凭据"
+    },
+    "dialog": {
+      "setUpTitle": "设置 {{provider}}",
+      "changeKeyTitle": "更换 {{provider}} 的密钥",
+      "changeAddressTitle": "更改 {{provider}} 的地址",
+      "addModelTitle": "向 {{provider}} 添加模型"
+    },
+    "field": {
+      "key": "API 密钥",
+      "baseUrl": "基础 URL",
+      "endpoint": "端点",
+      "apiVersion": "API 版本",
+      "chatModel": "对话模型",
+      "embeddingModel": "嵌入模型",
+      "chatDeployment": "对话部署",
+      "embeddingDeployment": "嵌入部署",
+      "modelId": "模型 ID",
+      "modelType": "类型"
+    },
+    "help": {
+      "modelId": "提供商所用的模型 ID,须完全一致,例如 {{example}}。",
+      "ollamaUrl": "不带 /v1 的服务器地址,例如 http://localhost:11434。",
+      "optionalKey": "如果服务不需要密钥,请留空。",
+      "replaceKey": "尾号为 {{last4}} 的已保存密钥将被替换。已保存的密钥无法再次显示。",
+      "keyNotReused": "如果服务不需要密钥,请留空。已保存的密钥绝不会用于新地址。"
+    },
+    "submit": "测试并保存",
+    "testing": "正在用一个小请求测试连接。最多可能需要 40 秒。",
+    "rateLimited": "短时间内测试次数过多。请稍等片刻后重试。",
+    "timeout": "提供商未及时响应。未保存任何内容。请重试。",
+    "providerBusy": "提供商当前繁忙。请稍等片刻后重试。",
+    "providerDown": "无法连接到提供商。未保存任何内容。请重试。",
+    "keyStoreDown": "模型设置当前不可用。如果持续失败,请查看系统状态。",
+    "error": {
+      "modelExists": "该模型已添加。",
+      "addressRefused": "无法使用该地址。",
+      "dimension": "该嵌入模型的向量维度不受支持,或与已保存的维度不一致。"
+    },
+    "saved": "{{provider}} 已保存",
+    "savedHint": "请在下方选择默认模型,以便数据集和对话使用。",
+    "updated": "{{provider}} 已更新",
+    "modelAdded": "模型已添加",
+    "deleted": "{{provider}} 凭据已删除"
   }
 }

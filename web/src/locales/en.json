@@ -224,6 +224,21 @@
     },
     "code": {
       "invalid": "Enter the 6-digit code."
+    },
+    "provider": {
+      "keyRequired": "Enter the API key.",
+      "baseUrlRequired": "Enter the base URL.",
+      "baseUrlInvalid": "Enter a full URL that starts with http:// or https://.",
+      "baseUrlCredentials": "Remove the user name and password from the URL.",
+      "ollamaV1": "Use the server address without /v1 at the end.",
+      "apiVersionRequired": "Enter the API version.",
+      "modelRequired": "Enter a chat model, an embedding model, or both.",
+      "keyNewAddress": "Enter the API key again to use a different address."
+    },
+    "model": {
+      "idRequired": "Enter the model id.",
+      "idInvalid": "Model ids can't contain spaces or @.",
+      "idMax": "Use 128 characters or fewer."
     }
   },
   "home": {
@@ -501,10 +516,70 @@
       "providers": "model providers"
     },
     "refused": {
-      "generic": "The configuration wasn't saved. Try again."
+      "generic": "The configuration wasn't saved. Try again.",
+      "title": "{{provider}} refused this configuration",
+      "fallback": "Check the key, the base URL and the model ids, then try again."
     },
     "delete": {
-      "failed": "The credentials weren't deleted. Nothing was removed. Try again."
-    }
+      "failed": "The credentials weren't deleted. Nothing was removed. Try again.",
+      "title": "Delete {{provider}} credentials?",
+      "body_one": "The saved credentials and the {{count}} model from {{provider}} are removed from {{workspace}}. Default models that come from {{provider}} are cleared, and datasets that use its embedding model can't index new content until you add it again. This can't be undone.",
+      "body_other": "The saved credentials and the {{count}} models from {{provider}} are removed from {{workspace}}. Default models that come from {{provider}} are cleared, and datasets that use its embedding model can't index new content until you add it again. This can't be undone.",
+      "keep": "Keep provider",
+      "confirm": "Delete provider"
+    },
+    "action": {
+      "setUp": "Set up",
+      "setUpLabel": "Set up {{provider}}",
+      "addModel": "Add model",
+      "addModelLabel": "Add a model to {{provider}}",
+      "changeKey": "Change key",
+      "changeKeyLabel": "Change the key for {{provider}}",
+      "changeAddress": "Change address",
+      "changeAddressLabel": "Change the address for {{provider}}",
+      "deleteLabel": "Delete {{provider}} credentials"
+    },
+    "dialog": {
+      "setUpTitle": "Set up {{provider}}",
+      "changeKeyTitle": "Change the key for {{provider}}",
+      "changeAddressTitle": "Change the address for {{provider}}",
+      "addModelTitle": "Add a model to {{provider}}"
+    },
+    "field": {
+      "key": "API key",
+      "baseUrl": "Base URL",
+      "endpoint": "Endpoint",
+      "apiVersion": "API version",
+      "chatModel": "Chat model",
+      "embeddingModel": "Embedding model",
+      "chatDeployment": "Chat deployment",
+      "embeddingDeployment": "Embedding deployment",
+      "modelId": "Model id",
+      "modelType": "Type"
+    },
+    "help": {
+      "modelId": "The model id exactly as the provider names it, for example {{example}}.",
+      "ollamaUrl": "The server address without /v1, for example http://localhost:11434.",
+      "optionalKey": "Leave blank if the service needs no key.",
+      "replaceKey": "The saved key ending {{last4}} is replaced. A saved key can't be shown again.",
+      "keyNotReused": "Leave blank if the service needs no key. A saved key is never reused with a new address."
+    },
+    "submit": "Test and save",
+    "testing": "Testing the connection with a small request. This can take up to 40 seconds.",
+    "rateLimited": "Too many tests in a short time. Wait a moment and try again.",
+    "timeout": "The provider didn't answer in time. Nothing was saved. Try again.",
+    "providerBusy": "The provider is busy right now. Wait a moment and try again.",
+    "providerDown": "The provider couldn't be reached. Nothing was saved. Try again.",
+    "keyStoreDown": "Model settings aren't available right now. If it keeps failing, check System status.",
+    "error": {
+      "modelExists": "That model is already added.",
+      "addressRefused": "That address can't be used.",
+      "dimension": "The embedding model's vector size isn't supported, or doesn't match the one already saved."
+    },
+    "saved": "{{provider}} saved",
+    "savedHint": "Choose default models below so datasets and chat can use them.",
+    "updated": "{{provider}} updated",
+    "modelAdded": "Model added",
+    "deleted": "{{provider}} credentials deleted"
   }
 }
