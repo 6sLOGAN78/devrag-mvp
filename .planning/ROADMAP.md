@@ -248,7 +248,7 @@ Plans:
 
 **Wave 8** *(blocked on Wave 7 completion)*
 
-- [ ] 03-16-PLAN.md — Upload service and route (E2E-04)
+- [x] 03-16-PLAN.md — Upload service and route (E2E-04)
 
 **Wave 9** *(blocked on Wave 8 completion)*
 

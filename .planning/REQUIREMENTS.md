@@ -80,13 +80,13 @@ Requirements for initial release. Each maps to exactly one roadmap phase.
 
 ### DOC — Document upload, lifecycle, management
 
-- [ ] **DOC-01**: User can upload one or more files to a dataset as multipart via `POST /api/v1/documents/upload`
+- [x] **DOC-01**: User can upload one or more files to a dataset as multipart via `POST /api/v1/documents/upload`
 - [x] **DOC-02**: Upload rejects disallowed extensions / MIME types with HTTP 400
 - [x] **DOC-03**: Upload enforces max content size and quota limits
 - [x] **DOC-04**: Upload computes an xxh64 content hash and, on a duplicate within the tenant, reuses the stored blob and only links a new `Document`
-- [ ] **DOC-05**: Upload writes the binary to object storage and records `location`
-- [ ] **DOC-06**: Upload inserts `File`, `Document`, `File2Document` rows in one transaction with `run='0'`, `progress=0.0`
-- [ ] **DOC-07**: Upload verifies dataset existence and caller permission before storing
+- [x] **DOC-05**: Upload writes the binary to object storage and records `location`
+- [x] **DOC-06**: Upload inserts `File`, `Document`, `File2Document` rows in one transaction with `run='0'`, `progress=0.0`
+- [x] **DOC-07**: Upload verifies dataset existence and caller permission before storing
 - [ ] **DOC-08**: User can list documents in a dataset with paging and keyword filter via `GET /api/v1/datasets/<dataset_id>/documents`
 - [ ] **DOC-09**: User can start parsing selected documents via `POST /api/v1/datasets/<dataset_id>/documents/parse` (`doc_ids`, `run`); document moves to RUNNING and tasks are queued
 - [ ] **DOC-10**: User can cancel a running parse; document moves to CANCELLED
@@ -95,7 +95,7 @@ Requirements for initial release. Each maps to exactly one roadmap phase.
 - [ ] **DOC-13**: User can enable/disable documents for retrieval via `POST /api/v1/datasets/<dataset_id>/documents/batch-update-status`
 - [ ] **DOC-14**: User can delete documents via `DELETE /api/v1/datasets/<dataset_id>/documents`; chunks are pruned from the index
 - [ ] **DOC-15**: Deleting a document garbage-collects the blob only when no other `File2Document` row references it
-- [ ] **DOC-16**: Documents can carry their own `parser_id` / `parser_config` overriding the dataset default
+- [x] **DOC-16**: Documents can carry their own `parser_id` / `parser_config` overriding the dataset default
 - [ ] **DOC-17**: User can batch-update document metadata via `PATCH /datasets/<dataset_id>/documents/metadatas`
 - [ ] **DOC-18**: User can fetch an extracted image via `GET /documents/images/<image_id>`
 - [ ] **DOC-19**: User can fetch a generated artifact via `GET /documents/artifact/<filename>`
@@ -619,7 +619,7 @@ Requirements for initial release. Each maps to exactly one roadmap phase.
 - [x] **E2E-01**: User registration creates user, tenant, owner link — passes against the real stack with no mocks (covers AUTH-01..04; flow: `21-end-to-end-flows/user-registration.md`)
 - [x] **E2E-02**: Login returns token, user, tenant, default models — passes against the real stack with no mocks (covers AUTH-05..07; flow: `21-.../login.md`) — *login returns token, user, tenant, role and the default model id fields through the real stack; the model ids are empty until configured (D-22, B-09)*
 - [x] **E2E-03**: Create knowledge base provisions DB row and docstore index — passes against the real stack with no mocks (covers KB-01..03, IDX-05; flow: `21-.../create-knowledge-base.md`)
-- [ ] **E2E-04**: Upload document stores blob and creates UNSTART document — passes against the real stack with no mocks (covers DOC-01..07, STOR; flow: `21-.../upload-document.md`)
+- [x] **E2E-04**: Upload document stores blob and creates UNSTART document — passes against the real stack with no mocks (covers DOC-01..07, STOR; flow: `21-.../upload-document.md`)
 - [ ] **E2E-05**: Document processing: parse request, queue, worker, DeepDoc, chunks — passes against the real stack with no mocks (covers DOC-09, ING, PARSE, CHUNK; flow: `21-.../document-processing.md`)
 - [ ] **E2E-06**: Indexing: embed, optional enrichment, bulk insert, document finished — passes against the real stack with no mocks (covers IDX, CHUNK-22..26; flow: `21-.../indexing.md`)
 - [ ] **E2E-07**: Ask question: tokenize, embed query, concurrent BM25 + vector search — passes against the real stack with no mocks (covers RETR-01..08; flow: `21-.../ask-question.md`)
@@ -741,13 +741,13 @@ Which phases cover which requirements. Updated during roadmap creation.
 | KB-17 | Phase 6 | Pending |
 | KB-18 | Phase 5 | Pending |
 | KB-19 | Phase 4 | Pending |
-| DOC-01 | Phase 3 | Pending |
+| DOC-01 | Phase 3 | Complete |
 | DOC-02 | Phase 3 | Complete |
 | DOC-03 | Phase 3 | Complete |
 | DOC-04 | Phase 3 | Complete |
-| DOC-05 | Phase 3 | Pending |
-| DOC-06 | Phase 3 | Pending |
-| DOC-07 | Phase 3 | Pending |
+| DOC-05 | Phase 3 | Complete |
+| DOC-06 | Phase 3 | Complete |
+| DOC-07 | Phase 3 | Complete |
 | DOC-08 | Phase 3 | Pending |
 | DOC-09 | Phase 4 | Pending |
 | DOC-10 | Phase 4 | Pending |
@@ -756,7 +756,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DOC-13 | Phase 4 | Pending |
 | DOC-14 | Phase 3 | Pending |
 | DOC-15 | Phase 3 | Pending |
-| DOC-16 | Phase 3 | Pending |
+| DOC-16 | Phase 3 | Complete |
 | DOC-17 | Phase 6 | Pending |
 | DOC-18 | Phase 6 | Pending |
 | DOC-19 | Phase 6 | Pending |
@@ -1205,7 +1205,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | E2E-01 | Phase 2 | Complete |
 | E2E-02 | Phase 2 | Complete (as decided, D-22) |
 | E2E-03 | Phase 3 | Complete |
-| E2E-04 | Phase 3 | Pending |
+| E2E-04 | Phase 3 | Complete |
 | E2E-05 | Phase 4 | Pending |
 | E2E-06 | Phase 4 | Pending |
 | E2E-07 | Phase 5 | Pending |
