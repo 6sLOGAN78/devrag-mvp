@@ -1,9 +1,14 @@
-import { CircleCheck } from "lucide-react";
+import { CircleCheck, Trash2 } from "lucide-react";
+import type { MouseEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import type { DefaultsView, InstanceView, ModelView, ProviderView } from "@/services/model-service";
 import { providerName, type ProviderSpec } from "./providers";
 import { maskSecret } from "./secret-mask";
+
+/** What a row button asks the page to open. */
+export type RowAction = "setup" | "add" | "change" | "delete";
 
 interface ProviderRowProps {
   spec: ProviderSpec;
@@ -12,6 +17,8 @@ interface ProviderRowProps {
   defaults: DefaultsView | undefined;
   /** Owner or admin of the active workspace. Only they see the credential line (D-17). */
   elevated: boolean;
+  /** Opens a dialog for this provider. `trigger` is the button, so the page can return focus to it. Absent for members. */
+  onAction?: (action: RowAction, slug: string, trigger: HTMLElement) => void;
 }
 
 function CredentialLine({ spec, instance }: { spec: ProviderSpec; instance: InstanceView }) {
@@ -61,11 +68,57 @@ function ModelRow({ model, defaults }: { model: ModelView; defaults: DefaultsVie
 }
 
 /**
- * One provider of the workspace: name, status, description, the credential line for owners and admins and the models
- * it serves. Every string from the server renders as a text node. This plan renders no action; the set up, add model,
- * change key and delete controls mount in the actions slot of this row in plan 03-21.
+ * The row's write controls (owner and admin only; members get no button at all, not a disabled one). Not configured:
+ * Set up. Configured: Add model, Change key (Change address for Ollama, which has no key) and Delete. Each accessible
+ * name carries the provider, because the visible text alone ("Set up") repeats on every row.
  */
-export function ProviderRow({ spec, provider, defaults, elevated }: ProviderRowProps) {
+function RowActions({ spec, name, configured, onAction }: { spec: ProviderSpec; name: string; configured: boolean; onAction: NonNullable<ProviderRowProps["onAction"]> }) {
+  const { t } = useTranslation();
+  const open = (action: RowAction) => (event: MouseEvent<HTMLButtonElement>) => onAction(action, spec.slug, event.currentTarget);
+  if (!configured) {
+    return (
+      <div className="flex flex-wrap items-center gap-2">
+        <Button type="button" variant="outline" data-testid="provider-setup" aria-label={t("models.action.setUpLabel", { provider: name })} onClick={open("setup")}>
+          {t("models.action.setUp")}
+        </Button>
+      </div>
+    );
+  }
+  const keyless = spec.fields.key === "none";
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      <Button type="button" variant="outline" data-testid="provider-add-model" aria-label={t("models.action.addModelLabel", { provider: name })} onClick={open("add")}>
+        {t("models.action.addModel")}
+      </Button>
+      <Button
+        type="button"
+        variant="ghost"
+        data-testid="provider-change"
+        aria-label={t(keyless ? "models.action.changeAddressLabel" : "models.action.changeKeyLabel", { provider: name })}
+        onClick={open("change")}
+      >
+        {t(keyless ? "models.action.changeAddress" : "models.action.changeKey")}
+      </Button>
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
+        data-testid="provider-delete"
+        aria-label={t("models.action.deleteLabel", { provider: name })}
+        className="hover:text-destructive focus-visible:text-destructive"
+        onClick={open("delete")}
+      >
+        <Trash2 aria-hidden="true" />
+      </Button>
+    </div>
+  );
+}
+
+/**
+ * One provider of the workspace: name, status, description, the credential line for owners and admins, the models it
+ * serves and, for owners and admins, the write controls. Every string from the server renders as a text node.
+ */
+export function ProviderRow({ spec, provider, defaults, elevated, onAction }: ProviderRowProps) {
   const { t } = useTranslation();
   const name = providerName(spec, t);
   const configured = provider?.configured === true;
@@ -81,6 +134,7 @@ export function ProviderRow({ spec, provider, defaults, elevated }: ProviderRowP
         </Badge>
       </div>
       <p className="text-sm font-normal text-muted-foreground">{t(spec.descriptionKey)}</p>
+      {elevated && onAction !== undefined ? <RowActions spec={spec} name={name} configured={configured} onAction={onAction} /> : null}
       {elevated ? instances.map((instance) => <CredentialLine key={instance.name} spec={spec} instance={instance} />) : null}
       {models.length > 0 ? (
         <ul className="flex flex-col gap-1">
