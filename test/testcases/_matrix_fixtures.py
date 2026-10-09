@@ -34,6 +34,7 @@ TOKENS = "/api/v1/system/tokens"
 PROVIDERS = "/api/v1/providers"
 MODELS = "/api/v1/models"
 MODELS_DEFAULT = "/api/v1/models/default"
+DATASETS = "/api/v1/datasets"
 PROVIDER_SLUG = "openai-compatible"
 COMPAT = "OpenAI-API-Compatible"
 NOT_FOUND = (404, 404, "not found")
@@ -44,6 +45,9 @@ B_PROVIDER_KEY = "-".join(("matrix", "b", "provider", "key", "0002"))
 # Model names that belong to A's side only (B's own calls use different names, so a name in B's answer is a leak).
 A_CHAT_MODEL = "matrix-a-chat-" + uuid.uuid4().hex[:8]
 A_EMBED_MODEL = "matrix-a-embed-" + uuid.uuid4().hex[:8]
+# Dataset names that belong to A's side only.
+A_TEAM_DATASET = "matrix-a-team-" + uuid.uuid4().hex[:8]
+A_PRIVATE_DATASET = "matrix-a-private-" + uuid.uuid4().hex[:8]
 
 
 @dataclass(frozen=True)
@@ -138,6 +142,8 @@ class World:
     b_api_token: str = ""
     fake: FakeProvider | None = None  # the stack-mode fake provider A's provider points at
     provider_url: str = ""
+    a_team_dataset: dict[str, Any] = field(default_factory=dict)  # A's dataset with permission team
+    a_private_dataset: dict[str, Any] = field(default_factory=dict)  # A's dataset with permission me
 
     # reads performed as A -----------------------------------------------------------------------------------------
     def list_tokens(self, who: Account) -> list[dict[str, Any]]:
@@ -170,6 +176,12 @@ class World:
         assert resp.status_code == 200, resp.text
         return resp.json()["data"]
 
+    def snapshot_datasets(self) -> Any:
+        """A's datasets as their creator, the owner, sees them (both of A's own, with counters and times)."""
+        resp = call(self.client, "GET", DATASETS, self.a.token, {}, query={"page_size": "100"})
+        assert resp.status_code == 200, resp.text
+        return resp.json()["data"]
+
     def snapshot_tokens(self) -> Any:
         return sorted(self.list_tokens(self.a), key=lambda t: t["token"])
 
@@ -191,6 +203,7 @@ class World:
             "providers": self.snapshot_providers(),
             "models": self.snapshot_models(),
             "defaults": self.snapshot_defaults(),
+            "datasets": self.snapshot_datasets(),
         }
 
     def a_identifiers(self) -> list[str]:
@@ -202,6 +215,8 @@ class World:
             out += [str(tok["token"]), str(tok["beta"])]
         if self.fake is not None:
             out += [A_PROVIDER_KEY, A_CHAT_MODEL, A_EMBED_MODEL]
+        for dataset in (self.a_team_dataset, self.a_private_dataset):
+            out += [str(dataset.get("id", "")), str(dataset.get("name", ""))]
         return [v for v in out if v]
 
 
@@ -223,6 +238,8 @@ def resource_of(row: Row) -> str:
         return "providers"
     if row.path.startswith(MODELS):
         return "models"
+    if row.path.startswith(DATASETS):
+        return "datasets"
     return "members"
 
 
@@ -259,6 +276,8 @@ def build_world(client: httpx.Client, registry: AccountRegistry, fake: FakeProvi
         }
         _ok(call(client, "PUT", PROVIDERS, a.token, {}, body=body), "A saves a provider")
         _ok(call(client, "PATCH", MODELS_DEFAULT, a.token, {}, body={"embedding": a_embed_id()}), "A chooses its embedding default")
+        world.a_team_dataset = _ok(call(client, "POST", DATASETS, a.token, {}, body={"name": A_TEAM_DATASET, "permission": "team"}), "A creates a team dataset")["data"]
+        world.a_private_dataset = _ok(call(client, "POST", DATASETS, a.token, {}, body={"name": A_PRIVATE_DATASET}), "A creates a private dataset")["data"]
     return world
 
 
@@ -341,7 +360,12 @@ def _provider_instance(w: World) -> Target:
     return _provider_target(w, "GET", PROVIDERS + "/{provider}/instances/{instance}", instance=True)
 
 
+def _dataset_detail(w: World) -> Target:
+    return Target({"dataset_id": str(w.a_team_dataset["id"])}, _sender("GET", DATASETS + "/{dataset_id}", extra_fields=set()), w.snapshot_datasets)
+
+
 BUILDERS: dict[str, Builder] = {
+    "GET /api/v1/datasets/{dataset_id}": _dataset_detail,
     "DELETE /api/v1/providers/{provider}": _delete_provider,
     "GET /api/v1/providers/{provider}/models": _provider_models,
     "POST /api/v1/providers/{provider}/instances": _add_instance,
@@ -565,7 +589,69 @@ def check_models_default_patch(w: World) -> None:
     assert w.snapshot() == snapshot
 
 
+def check_datasets_list(w: World) -> None:
+    """GET /api/v1/datasets: the list is the acting workspace's; a private dataset is its creator's alone, for A's owner-level members too."""
+    before = w.snapshot_datasets()
+    smuggle = {"tenant_id": w.a.tenant_id, "user_id": w.a.user_id, "owner_id": w.a.user_id}
+    own_b = call(w.client, "GET", DATASETS, w.b.token, {})
+    assert own_b.status_code == 200, own_b.text
+    _assert_no_a_data(own_b.text, w, "B's own dataset list")
+    for who, label in ((w.b, "B"), (w.pending, "the pending invitee")):
+        resp = call(w.client, "GET", DATASETS, who.token, {}, query=smuggle)
+        assert triple(resp) == NOT_FOUND, f"{label} naming tenant A's workspace must get the one not-found answer: {triple(resp)}"
+        _assert_no_a_data(resp.text, w, f"the dataset list {label} asked for in A's name")
+        plain = call(w.client, "GET", DATASETS, who.token, {}, query={"page_size": "100", "keywords": "matrix"})
+        assert plain.status_code == 200, plain.text
+        _assert_no_a_data(plain.text, w, f"the dataset list of {label}")
+    assert call(w.client, "GET", DATASETS, w.b.token, {}).text == own_b.text, "B's own list is unchanged by the smuggled requests"
+    # A's members see the team dataset and never the owner's private one (D-27: no override for anyone).
+    for member in (w.normal, w.admin, w.victim):
+        resp = call(w.client, "GET", DATASETS, member.token, {}, query={"tenant_id": w.a.tenant_id, "page_size": "100"})
+        assert resp.status_code == 200, resp.text
+        assert A_TEAM_DATASET in resp.text, "a member of A sees A's team dataset"
+        assert A_PRIVATE_DATASET not in resp.text and str(w.a_private_dataset["id"]) not in resp.text, "nobody but its creator sees a private dataset"
+    token = str(w.a_tokens[0]["token"])
+    as_token = call(w.client, "GET", DATASETS, token, {})
+    assert as_token.status_code == 200 and A_TEAM_DATASET in as_token.text, as_token.text
+    assert triple(call(w.client, "GET", DATASETS, token, {}, query={"tenant_id": w.b.tenant_id})) == NOT_FOUND, "a token is pinned to its own workspace"
+    assert triple(call(w.client, "GET", DATASETS, w.b_api_token, {}, query={"tenant_id": w.a.tenant_id})) == NOT_FOUND
+    # A member cannot open the owner's private dataset by its real id either: the one 404 of an absent id.
+    absent = triple(call(w.client, "GET", DATASETS + "/{dataset_id}", w.normal.token, {"dataset_id": uuid.uuid4().hex}))
+    assert absent == NOT_FOUND
+    assert triple(call(w.client, "GET", DATASETS + "/{dataset_id}", w.normal.token, {"dataset_id": str(w.a_private_dataset["id"])})) == absent
+    assert triple(call(w.client, "GET", DATASETS + "/{dataset_id}", w.admin.token, {"dataset_id": str(w.a_private_dataset["id"])})) == absent
+    assert w.snapshot_datasets() == before
+
+
+def check_datasets_create(w: World) -> None:
+    """POST /api/v1/datasets: B creates nowhere near A, cannot adopt A's embedding model, and nothing mass-assigns; A's datasets do not change."""
+    before, snapshot = w.snapshot_datasets(), w.snapshot()
+    for who, label in ((w.b, "B"), (w.pending, "the pending invitee")):
+        resp = call(w.client, "POST", DATASETS, who.token, {}, body={"name": "matrix-intruder", "tenant_id": w.a.tenant_id})
+        assert triple(resp) == NOT_FOUND, f"{label}: {triple(resp)}"
+        _assert_no_a_data(resp.text, w, f"the refused creation of {label}")
+    resp = call(w.client, "POST", DATASETS, w.b.token, {}, body={"name": "matrix-b-adopts", "embd_id": a_embed_id()})
+    _refused_as_unavailable(resp, "B uses A's embedding model")
+    _assert_no_a_data(resp.text, w, "the refusal of B's attempt to use A's model")
+    nothing = call(w.client, "POST", DATASETS, w.b.token, {}, body={"name": "matrix-b-nodefault"})
+    assert nothing.status_code == 400 and nothing.json()["data"]["reason"] == "no_default_embedding", "B has no default; A's is not borrowed"
+    _assert_no_a_data(nothing.text, w, "B's creation without a default")
+    for field_name in ("created_by", "tenant_embd_id", "doc_num", "id"):
+        mass = call(w.client, "POST", DATASETS, w.b.token, {}, body={"name": "matrix-b-mass", field_name: w.a.user_id})
+        assert mass.status_code == 400, f"{field_name} cannot be assigned: HTTP {mass.status_code}"
+    same_name = call(w.client, "POST", DATASETS, w.b.token, {}, body={"name": A_TEAM_DATASET})
+    assert same_name.status_code == 400, "A's dataset names are not visible to B: B's own rules apply (no default model here)"
+    for token, label in ((w.b_api_token, "B's API token"),):
+        resp = call(w.client, "POST", DATASETS, token, {}, body={"name": "matrix-token", "tenant_id": w.a.tenant_id})
+        assert triple(resp) == NOT_FOUND, f"{label} is pinned to B's workspace: {triple(resp)}"
+    assert call(w.client, "GET", DATASETS, w.b.token, {}).json()["data"] == {"items": [], "total": 0}, "none of B's refused requests stored a dataset"
+    assert w.snapshot_datasets() == before
+    assert w.snapshot() == snapshot
+
+
 NO_ID_CHECKS: dict[str, NoIdCheck] = {
+    "GET /api/v1/datasets": check_datasets_list,
+    "POST /api/v1/datasets": check_datasets_create,
     "GET /api/v1/providers": check_providers_list,
     "PUT /api/v1/providers": check_providers_save,
     "GET /api/v1/models": check_models_list,

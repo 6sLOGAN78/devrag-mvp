@@ -4,6 +4,38 @@
  */
 
 export interface paths {
+    "/api/v1/datasets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["get_list_datasets"];
+        put?: never;
+        post: operations["post_create_dataset"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/datasets/{dataset_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["get_get_dataset"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/language": {
         parameters: {
             query?: never;
@@ -210,6 +242,54 @@ export interface components {
             redis: components["schemas"]["ProbeResult"];
             storage: components["schemas"]["ProbeResult"];
         };
+        /** DatasetPage */
+        DatasetPage: {
+            /** Items */
+            items: components["schemas"]["DatasetView"][];
+            /** Total */
+            total: number;
+        };
+        /** DatasetView */
+        DatasetView: {
+            /** Avatar */
+            avatar: string;
+            /** Chunk Num */
+            chunk_num: number;
+            /** Create Time */
+            create_time: number;
+            /** Created By */
+            created_by: string;
+            /** Description */
+            description: string;
+            /** Doc Num */
+            doc_num: number;
+            /** Embd Id */
+            embd_id: string;
+            /** Embedding Dimension */
+            embedding_dimension: number | null;
+            /** Id */
+            id: string;
+            /** Language */
+            language: string;
+            /** Name */
+            name: string;
+            /** Parser Config */
+            parser_config: {
+                [key: string]: unknown;
+            };
+            /** Parser Id */
+            parser_id: string;
+            /** Permission */
+            permission: string;
+            /** Tenant Id */
+            tenant_id: string;
+            /** Token Num */
+            token_num: number;
+            /** Update Time */
+            update_time: number;
+            /** @default null */
+            upload_limits: components["schemas"]["UploadLimitsView"] | null;
+        };
         /** DefaultsView */
         DefaultsView: {
             /** Chat */
@@ -325,6 +405,17 @@ export interface components {
             /** Slug */
             slug: string;
         };
+        /** UploadLimitsView */
+        UploadLimitsView: {
+            /** Allowed Extensions */
+            allowed_extensions: string[];
+            /** Max Documents */
+            max_documents: number;
+            /** Max File Bytes */
+            max_file_bytes: number;
+            /** Max Files Per Request */
+            max_files_per_request: number;
+        };
     };
     responses: never;
     parameters: never;
@@ -334,6 +425,132 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    get_list_datasets: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Code */
+                        code: number;
+                        data: components["schemas"]["DatasetPage"];
+                        /** Message */
+                        message: string;
+                    };
+                };
+            };
+        };
+    };
+    post_create_dataset: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": {
+                    /**
+                     * Avatar
+                     * @default null
+                     */
+                    avatar?: string | null;
+                    /**
+                     * Description
+                     * @default null
+                     */
+                    description?: string | null;
+                    /**
+                     * Embd Id
+                     * @default null
+                     */
+                    embd_id?: string | null;
+                    /**
+                     * Language
+                     * @default null
+                     */
+                    language?: string | null;
+                    /** Name */
+                    name: string;
+                    /**
+                     * Parser Config
+                     * @default null
+                     */
+                    parser_config?: {
+                        [key: string]: unknown;
+                    } | null;
+                    /**
+                     * Parser Id
+                     * @default null
+                     */
+                    parser_id?: string | null;
+                    /**
+                     * Permission
+                     * @default null
+                     */
+                    permission?: string | null;
+                    /**
+                     * Tenant Id
+                     * @default null
+                     */
+                    tenant_id?: string | null;
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Code */
+                        code: number;
+                        data: components["schemas"]["DatasetView"];
+                        /** Message */
+                        message: string;
+                    };
+                };
+            };
+        };
+    };
+    get_get_dataset: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                dataset_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Code */
+                        code: number;
+                        data: components["schemas"]["DatasetView"];
+                        /** Message */
+                        message: string;
+                    };
+                };
+            };
+        };
+    };
     get_language: {
         parameters: {
             query?: never;

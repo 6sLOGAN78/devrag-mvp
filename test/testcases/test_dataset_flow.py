@@ -90,7 +90,7 @@ def test_an_owner_creates_lists_and_opens_a_dataset(ingress: httpx.Client, regis
     detail = ok(detail_resp)
     assert detail["id"] == data["id"] and detail["embedding_dimension"] == fake.embedding_dim
     assert set(detail["upload_limits"]) == {"max_file_bytes", "max_files_per_request", "max_documents", "allowed_extensions"}
-    assert detail["upload_limits"]["max_file_bytes"] > 0 and ".pdf" in detail["upload_limits"]["allowed_extensions"]
+    assert detail["upload_limits"]["max_file_bytes"] > 0 and "pdf" in detail["upload_limits"]["allowed_extensions"]
     assert detail["parser_config"]["chunk_token_num"] == 512
     assert_clean(made, listed, detail_resp)
 
@@ -217,7 +217,8 @@ def test_a_private_dataset_is_visible_to_its_creator_alone_even_for_owners_and_a
     assert api(ingress, "GET", DATASETS, stranger.token, params=scope).json() == NOT_FOUND, "a non-member naming the workspace learns nothing"
     assert api(ingress, "POST", DATASETS, stranger.token, body={"name": "intruder", "tenant_id": owner.tenant_id}).json() == NOT_FOUND
     assert api(ingress, "POST", DATASETS, stranger.token, body={"name": "intruder", "tenant_id": "0" * 32}).json() == NOT_FOUND
-    assert api(ingress, "POST", DATASETS, stranger.token, body={"name": "intruder", "tenant_id": "not-an-id"}).json() == NOT_FOUND
+    assert api(ingress, "POST", DATASETS, stranger.token, body={"name": "intruder", "tenant_id": "not-an-id"}).status_code == 400, "a malformed body field is a validation error"
+    assert api(ingress, "GET", DATASETS, stranger.token, params={"tenant_id": "not-an-id"}).json() == NOT_FOUND, "a malformed query value is the one not-found answer"
     assert names(owner) == {"owner-private", "owner-team", "member-team"}
 
 

@@ -26,9 +26,11 @@ from test.helpers.fake_provider import running_stack_fake_provider
 from test.helpers.mail import delete_mail_for, extract_code, wait_for_mail
 from test.testcases._leak_sweep import CREDENTIAL_ROWS, LOGIN, TOKEN_ROWS, VERIFY, Secret, scan_response
 from test.testcases._matrix_fixtures import (
+    A_EMBED_MODEL,
     A_PROVIDER_KEY,
     B_PROVIDER_KEY,
     COMPAT,
+    DATASETS,
     MODELS,
     MODELS_DEFAULT,
     PROVIDER_SLUG,
@@ -343,6 +345,49 @@ def sweep_model_rows(s: Sweep, w: World) -> None:
     s.errors(row, "PATCH", MODELS_DEFAULT, "PUT")
 
 
+def sweep_dataset_rows(s: Sweep, w: World) -> None:
+    """The three dataset rows, each on a success and on error paths (plan 03-14). A's embedding default exists since the world was built."""
+    a, b, member = w.a, w.b, w.normal
+    token = str(w.a_tokens[0]["token"])
+    scope = f"?tenant_id={a.tenant_id}"
+    name = "leak-dataset-" + uuid.uuid4().hex[:8]
+
+    row = f"POST {DATASETS}"
+    made = s.req(row, "success (team)", "POST", DATASETS, a.token, {"name": name, "permission": "team", "description": "leak sweep"})
+    s.req(row, "success (explicit model)", "POST", DATASETS, a.token, {"name": name + "-b", "embd_id": f"{A_EMBED_MODEL}@{COMPAT}"})
+    s.req(row, "duplicate name", "POST", DATASETS, a.token, {"name": name.upper()})
+    s.req(row, "unknown embedding model", "POST", DATASETS, a.token, {"name": name + "-c", "embd_id": f"no-such-model@{COMPAT}"})
+    s.req(row, "over-long model id", "POST", DATASETS, a.token, {"name": name + "-d", "embd_id": "x" * 129 + f"@{COMPAT}"})
+    s.req(row, "invalid name", "POST", DATASETS, a.token, {"name": ""})
+    s.req(row, "invalid parser", "POST", DATASETS, a.token, {"name": name + "-e", "parser_id": "bogus"})
+    s.req(row, "unknown field", "POST", DATASETS, a.token, {"name": name + "-f", "created_by": a.user_id})
+    s.req(row, "no default embedding", "POST", DATASETS, b.token, {"name": name + "-g"})
+    s.req(row, "as an outsider", "POST", DATASETS, b.token, {"name": name + "-h", "tenant_id": a.tenant_id})
+    s.req(row, "with an API token", "POST", DATASETS, token, {"name": name + "-i"})
+    s.errors(row, "POST", DATASETS, "PATCH")
+    dataset_id = str((made.json().get("data") or {}).get("id", ""))
+
+    row = f"GET {DATASETS}"
+    s.req(row, "success as owner", "GET", DATASETS, a.token)
+    s.req(row, "success with keywords and paging", "GET", DATASETS + "?keywords=leak&page=1&page_size=2", a.token)
+    s.req(row, "success as member", "GET", DATASETS + scope, member.token)
+    s.req(row, "success with an API token", "GET", DATASETS, token)
+    s.req(row, "invalid page size", "GET", DATASETS + "?page_size=101", a.token)
+    s.req(row, "as an outsider", "GET", DATASETS + scope, b.token)
+    s.errors(row, "GET", DATASETS, "PATCH")
+
+    row = f"GET {DATASETS}/{{dataset_id}}"
+    detail = f"{DATASETS}/{dataset_id}"
+    s.req(row, "success as owner", "GET", detail, a.token)
+    s.req(row, "success as member (team)", "GET", detail, member.token)
+    s.req(row, "success with an API token", "GET", detail, token)
+    s.req(row, "private dataset as a member", "GET", f"{DATASETS}/{w.a_private_dataset['id']}", member.token)
+    s.req(row, "absent id", "GET", f"{DATASETS}/{uuid.uuid4().hex}", a.token)
+    s.req(row, "malformed id", "GET", f"{DATASETS}/not-an-id", a.token)
+    s.req(row, "as an outsider", "GET", detail, b.token)
+    s.errors(row, "GET", detail, "PATCH")
+
+
 def collect_database_secrets(s: Sweep) -> None:
     """Hashes and stored access tokens of every account the sweep touched, read back from MySQL."""
     ids = [acc.user_id for acc in s.registry.created]
@@ -391,6 +436,7 @@ def sweep(ingress: httpx.Client) -> Iterator[Sweep]:
             sweep_tenant_rows(s, world)
             sweep_provider_rows(s, world)
             sweep_model_rows(s, world)
+            sweep_dataset_rows(s, world)
             collect_database_secrets(s)
             s.secrets.extend(infrastructure_secrets())
             yield s

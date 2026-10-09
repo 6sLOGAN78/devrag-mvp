@@ -25,6 +25,139 @@
         "title": "Checks",
         "type": "object"
       },
+      "DatasetPage": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/DatasetView"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "total"
+        ],
+        "title": "DatasetPage",
+        "type": "object"
+      },
+      "DatasetView": {
+        "properties": {
+          "avatar": {
+            "title": "Avatar",
+            "type": "string"
+          },
+          "chunk_num": {
+            "title": "Chunk Num",
+            "type": "integer"
+          },
+          "create_time": {
+            "title": "Create Time",
+            "type": "integer"
+          },
+          "created_by": {
+            "title": "Created By",
+            "type": "string"
+          },
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "doc_num": {
+            "title": "Doc Num",
+            "type": "integer"
+          },
+          "embd_id": {
+            "title": "Embd Id",
+            "type": "string"
+          },
+          "embedding_dimension": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Embedding Dimension"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "language": {
+            "title": "Language",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "parser_config": {
+            "additionalProperties": true,
+            "title": "Parser Config",
+            "type": "object"
+          },
+          "parser_id": {
+            "title": "Parser Id",
+            "type": "string"
+          },
+          "permission": {
+            "title": "Permission",
+            "type": "string"
+          },
+          "tenant_id": {
+            "title": "Tenant Id",
+            "type": "string"
+          },
+          "token_num": {
+            "title": "Token Num",
+            "type": "integer"
+          },
+          "update_time": {
+            "title": "Update Time",
+            "type": "integer"
+          },
+          "upload_limits": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/UploadLimitsView"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "description",
+          "avatar",
+          "language",
+          "permission",
+          "embd_id",
+          "embedding_dimension",
+          "parser_id",
+          "parser_config",
+          "doc_num",
+          "chunk_num",
+          "token_num",
+          "tenant_id",
+          "created_by",
+          "create_time",
+          "update_time"
+        ],
+        "title": "DatasetView",
+        "type": "object"
+      },
       "DefaultsView": {
         "properties": {
           "chat": {
@@ -338,6 +471,37 @@
         ],
         "title": "ProviderView",
         "type": "object"
+      },
+      "UploadLimitsView": {
+        "properties": {
+          "allowed_extensions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Allowed Extensions",
+            "type": "array"
+          },
+          "max_documents": {
+            "title": "Max Documents",
+            "type": "integer"
+          },
+          "max_file_bytes": {
+            "title": "Max File Bytes",
+            "type": "integer"
+          },
+          "max_files_per_request": {
+            "title": "Max Files Per Request",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "max_file_bytes",
+          "max_files_per_request",
+          "max_documents",
+          "allowed_extensions"
+        ],
+        "title": "UploadLimitsView",
+        "type": "object"
       }
     }
   },
@@ -347,6 +511,243 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/api/v1/datasets": {
+      "get": {
+        "operationId": "get_list_datasets",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "title": "Code",
+                      "type": "integer"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/DatasetPage"
+                    },
+                    "message": {
+                      "title": "Message",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message",
+                    "data"
+                  ],
+                  "title": "DatasetPageEnvelope",
+                  "type": "object"
+                }
+              }
+            },
+            "description": ""
+          }
+        }
+      },
+      "post": {
+        "operationId": "post_create_dataset",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "description": "Only these fields exist. Bounds on the text are the service's, so a bad value is a typed ``dataset_invalid`` and an over-long model id a typed ``model_unavailable``.",
+                "properties": {
+                  "avatar": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "title": "Avatar"
+                  },
+                  "description": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "title": "Description"
+                  },
+                  "embd_id": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "title": "Embd Id"
+                  },
+                  "language": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "title": "Language"
+                  },
+                  "name": {
+                    "title": "Name",
+                    "type": "string"
+                  },
+                  "parser_config": {
+                    "anyOf": [
+                      {
+                        "additionalProperties": true,
+                        "type": "object"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "title": "Parser Config"
+                  },
+                  "parser_id": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "title": "Parser Id"
+                  },
+                  "permission": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "title": "Permission"
+                  },
+                  "tenant_id": {
+                    "anyOf": [
+                      {
+                        "pattern": "^[0-9a-f]{32}$",
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "title": "Tenant Id"
+                  }
+                },
+                "required": [
+                  "name"
+                ],
+                "title": "CreateDatasetBody",
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "title": "Code",
+                      "type": "integer"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/DatasetView"
+                    },
+                    "message": {
+                      "title": "Message",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message",
+                    "data"
+                  ],
+                  "title": "DatasetEnvelope",
+                  "type": "object"
+                }
+              }
+            },
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/v1/datasets/{dataset_id}": {
+      "get": {
+        "operationId": "get_get_dataset",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "dataset_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "title": "Code",
+                      "type": "integer"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/DatasetView"
+                    },
+                    "message": {
+                      "title": "Message",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message",
+                    "data"
+                  ],
+                  "title": "DatasetEnvelope",
+                  "type": "object"
+                }
+              }
+            },
+            "description": ""
+          }
+        }
+      }
+    },
     "/api/v1/language": {
       "get": {
         "operationId": "get_language",

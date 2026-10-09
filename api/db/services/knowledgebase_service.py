@@ -356,3 +356,24 @@ def dataset_dto(record: DatasetRecord, *, embedding_dimension: int | None, inclu
             "allowed_extensions": list(include_limits.allowed_extensions),
         }
     return out
+
+
+def view_of(record: DatasetRecord, *, include_limits: UploadSettings | None = None, dimensions: Mapping[str, int] | None = None) -> dict[str, Any]:
+    """``dataset_dto`` with the recorded vector size of the dataset's embedding model looked up (or taken from ``dimensions``)."""
+    known = embedding_dimensions(record.tenant_id) if dimensions is None else dimensions
+    return dataset_dto(record, embedding_dimension=known.get(record.embd_id), include_limits=include_limits)
+
+
+def create_view(settings: Settings, scope: ActingScope, user_id: str, req: CreateRequest) -> dict[str, Any]:
+    return view_of(create_dataset(settings, scope, user_id, req))
+
+
+def list_view(scope: ActingScope, user_id: str, *, page: int, page_size: int, keywords: str | None) -> dict[str, Any]:
+    records, total = list_datasets(scope, user_id, page=page, page_size=page_size, keywords=keywords)
+    dimensions = embedding_dimensions(scope.tenant_id)
+    return {"items": [view_of(r, dimensions=dimensions) for r in records], "total": total}
+
+
+def detail_view(principal: Principal, dataset_id: str, upload: UploadSettings) -> dict[str, Any]:
+    found = load_visible_dataset(principal, dataset_id)
+    return view_of(found.dataset, include_limits=upload)
