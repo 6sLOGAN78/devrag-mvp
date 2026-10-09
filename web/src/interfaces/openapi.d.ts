@@ -36,6 +36,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/datasets/{dataset_id}/documents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["get_list_documents"];
+        put?: never;
+        post?: never;
+        delete: operations["delete_delete_documents"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/documents/upload": {
         parameters: {
             query?: never;
@@ -313,10 +329,22 @@ export interface components {
             /** Embedding */
             embedding: string;
         };
+        /** DeletedCount */
+        DeletedCount: {
+            /** Deleted */
+            deleted: number;
+        };
         /** DeletedView */
         DeletedView: {
             /** Deleted */
             deleted: boolean;
+        };
+        /** DocumentPage */
+        DocumentPage: {
+            /** Items */
+            items: components["schemas"]["DocumentView"][];
+            /** Total */
+            total: number;
         };
         /** DocumentView */
         DocumentView: {
@@ -591,6 +619,67 @@ export interface operations {
                         /** Code */
                         code: number;
                         data: components["schemas"]["DatasetView"];
+                        /** Message */
+                        message: string;
+                    };
+                };
+            };
+        };
+    };
+    get_list_documents: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                dataset_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Code */
+                        code: number;
+                        data: components["schemas"]["DocumentPage"];
+                        /** Message */
+                        message: string;
+                    };
+                };
+            };
+        };
+    };
+    delete_delete_documents: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                dataset_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": {
+                    /** Ids */
+                    ids: string[];
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Code */
+                        code: number;
+                        data: components["schemas"]["DeletedCount"];
                         /** Message */
                         message: string;
                     };

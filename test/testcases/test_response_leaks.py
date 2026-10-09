@@ -422,6 +422,55 @@ def sweep_upload_rows(s: Sweep, w: World) -> None:
     s.errors(row, "POST", team, "PATCH")
 
 
+def sweep_document_rows(s: Sweep, w: World) -> None:
+    """``GET`` and ``DELETE`` on ``/api/v1/datasets/{dataset_id}/documents``, each on success and error paths (plan 03-17).
+
+    Documents to delete are uploaded through the real route first (their responses are scanned under the upload row). The registry removes whatever is left
+    with A's workspace.
+    """
+    a, b, member = w.a, w.b, w.normal
+    token = str(w.a_tokens[0]["token"])
+    team = f"{DATASETS}/{w.a_team_dataset['id']}/documents"
+    private = f"{DATASETS}/{w.a_private_dataset['id']}/documents"
+    upload_row = f"POST {UPLOAD}"
+
+    def uploaded(who_token: str, name: str) -> str:
+        files = [("file", (name, pdf_bytes("leak-doc"), "application/pdf"))]
+        resp = s.req(upload_row, "document for the delete sweep", "POST", f"{UPLOAD}?dataset_id={w.a_team_dataset['id']}", who_token, files=files)
+        return str(resp.json()["data"][0]["id"])
+
+    row = f"GET {DATASETS}/{{dataset_id}}/documents"
+    s.req(row, "success as owner", "GET", team, a.token)
+    s.req(row, "success with keywords and paging", "GET", team + "?keywords=matrix&page=1&page_size=1", a.token)
+    s.req(row, "success as member (team)", "GET", team, member.token)
+    s.req(row, "success with an API token", "GET", team, token)
+    s.req(row, "own private dataset", "GET", private, a.token)
+    s.req(row, "invalid page size", "GET", team + "?page_size=101", a.token)
+    s.req(row, "invalid page", "GET", team + "?page=0", a.token)
+    s.req(row, "private dataset as a member", "GET", private, member.token)
+    s.req(row, "absent dataset", "GET", f"{DATASETS}/{uuid.uuid4().hex}/documents", a.token)
+    s.req(row, "malformed dataset id", "GET", f"{DATASETS}/not-an-id/documents", a.token)
+    s.req(row, "as an outsider", "GET", team, b.token)
+    s.errors(row, "GET", team, "PATCH")
+
+    row = f"DELETE {DATASETS}/{{dataset_id}}/documents"
+    first, second = uploaded(a.token, "leak-del-one.pdf"), uploaded(a.token, "leak-del-two.pdf")
+    s.req(row, "success as owner", "DELETE", team, a.token, {"ids": [first]})
+    s.req(row, "repeated delete", "DELETE", team, a.token, {"ids": [first]})
+    s.req(row, "success as the uploading member", "DELETE", team, member.token, {"ids": [uploaded(member.token, "leak-del-member.pdf")]})
+    s.req(row, "another member's document", "DELETE", team, member.token, {"ids": [second]})
+    s.req(row, "success with an API token", "DELETE", team, token, {"ids": [uploaded(token, "leak-del-token.pdf")]})
+    s.req(row, "ids that are not ids", "DELETE", team, a.token, {"ids": ["not-hex"]})
+    s.req(row, "empty ids", "DELETE", team, a.token, {"ids": []})
+    s.req(row, "unknown field", "DELETE", team, a.token, {"ids": [second], "tenant_id": a.tenant_id})
+    s.req(row, "unknown document", "DELETE", team, a.token, {"ids": [uuid.uuid4().hex]})
+    s.req(row, "private dataset as a member", "DELETE", private, member.token, {"ids": [str(w.a_private_documents[0]["id"])]})
+    s.req(row, "absent dataset", "DELETE", f"{DATASETS}/{uuid.uuid4().hex}/documents", a.token, {"ids": [second]})
+    s.req(row, "malformed dataset id", "DELETE", f"{DATASETS}/not-an-id/documents", a.token, {"ids": [second]})
+    s.req(row, "as an outsider", "DELETE", team, b.token, {"ids": [second]})
+    s.errors(row, "DELETE", team, "PATCH")
+
+
 def collect_database_secrets(s: Sweep) -> None:
     """Hashes and stored access tokens of every account the sweep touched, read back from MySQL."""
     ids = [acc.user_id for acc in s.registry.created]
@@ -472,6 +521,7 @@ def sweep(ingress: httpx.Client) -> Iterator[Sweep]:
             sweep_model_rows(s, world)
             sweep_dataset_rows(s, world)
             sweep_upload_rows(s, world)
+            sweep_document_rows(s, world)
             collect_database_secrets(s)
             s.secrets.extend(infrastructure_secrets())
             yield s

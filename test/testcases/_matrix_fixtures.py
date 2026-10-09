@@ -147,6 +147,8 @@ class World:
     registry: AccountRegistry | None = None  # the registry that owns (and cleans up) every account of this world
     a_team_dataset: dict[str, Any] = field(default_factory=dict)  # A's dataset with permission team
     a_private_dataset: dict[str, Any] = field(default_factory=dict)  # A's dataset with permission me
+    a_team_documents: list[dict[str, Any]] = field(default_factory=list)  # two documents A uploaded into the team dataset (plan 03-17)
+    a_private_documents: list[dict[str, Any]] = field(default_factory=list)  # one document A uploaded into the private dataset
 
     # reads performed as A -----------------------------------------------------------------------------------------
     def list_tokens(self, who: Account) -> list[dict[str, Any]]:
@@ -189,6 +191,17 @@ class World:
         """Every object A's workspace holds in MinIO (by exact tenant prefix): an upload that crosses the boundary would add one."""
         return tenant_object_keys(self.a.tenant_id)
 
+    def snapshot_documents(self) -> Any:
+        """A's documents as the owner sees them, per dataset (names, sizes, counters, times): a delete that crosses the boundary would change them."""
+        out: dict[str, Any] = {}
+        for dataset in (self.a_team_dataset, self.a_private_dataset):
+            if not dataset:
+                continue
+            resp = call(self.client, "GET", DATASETS + "/{dataset_id}/documents", self.a.token, {"dataset_id": str(dataset["id"])}, query={"page_size": "100"})
+            assert resp.status_code == 200, resp.text
+            out[str(dataset["id"])] = resp.json()["data"]
+        return out
+
     def snapshot_tokens(self) -> Any:
         return sorted(self.list_tokens(self.a), key=lambda t: t["token"])
 
@@ -212,6 +225,7 @@ class World:
             "defaults": self.snapshot_defaults(),
             "datasets": self.snapshot_datasets(),
             "objects": self.snapshot_objects(),
+            "documents": self.snapshot_documents(),
         }
 
     def a_identifiers(self) -> list[str]:
@@ -225,6 +239,8 @@ class World:
             out += [A_PROVIDER_KEY, A_CHAT_MODEL, A_EMBED_MODEL]
         for dataset in (self.a_team_dataset, self.a_private_dataset):
             out += [str(dataset.get("id", "")), str(dataset.get("name", ""))]
+        for doc in (*self.a_team_documents, *self.a_private_documents):
+            out += [str(doc.get("id", "")), str(doc.get("name", ""))]
         return [v for v in out if v]
 
 
@@ -246,6 +262,8 @@ def resource_of(row: Row) -> str:
         return "providers"
     if row.path.startswith(MODELS):
         return "models"
+    if row.path.startswith(DATASETS + "/") and row.path.endswith("/documents"):
+        return "documents"
     if row.path.startswith(DATASETS):
         return "datasets"
     if row.path.startswith(UPLOAD):
@@ -288,6 +306,14 @@ def build_world(client: httpx.Client, registry: AccountRegistry, fake: FakeProvi
         _ok(call(client, "PATCH", MODELS_DEFAULT, a.token, {}, body={"embedding": a_embed_id()}), "A chooses its embedding default")
         world.a_team_dataset = _ok(call(client, "POST", DATASETS, a.token, {}, body={"name": A_TEAM_DATASET, "permission": "team"}), "A creates a team dataset")["data"]
         world.a_private_dataset = _ok(call(client, "POST", DATASETS, a.token, {}, body={"name": A_PRIVATE_DATASET}), "A creates a private dataset")["data"]
+        # Documents go in through the real upload route: two into the team dataset, one into the private one.
+        plan = (
+            (world.a_team_dataset, world.a_team_documents, ("matrix-team-one.pdf", "matrix-team-two.pdf")),
+            (world.a_private_dataset, world.a_private_documents, ("matrix-private.pdf",)),
+        )
+        for dataset, store, names in plan:
+            for name in names:
+                store.extend(_ok(upload_file(world, a.token, str(dataset["id"]), name=name), f"A uploads {name}")["data"])
     return world
 
 
@@ -374,8 +400,19 @@ def _dataset_detail(w: World) -> Target:
     return Target({"dataset_id": str(w.a_team_dataset["id"])}, _sender("GET", DATASETS + "/{dataset_id}", extra_fields=set()), w.snapshot_datasets)
 
 
+def _list_documents(w: World) -> Target:
+    return Target({"dataset_id": str(w.a_team_dataset["id"])}, _sender("GET", DATASETS + "/{dataset_id}/documents", extra_fields=set()), w.snapshot_documents)
+
+
+def _delete_documents(w: World) -> Target:
+    body = {"ids": [str(w.a_team_documents[0]["id"])]}  # a real document of A: only the dataset's visibility keeps an outsider from it
+    return Target({"dataset_id": str(w.a_team_dataset["id"])}, _sender("DELETE", DATASETS + "/{dataset_id}/documents", body, extra_fields=set()), w.snapshot_documents)
+
+
 BUILDERS: dict[str, Builder] = {
     "GET /api/v1/datasets/{dataset_id}": _dataset_detail,
+    "GET /api/v1/datasets/{dataset_id}/documents": _list_documents,
+    "DELETE /api/v1/datasets/{dataset_id}/documents": _delete_documents,
     "DELETE /api/v1/providers/{provider}": _delete_provider,
     "GET /api/v1/providers/{provider}/models": _provider_models,
     "POST /api/v1/providers/{provider}/instances": _add_instance,
@@ -669,7 +706,7 @@ def upload_file(w: World, token: str, dataset_id: str, *, query: Mapping[str, st
 def check_documents_upload(w: World) -> None:
     """POST /api/v1/documents/upload: nobody outside A reaches A's datasets, nothing appears under A's prefix, and a workspace uploads into its own."""
     before = w.snapshot()
-    assert before["objects"] == [], "A starts empty"
+    assert len(before["objects"]) == 3, "A's world holds three uploaded documents (two team, one private)"
     smuggle = {"tenant_id": w.a.tenant_id, "user_id": w.a.user_id}
     for dataset in (w.a_team_dataset, w.a_private_dataset):
         dataset_id = str(dataset["id"])
@@ -683,7 +720,7 @@ def check_documents_upload(w: World) -> None:
     for member in (w.normal, w.admin, w.victim):
         assert triple(upload_file(w, member.token, str(w.a_private_dataset["id"]))) == absent, "nobody but the creator reaches a private dataset (D-27)"
     assert triple(upload_file(w, w.b.token, "not-an-id")) == absent
-    assert w.snapshot_objects() == [] and w.snapshot_datasets() == before["datasets"], "no object appeared under A's prefix and no counter moved"
+    assert w.snapshot_objects() == before["objects"] and w.snapshot_datasets() == before["datasets"], "no object appeared under A's prefix and no counter moved"
 
     # A workspace uploads into its own dataset, with a session and with its API token; neither credential reaches the other workspace.
     assert w.registry is not None and w.fake is not None

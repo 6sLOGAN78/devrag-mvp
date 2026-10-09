@@ -1,4 +1,17 @@
-"""Document upload route (plan 03-16; E2E-04, DOC-01..07, DOC-16, STOR-01, STOR-11, SEC-06, TEN-13, D-09, D-11, D-14, D-20).
+"""Document routes: upload (plan 03-16), list and delete (plan 03-17).
+
+List and delete (plan 03-17; E2E-04, DOC-08, DOC-14, DOC-15, DOC-16, TEN-13, D-09, D-20):
+
+* ``GET /api/v1/datasets/<dataset_id>/documents?page=&page_size=&keywords=`` answers ``{"items": [...], "total": n}`` for a dataset the caller can see.
+  ``page`` and ``page_size`` are whole numbers (``page_size`` 1 to 100, default 12), ``keywords`` at most 128 characters; anything else is 400
+  ``query_invalid``.
+* ``DELETE /api/v1/datasets/<dataset_id>/documents`` with ``{"ids": [...]}`` removes the documents, all or none, and answers ``{"deleted": n}``. The
+  body names only ``ids``; the count and shape of the ids are checked by the service (400 ``ids_invalid``), who may remove which document too
+  (403), and whether each belongs to the dataset (the one 404). An unavailable index is 503 ``index_unavailable``.
+
+An absent, malformed, foreign or private-to-others dataset is the one 404 on both routes (the workspace comes from the dataset, D-20, D-27).
+
+Upload (plan 03-16; E2E-04, DOC-01..07, DOC-16, STOR-01, STOR-11, SEC-06, TEN-13, D-09, D-11, D-14, D-20).
 
 ``POST /api/v1/documents/upload?dataset_id=...[&parser_id=...][&parser_config={json}]`` with a multipart body whose parts named ``file`` are the files.
 
@@ -16,11 +29,12 @@ the multipart parser's memory guard, so ``CappedRequest`` (``api/apps/request_bo
 from __future__ import annotations
 
 import json
+import re
 from typing import Any, Protocol
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from quart import Blueprint, Response, current_app, g, request
-from quart_schema import document_response
+from quart_schema import document_response, validate_request
 from werkzeug.exceptions import RequestEntityTooLarge
 
 from api.apps.service_errors import service_error_response
@@ -35,12 +49,20 @@ from common.settings import Settings, UploadSettings
 
 document_bp = Blueprint("document", __name__)
 
-# Identical to the endpoint row in conf/routes.yaml.
+# Identical to the endpoint rows in conf/routes.yaml (Quart spells a path parameter <name>, the registry {name}).
 UPLOAD = "/api/v1/documents/upload"
+DOCUMENTS = "/api/v1/datasets/<dataset_id>/documents"
 
 FILE_FIELD = "file"
 BODY_OVERHEAD_BYTES = 1024 * 1024  # multipart framing on top of one maximal file; the 101m Nginx location is the same sum
 AUTHORIZE_TIMEOUT_SECONDS = 10.0
+LIST_TIMEOUT_SECONDS = 10.0
+# The service waits up to 30 s for the dataset lock and gives the index engine its own deadline; the handler waits longer so the typed errors win.
+DELETE_TIMEOUT_SECONDS = 60.0
+DEFAULT_PAGE_SIZE = 12
+MAX_PAGE_SIZE = 100
+MAX_KEYWORDS = 128
+_WHOLE_NUMBER = re.compile(r"[0-9]{1,9}")
 
 
 class _LimitedRequest(Protocol):
@@ -69,6 +91,35 @@ class DocumentListEnvelope(BaseModel):
     code: int
     message: str
     data: list[DocumentView]
+
+
+class DocumentPage(BaseModel):
+    items: list[DocumentView]
+    total: int
+
+
+class DocumentPageEnvelope(BaseModel):
+    code: int
+    message: str
+    data: DocumentPage
+
+
+class DeleteDocumentsBody(BaseModel):
+    """Only ``ids`` exists. The number and shape of the ids are the service's check, so a bad one is a typed ``ids_invalid``."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    ids: list[str]
+
+
+class DeletedCount(BaseModel):
+    deleted: int
+
+
+class DeletedEnvelope(BaseModel):
+    code: int
+    message: str
+    data: DeletedCount
 
 
 def _settings() -> Settings:
@@ -156,4 +207,56 @@ async def upload_documents() -> Response:
             close_upload_streams()
 
 
+def _query_invalid(message: str) -> ServiceError:
+    return ServiceError(Kind.INVALID, reasons.QUERY_INVALID, message)
+
+
+def _whole(name: str, default: int, low: int, high: int) -> int:
+    raw = request.args.get(name)
+    if raw is None:
+        return default
+    if _WHOLE_NUMBER.fullmatch(raw) is None or not low <= int(raw) <= high:
+        raise _query_invalid(f"{name} must be a whole number from {low} to {high}")
+    return int(raw)
+
+
+@document_response(DocumentPageEnvelope, 200)
+async def list_documents(dataset_id: str) -> Response:
+    try:
+        page = _whole("page", 1, 1, 1_000_000_000)
+        page_size = _whole("page_size", DEFAULT_PAGE_SIZE, 1, MAX_PAGE_SIZE)
+        keywords = request.args.get("keywords")
+        if keywords is not None and len(keywords) > MAX_KEYWORDS:
+            raise _query_invalid(f"keywords must be at most {MAX_KEYWORDS} characters")
+        principal = g.principal  # read on the loop: the request context does not follow the call into the worker thread
+        view = await run_blocking(
+            DB_EXECUTOR,
+            lambda: document_service.list_view(principal, dataset_id, page=page, page_size=page_size, keywords=keywords),
+            timeout=LIST_TIMEOUT_SECONDS,
+        )
+        return json_result(view)
+    except ServiceError as exc:
+        return service_error_response(exc)
+
+
+@validate_request(DeleteDocumentsBody)
+@document_response(DeletedEnvelope, 200)
+async def delete_documents(dataset_id: str, data: DeleteDocumentsBody) -> Response:
+    try:
+        settings = _settings()  # read here, on the loop
+        principal = g.principal
+        visible = await run_blocking(DB_EXECUTOR, document_service.authorize_removal, principal, dataset_id, timeout=AUTHORIZE_TIMEOUT_SECONDS)
+        ids = list(data.ids)
+        deleted = await run_blocking(
+            STORAGE_EXECUTOR,
+            lambda: document_service.delete_documents(settings, visible, principal.user_id, ids),
+            timeout=DELETE_TIMEOUT_SECONDS,
+        )
+        return json_result({"deleted": deleted})
+    except ServiceError as exc:
+        return service_error_response(exc)
+
+
 document_bp.add_url_rule(UPLOAD, endpoint="upload_documents", view_func=upload_documents, methods=["POST"])
+document_bp.add_url_rule(DOCUMENTS, endpoint="list_documents", view_func=list_documents, methods=["GET"])
+document_bp.add_url_rule(DOCUMENTS, endpoint="delete_documents", view_func=delete_documents, methods=["DELETE"])
