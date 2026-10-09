@@ -268,7 +268,7 @@ Plans:
 
 **Wave 13** *(blocked on Wave 12 completion)*
 
-- [ ] 03-20-PLAN.md — Models page: data layer, providers view and nav
+- [x] 03-20-PLAN.md — Models page: data layer, providers view and nav
 
 **Wave 14** *(blocked on Wave 13 completion)*
 
