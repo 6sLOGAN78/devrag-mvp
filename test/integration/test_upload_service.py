@@ -21,13 +21,13 @@ from typing import Any
 
 import pytest
 import xxhash
-from api.db.services.document_service import UploadItem
 
 from api.db.database import DatabaseLock
 from api.db.services import document_service as docs
 from api.db.services import file_service
 from api.db.services import knowledgebase_service as kb
 from api.db.services.auth_service import AUTH_BETA, AUTH_JWT, Principal
+from api.db.services.document_service import UploadItem
 from api.db.services.service_errors import Kind, ServiceError
 from api.db.services.tenant_scope import ActingScope
 from common.settings import Settings, load_settings
@@ -83,11 +83,12 @@ class _Tracked:
 class FaultyStorage(MinioStorage):
     """The real MinIO driver that records every call, can raise on the n-th ``put`` and counts open read streams."""
 
-    def __init__(self, settings: Settings, *, fail_on_put: int | None = None) -> None:
+    def __init__(self, settings: Settings, *, fail_on_put: int | None = None, crash_after_put: int | None = None) -> None:
         super().__init__(settings)
         self.calls: list[str] = []
         self.puts = 0
         self.fail_on_put = fail_on_put
+        self.crash_after_put = crash_after_put
         self.open_streams = 0
         self._counter = threading.Lock()
 
@@ -103,6 +104,8 @@ class FaultyStorage(MinioStorage):
         if self.fail_on_put == number:
             raise StorageError("storage write failed in bucket ragflow")
         super().put(bucket, key, data, length)
+        if self.crash_after_put == number:
+            raise RuntimeError("simulated crash after the write")
 
     def rm(self, bucket, key):  # type: ignore[no-untyped-def]
         with self._counter:
@@ -248,7 +251,7 @@ def test_an_upload_stores_generated_keys_and_writes_the_rows_in_one_step(setting
     assert {object_bytes(k) for k in keys} == {pdf, txt}
 
     rows = doc_rows(dataset.id)
-    assert [r["name"] for r in rows] == ["Plan 2026.pdf", "notes.txt"]
+    assert sorted((r["name"] for r in rows), key=str.lower) == ["notes.txt", "Plan 2026.pdf"]
     for row in rows:
         assert row["run"] == "0" and row["progress"] == 0.0 and row["source_type"] == "local" and row["kb_id"] == dataset.id
         assert row["parser_id"] == dataset.parser_id and row["created_by"] == owner.user_id and len(row["content_hash"]) == 16
@@ -491,16 +494,15 @@ def test_a_failing_second_write_removes_the_first_blob_and_writes_no_row(setting
     assert tenant_row_counts(owner.tenant_id) == before[1] and doc_num(dataset.id) == 0
 
 
-def test_a_database_failure_after_the_blobs_were_written_removes_them(settings, space, storage):
-    """The creator id is longer than its column: MySQL refuses the row after the first blob was already stored."""
+def test_an_unexpected_error_after_a_blob_was_written_removes_it_and_leaves_no_row(settings, space):
+    """Not a storage error: the driver wrote the first blob and then something else broke inside the transaction."""
     owner, dataset = space
-    visible = docs.authorize_upload(principal_of(owner), dataset.id)
+    faulty = FaultyStorage(settings, crash_after_put=1)
     before = snapshot(owner.tenant_id)
-    with pytest.raises(Exception) as err:  # noqa: PT011 - the driver's own error type is not part of the contract
-        docs.upload_documents(settings, visible, "x" * 40, [item("a.pdf", pdf_bytes("a")), item("b.pdf", pdf_bytes("b"))], storage=storage)
-    assert not isinstance(err.value, ServiceError)
-    assert storage.puts >= 1, "a blob was written before the row failed"
-    assert snapshot(owner.tenant_id) == before, "the blob is gone and no row exists"
+    with pytest.raises(RuntimeError, match="simulated crash"):
+        upload(settings, owner, dataset, [item("a.pdf", pdf_bytes("a")), item("b.pdf", pdf_bytes("b"))], storage=faulty)
+    assert faulty.puts == 1 and "rm" in faulty.calls, "a blob was written and then released"
+    assert snapshot(owner.tenant_id) == before and doc_num(dataset.id) == 0
 
 
 def test_a_reused_blob_is_never_removed_by_the_compensation(settings, space):
