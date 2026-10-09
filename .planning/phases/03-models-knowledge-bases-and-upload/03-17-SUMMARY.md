@@ -83,7 +83,7 @@ completed: 2026-10-09
 - **Delete.** `delete_documents(settings, visible, user_id, ids, storage=None, doc_store=None)`: validate ids; load the dataset's documents and compare counts (one 404); `can_remove_document` for every document (403) before anything changes; `DocStoreConnection.delete({"doc_id": ids}, index_name(tenant), dataset_id)` (`DocStoreError` becomes 503 `index_unavailable`, nothing else changed); then `DatabaseLock(kb-upload:{dataset_id})` and one transaction: lock the documents by primary key, `file_service.release_files`, `GREATEST(x - n, 0)` on `doc_num`, `chunk_num`, `token_num`; blobs freed are removed after the commit.
 - **`release_files`.** Locks the affected `file` rows sorted by id, deletes tasks, `file2document` rows and documents, then per file counts remaining links with a locking read across the whole workspace and deletes the `file` row at zero, returning its key.
 - **Routes.** `GET` and `DELETE /api/v1/datasets/{dataset_id}/documents` in `document_bp`; delete runs in the storage executor with a 60 s deadline; settings and principal are read on the event loop.
-- **Matrix and sweep.** A's world now holds two team documents and one private document uploaded through the real route; builders for both rows; `World.snapshot()["documents"]`; `sweep_document_rows` covers 12 GET and 14 DELETE labelled cases.
+- **Matrix and sweep.** A's world now holds two team documents and one private document uploaded through the real route; builders for both rows; `World.snapshot()["documents"]`; `sweep_document_rows` covers 14 GET and 16 DELETE labelled cases (including the no-credential, made-up-bearer and wrong-method errors).
 
 ## Deviations from Plan
 

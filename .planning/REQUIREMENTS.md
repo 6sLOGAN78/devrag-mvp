@@ -87,14 +87,14 @@ Requirements for initial release. Each maps to exactly one roadmap phase.
 - [x] **DOC-05**: Upload writes the binary to object storage and records `location`
 - [x] **DOC-06**: Upload inserts `File`, `Document`, `File2Document` rows in one transaction with `run='0'`, `progress=0.0`
 - [x] **DOC-07**: Upload verifies dataset existence and caller permission before storing
-- [ ] **DOC-08**: User can list documents in a dataset with paging and keyword filter via `GET /api/v1/datasets/<dataset_id>/documents`
+- [x] **DOC-08**: User can list documents in a dataset with paging and keyword filter via `GET /api/v1/datasets/<dataset_id>/documents`
 - [ ] **DOC-09**: User can start parsing selected documents via `POST /api/v1/datasets/<dataset_id>/documents/parse` (`doc_ids`, `run`); document moves to RUNNING and tasks are queued
 - [ ] **DOC-10**: User can cancel a running parse; document moves to CANCELLED
 - [ ] **DOC-11**: User can re-parse a document; previous chunks are replaced
 - [ ] **DOC-12**: Document exposes lifecycle state (`run`), `progress` float 0.0-1.0 (`-1` on failure), and `progress_msg`
 - [ ] **DOC-13**: User can enable/disable documents for retrieval via `POST /api/v1/datasets/<dataset_id>/documents/batch-update-status`
-- [ ] **DOC-14**: User can delete documents via `DELETE /api/v1/datasets/<dataset_id>/documents`; chunks are pruned from the index
-- [ ] **DOC-15**: Deleting a document garbage-collects the blob only when no other `File2Document` row references it
+- [x] **DOC-14**: User can delete documents via `DELETE /api/v1/datasets/<dataset_id>/documents`; chunks are pruned from the index
+- [x] **DOC-15**: Deleting a document garbage-collects the blob only when no other `File2Document` row references it
 - [x] **DOC-16**: Documents can carry their own `parser_id` / `parser_config` overriding the dataset default
 - [ ] **DOC-17**: User can batch-update document metadata via `PATCH /datasets/<dataset_id>/documents/metadatas`
 - [ ] **DOC-18**: User can fetch an extracted image via `GET /documents/images/<image_id>`
@@ -748,14 +748,14 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DOC-05 | Phase 3 | Complete |
 | DOC-06 | Phase 3 | Complete |
 | DOC-07 | Phase 3 | Complete |
-| DOC-08 | Phase 3 | Pending |
+| DOC-08 | Phase 3 | Complete |
 | DOC-09 | Phase 4 | Pending |
 | DOC-10 | Phase 4 | Pending |
 | DOC-11 | Phase 4 | Pending |
 | DOC-12 | Phase 4 | Pending |
 | DOC-13 | Phase 4 | Pending |
-| DOC-14 | Phase 3 | Pending |
-| DOC-15 | Phase 3 | Pending |
+| DOC-14 | Phase 3 | Complete |
+| DOC-15 | Phase 3 | Complete |
 | DOC-16 | Phase 3 | Complete |
 | DOC-17 | Phase 6 | Pending |
 | DOC-18 | Phase 6 | Pending |
