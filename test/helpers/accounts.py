@@ -6,7 +6,9 @@ registration helpers return a clear error from the server (404 or 405) and only 
 helpers (``unique_email``, ``unique_name``) are usable.
 
 Cleanup is by recorded ids only: ``AccountRegistry.cleanup`` deletes the user, tenant,
-user_tenant and tenant_llm rows of accounts this registry created and nothing else.
+user_tenant and tenant_llm rows of accounts this registry created and nothing else. Since plan 03-14
+it also removes what an account's datasets left behind: knowledgebase, document, file and file2document
+rows, the tenant's Elasticsearch index (by its exact name) and its MinIO objects (by exact key prefix).
 """
 from __future__ import annotations
 
@@ -20,6 +22,7 @@ from test.helpers.db import root_connection
 
 TEST_PASSWORD = "test-only-pass-0001"
 _DB_NAME = "rag_flow"
+_STORAGE_BUCKET = "ragflow"
 
 
 @dataclass(frozen=True)
@@ -119,8 +122,69 @@ def delete_accounts(accounts: list[Account]) -> None:
                     cur.execute("DELETE FROM `tenant_model_instance` WHERE `provider_id` = %s", (provider_id,))
                 cur.execute("DELETE FROM `tenant_model_provider` WHERE `tenant_id` = %s", (acc.tenant_id,))
                 cur.execute("DELETE FROM `tenant_llm` WHERE `tenant_id` = %s", (acc.tenant_id,))
+                _delete_dataset_rows(cur, acc.tenant_id)
                 cur.execute("DELETE FROM `user_tenant` WHERE `user_id` = %s", (acc.user_id,))
                 cur.execute("DELETE FROM `tenant` WHERE `id` = %s", (acc.tenant_id,))
                 cur.execute("DELETE FROM `user` WHERE `id` = %s", (acc.user_id,))
     finally:
         conn.close()
+    for acc in accounts:
+        delete_tenant_artifacts(acc.tenant_id)
+
+
+def _delete_dataset_rows(cur: Any, tenant_id: str) -> None:
+    """Delete the dataset rows of one recorded tenant. Every statement takes the id as a parameter."""
+    cur.execute(
+        "DELETE FROM `file2document` WHERE `document_id` IN "
+        "(SELECT `id` FROM `document` WHERE `kb_id` IN (SELECT `id` FROM `knowledgebase` WHERE `tenant_id` = %s))",
+        (tenant_id,),
+    )
+    cur.execute("DELETE FROM `file2document` WHERE `file_id` IN (SELECT `id` FROM `file` WHERE `tenant_id` = %s)", (tenant_id,))
+    cur.execute("DELETE FROM `document` WHERE `kb_id` IN (SELECT `id` FROM `knowledgebase` WHERE `tenant_id` = %s)", (tenant_id,))
+    cur.execute("DELETE FROM `file` WHERE `tenant_id` = %s", (tenant_id,))
+    cur.execute("DELETE FROM `knowledgebase` WHERE `tenant_id` = %s", (tenant_id,))
+
+
+def delete_tenant_artifacts(tenant_id: str) -> None:
+    """Remove one recorded tenant's Elasticsearch index (exact name) and MinIO objects (exact ``{tenant_id}/`` prefix).
+
+    Absent index or bucket is fine. The tenant id must be 32 lowercase hex characters, so no wildcard can ever be passed on.
+    """
+    if len(tenant_id) != 32 or any(ch not in "0123456789abcdef" for ch in tenant_id):
+        raise ValueError("tenant id must be 32 lowercase hex characters")
+    _delete_index(f"ragflow_{tenant_id}")
+    _delete_objects(f"{tenant_id}/")
+
+
+def _delete_index(index: str) -> None:
+    from elasticsearch import Elasticsearch
+
+    from common.settings import load_settings
+
+    es = load_settings().es
+    client = Elasticsearch(es.hosts, basic_auth=(es.username, es.password), request_timeout=30, max_retries=0)
+    try:
+        client.indices.delete(index=index, ignore_unavailable=True)
+    finally:
+        client.close()
+
+
+def _delete_objects(prefix: str) -> None:
+    from minio import Minio
+    from minio.error import S3Error
+
+    from test.conftest import stack_env
+
+    env = stack_env()
+    password = env.get("MINIO_PASSWORD")
+    if not password:
+        return
+    client = Minio(f"127.0.0.1:{env.get('MINIO_PORT', '9000')}", access_key=env.get("MINIO_USER", "rag_flow"), secret_key=password, secure=False)
+    try:
+        if not client.bucket_exists(_STORAGE_BUCKET):
+            return
+        for item in client.list_objects(_STORAGE_BUCKET, prefix=prefix, recursive=True):
+            client.remove_object(_STORAGE_BUCKET, item.object_name)
+    except S3Error as exc:
+        if exc.code != "NoSuchBucket":
+            raise
