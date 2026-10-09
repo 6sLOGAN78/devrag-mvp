@@ -12,6 +12,7 @@ import json
 import uuid
 from collections.abc import Iterator
 from dataclasses import dataclass, field
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -22,10 +23,10 @@ import yaml
 from test.conftest import stack_env
 from test.helpers.accounts import TEST_PASSWORD, Account, AccountRegistry, unique_email
 from test.helpers.db import root_connection
-from test.helpers.fake_provider import running_stack_fake_provider
+from test.helpers.fake_provider import SECRET_ECHO_KEY, running_stack_fake_provider
 from test.helpers.mail import delete_mail_for, extract_code, wait_for_mail
 from test.helpers.uploads import pdf_bytes
-from test.testcases._leak_sweep import CREDENTIAL_ROWS, LOGIN, TOKEN_ROWS, VERIFY, Secret, scan_response
+from test.testcases._leak_sweep import CREDENTIAL_ROWS, ENVELOPE, KEY_SHAPE, LOGIN, TOKEN_ROWS, VERIFY, Secret, scan_response
 from test.testcases._matrix_fixtures import (
     A_CHAT_MODEL,
     A_EMBED_MODEL,
@@ -42,9 +43,12 @@ from test.testcases._matrix_fixtures import (
     build_world,
 )
 from test.testcases._routes import ROUTES_FILE
-from test.testcases.conftest import BASE_URL
+from test.testcases.conftest import BASE_URL, compose
 
-SENTINEL_PROVIDER_KEY = "-".join(("leak", "sweep", "provider", "key", "0003"))
+# The sentinel is shaped like a real OpenRouter key (the shape the log redactor and the scanner look for), assembled from parts so the
+# secrets gate never sees one literal and it is never printed.
+SENTINEL_PROVIDER_KEY = "-".join(("sk", "or", "v1", "FAKE" * 6))
+LOG_WINDOW = 12  # the shortest fragment of the sentinel that must not appear in any log line
 ROTATED_PROVIDER_KEY = "-".join(("leak", "sweep", "provider", "key", "0004"))
 NEW_PASSWORD = "leak-sweep-new-pass-0007"
 CHANGED_PASSWORD = "leak-sweep-changed-pass-0008"
@@ -64,6 +68,8 @@ class Sweep:
     registry: AccountRegistry
     responses: list[tuple[str, str, httpx.Response]] = field(default_factory=list)
     secrets: list[Secret] = field(default_factory=list)
+    started: str = field(default_factory=lambda: datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"))  # the sweep's first request is not earlier
+    envelopes: list[str] = field(default_factory=list)  # sealed key envelopes read from the database while the sweep ran
 
     def req(
         self, row: str, label: str, method: str, path: str, token: str | None = None, body: Any = None, *, files: Any = None, content: bytes | None = None, content_type: str | None = None
@@ -270,6 +276,9 @@ def sweep_provider_rows(s: Sweep, w: World) -> None:
 
     row = f"PUT {PROVIDERS}"
     s.req(row, "success (new key)", "PUT", PROVIDERS, a.token, {**save, "api_key": SENTINEL_PROVIDER_KEY})
+    for envelope in sealed_envelopes(a.tenant_id):  # the stored form of the sentinel: neither it nor the key may reach a response or a log
+        s.envelopes.append(envelope)
+        s.secret("the sealed sentinel key envelope", envelope, frozenset())
     s.req(row, "success (rotation)", "PUT", PROVIDERS, a.token, {**save, "api_key": ROTATED_PROVIDER_KEY})
     s.req(row, "refused by the provider", "PUT", PROVIDERS, a.token, {**save, "api_key": SENTINEL_PROVIDER_KEY, "models": [{"name": "fake-401", "type": "chat"}]})
     s.req(row, "refused address", "PUT", PROVIDERS, a.token, {**save, "api_key": SENTINEL_PROVIDER_KEY, "base_url": "http://169.254.169.254/v1"})
@@ -278,6 +287,11 @@ def sweep_provider_rows(s: Sweep, w: World) -> None:
     s.req(row, "as an outsider", "PUT", PROVIDERS, b.token, {**save, "api_key": SENTINEL_PROVIDER_KEY, "tenant_id": a.tenant_id})
     s.req(row, "with an API token", "PUT", PROVIDERS, str(w.a_tokens[0]["token"]), {**save, "api_key": SENTINEL_PROVIDER_KEY})
     s.errors(row, "PUT", PROVIDERS, "PATCH")
+    # The fake provider answers this model with an error that quotes a key. The echoed text is a secret too; the answer must not carry it.
+    s.secret("a key quoted by the provider's error", SECRET_ECHO_KEY, frozenset())
+    echo_owner = s.account("leakecho")  # its own workspace: the provider-test budget of A's is nearly spent
+    echoed = s.req(row, "provider echoes a key", "PUT", PROVIDERS, echo_owner.token, {**save, "api_key": SENTINEL_PROVIDER_KEY, "models": [{"name": "fake-secret-echo", "type": "chat"}]})
+    assert echoed.status_code >= 400, "the provider refused the key, so the save is refused"
     s.req(row, "second provider (Ollama)", "PUT", PROVIDERS, a.token, {"provider": "Ollama", "base_url": w.fake.stack_ollama_url, "models": [chat]})
 
     row = f"GET {PROVIDERS}/{{provider}}/models"
@@ -527,6 +541,18 @@ def sweep_dataset_write_rows(s: Sweep, w: World) -> None:
     s.req(row, "success with several ids", "DELETE", DATASETS, a.token, {"ids": [first, second, fifth], "tenant_id": a.tenant_id})
 
 
+def sealed_envelopes(tenant_id: str) -> list[str]:
+    """Every sealed provider key stored for one workspace (the ``v1:`` envelopes), read straight from MySQL."""
+    conn = root_connection()
+    try:
+        with conn.cursor() as cur:
+            cur.execute("USE `rag_flow`")
+            cur.execute("SELECT DISTINCT `api_key` FROM `tenant_llm` WHERE `tenant_id` = %s AND `api_key` LIKE 'v1:%%'", (tenant_id,))
+            return [str(envelope) for (envelope,) in cur.fetchall()]
+    finally:
+        conn.close()
+
+
 def collect_database_secrets(s: Sweep) -> None:
     """Hashes and stored access tokens of every account the sweep touched, read back from MySQL."""
     ids = [acc.user_id for acc in s.registry.created]
@@ -616,6 +642,34 @@ def test_no_response_leaks_a_credential_a_hash_or_an_internal_column(sweep: Swee
 
 
 @pytest.mark.e2e
+def test_the_sweep_stored_the_sentinel_sealed_and_the_provider_error_echoed_a_key(sweep: Sweep) -> None:
+    """The proofs below are only worth something if the sweep really sent the sentinel, sealed it, and provoked the echo path."""
+    assert sweep.envelopes, "the sentinel save stored a sealed envelope"
+    assert all(ENVELOPE.match(e) for e in sweep.envelopes) and all(SENTINEL_PROVIDER_KEY not in e for e in sweep.envelopes)
+    echoed = [resp for row, label, resp in sweep.responses if label == "provider echoes a key"]
+    assert len(echoed) == 1 and echoed[0].status_code >= 400
+    assert SECRET_ECHO_KEY not in echoed[0].text and not KEY_SHAPE.search(echoed[0].text)
+    kinds = {label for _row, label, _resp in sweep.responses}
+    assert {"success (new key)", "refused by the provider"} <= kinds
+
+
+@pytest.mark.e2e
+def test_no_log_line_of_the_stack_carries_the_sentinel_key_a_fragment_of_it_or_its_envelope(sweep: Sweep) -> None:
+    """The ``app`` container's output (Nginx access lines, the Go lines and the Python lines) from the sweep's start. Only counts are shown."""
+    proc = compose("logs", "--no-color", "--no-log-prefix", "--since", sweep.started, "app", timeout=170)
+    assert proc.returncode == 0, "docker compose logs failed"
+    text = proc.stdout + proc.stderr
+    assert "/api/v1/providers" in text, "the sweep's own requests are in the log window, so an empty result means something"
+    assert text.count(SENTINEL_PROVIDER_KEY) == 0, "the sentinel key appears in the container log"
+    windows = {SENTINEL_PROVIDER_KEY[i : i + LOG_WINDOW] for i in range(len(SENTINEL_PROVIDER_KEY) - LOG_WINDOW + 1)}
+    leaked = sorted(w for w in windows if w in text)
+    assert not leaked, f"{len(leaked)} fragment(s) of the sentinel key of {LOG_WINDOW} characters appear in the container log"
+    assert text.count(SECRET_ECHO_KEY) == 0, "a key quoted by the provider's error appears in the container log"
+    for envelope in sweep.envelopes:
+        assert text.count(envelope) == 0, "a stored envelope appears in the container log"
+
+
+@pytest.mark.e2e
 def test_the_login_token_is_returned_only_by_login(sweep: Sweep) -> None:
     holders = {row for row, _l, resp in sweep.responses if resp.status_code < 300 and '"token"' in resp.text.replace(" ", "")}
     assert holders <= CREDENTIAL_ROWS, f"a token field appears in {holders - CREDENTIAL_ROWS}"
@@ -660,3 +714,28 @@ def test_scanner_accepts_the_documented_fields() -> None:
     assert scan_response(VERIFY, "ok", {}, json.dumps({"data": {"reset_ticket": "t"}}), []) == []
     assert scan_response(LOGIN, "ok", {"set-cookie": "ragflow_auth=abc"}, json.dumps({"data": {"token": "t", "user": {"id": "1"}}}), [Secret("s", "abc", frozenset())]) == []
     assert scan_response("GET /api/v1/system/tokens", "ok", {}, json.dumps({"data": [{"token": "t", "beta": "b", "create_time": 1}]}), []) == []
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    ("text", "kind"),
+    [
+        (json.dumps({"data": {"note": SENTINEL_PROVIDER_KEY}}), "provider API key"),
+        (json.dumps({"data": {"anything": "sk-" + "a" * 20}}), "provider API key"),
+        (json.dumps({"message": "Incorrect API key provided: " + SECRET_ECHO_KEY}), "provider API key"),
+        (json.dumps({"data": {"x": "v1:k1:" + "A" * 24}}), "sealed key envelope"),
+        ("plain text v1:key01:" + "Zz_-" * 6, "sealed key envelope"),
+    ],
+)
+def test_scanner_flags_key_shapes_and_envelopes_in_any_row_and_never_prints_them(text: str, kind: str) -> None:
+    for row in ("GET /api/v1/providers", "GET /health", LOGIN):
+        findings = scan_response(row, "planted", {}, text, [])
+        assert any(kind in f for f in findings), (row, findings)
+        assert all("sk-" not in f and "v1:k1" not in f and "FAKE" not in f for f in findings)
+    assert any("headers" in f and kind in f for f in scan_response("GET /health", "planted", {"X-Echo": text}, "{}", []))
+
+
+@pytest.mark.unit
+def test_scanner_does_not_flag_ordinary_words_that_resemble_a_key_prefix() -> None:
+    body = json.dumps({"data": {"used_tokens": 12, "task": "sk-short", "risk": "risk-score", "model": "sk-" + "a" * 19, "version": "v1:", "path": "/api/v1/datasets", "ratio": "v1:2"}})
+    assert scan_response("GET /api/v1/models", "benign", {"Content-Type": "application/json"}, body, []) == []

@@ -125,6 +125,46 @@ def test_token_in_path_is_logged_as_the_route_template_by_every_engine(ingress: 
     assert not [line for line in mine if _API_TOKEN.search(line)], "no API-token-shaped value in this test's Nginx lines"
 
 
+def test_a_provider_key_in_a_url_path_is_logged_masked_by_nginx_and_by_the_application(ingress: httpx.Client, account: Account) -> None:
+    """Request logs record route templates only (plan 03-19, D-23, SEC-02, T-03-19-06): a key-shaped segment never reaches a log line.
+
+    The key is a made-up one with a random tail. The word in front of it is a unique marker (it must not end in ``sk``, which would glue to
+    the key shape); Nginx keeps what precedes the key and drops the key. The application logs a matched route by its template
+    (``<provider>``), so a key in that segment never gets near the line, and an unmatched path through its redactor, which replaces the key with ``***``.
+    """
+    agent = f"devrag-keymask-{uuid.uuid4().hex}"
+    marker = f"logkey-{uuid.uuid4().hex[:16]}"
+    tail = uuid.uuid4().hex + uuid.uuid4().hex[:8]
+    key = "-".join(("sk", "or", "v1", tail))
+    plain = "-".join(("sk", tail[::-1]))  # the second key shape: sk- followed by 20 or more name characters
+    headers = {"Authorization": f"Bearer {account.token}", "User-Agent": agent}
+    template = '"path": "/api/v1/providers/<provider>/models"'
+    templated_before = sum(template in line for line in read_logs().python)
+    for path in (f"/api/v1/providers/{marker}-{key}/models", f"/api/v1/models/{marker}b-{plain}"):
+        resp = ingress.get(path, headers=headers)
+        assert resp.status_code < 500, resp.status_code
+        assert key not in resp.text and plain not in resp.text
+
+    def logged() -> Streams | None:
+        now = read_logs()
+        mine = [line for line in now.nginx if agent in line]
+        python = [line for line in now.python if marker in line]
+        return now if len(mine) >= 2 and python and sum(template in line for line in now.python) > templated_before else None
+
+    now = wait_until(logged, timeout=60, interval=1.0, describe=lambda: "the request lines did not appear in the container logs")
+    mine = [line for line in now.nginx if agent in line]
+    assert any(f"/api/v1/providers/{marker}-sk-***" in line for line in mine), "Nginx logs the first path with the key replaced by a placeholder"
+    assert any(f"/api/v1/models/{marker}b-sk-***" in line for line in mine), "Nginx logs the second key shape the same way"
+    python = [line for line in now.python if marker in line]
+    assert python and all("***" in line for line in python), "the application's request log holds the placeholder for the unmatched path"
+    assert sum(template in line for line in now.python) > templated_before, "a matched route is logged as its template, not as the path"
+    for label, secret in (("the OpenRouter-shaped key", key), ("its random tail", tail), ("the plain key shape", plain), ("the tail of the plain key shape", tail[::-1])):
+        for engine, lines in (("nginx", now.nginx), ("go", now.go), ("python", now.python)):
+            hits = occurrences("\n".join(lines), secret)
+            assert hits == 0, f"{label} appears {hits} time(s) in the {engine} log"
+        assert occurrences(now.whole, secret) == 0, f"{label} appears in the container output"
+
+
 def test_credentials_used_in_a_whole_flow_never_reach_any_log(ingress: httpx.Client) -> None:
     registry = AccountRegistry(BASE_URL)
     email = ""

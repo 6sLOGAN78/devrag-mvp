@@ -25,6 +25,10 @@ BANNED_KEY = re.compile(
 # legitimately has a ``status`` field, so these two are banned everywhere except in the system rows.
 INTERNAL_COLUMN = re.compile(r"^(status|source)$", re.IGNORECASE)
 SYSTEM_ROWS = re.compile(r"^\w+ (/health|/api/v1/system/(?!tokens)|/system/|/api/v1/openapi\.json|/api/v1/language)")
+# A provider key shape (the same shapes the log redactor masks) and the sealed-key envelope prefix ``v1:<kid>:<base64url>``: neither
+# may appear in any response of any row, whatever the field is called (plan 03-19, SEC-02, D-17, D-23).
+KEY_SHAPE = re.compile(r"sk-or-v1-[A-Za-z0-9]{16,}|sk-[A-Za-z0-9_-]{20,}")
+ENVELOPE = re.compile(r"\bv1:[A-Za-z0-9]{1,16}:[A-Za-z0-9_-]{20,}")
 HASH_VALUE = re.compile(r"pbkdf2:|\$2[aby]\$\d{2}\$|\bscrypt:|\$argon2", re.IGNORECASE)
 CREDENTIAL_KEYS = frozenset({"token", "beta"})  # the documented credential fields; see CREDENTIAL_ROWS
 
@@ -86,6 +90,12 @@ def scan_response(row: str, label: str, headers: Mapping[str, str], text: str, s
     if body is None and HASH_VALUE.search(text):
         findings.append(f"{where}: the body looks like it contains a password hash")
     head = "\n".join(f"{k}: {v}" for k, v in headers.items() if not (k.lower() == "set-cookie" and row == LOGIN))
+    head_and_body = (("the body", text), ("the headers", head))
+    for where_found, haystack in head_and_body:
+        if KEY_SHAPE.search(haystack):
+            findings.append(f"{where}: {where_found} holds a value shaped like a provider API key")
+        if ENVELOPE.search(haystack):
+            findings.append(f"{where}: {where_found} holds a value shaped like a sealed key envelope")
     for secret in secrets:
         if row in secret.allowed_rows:
             continue
