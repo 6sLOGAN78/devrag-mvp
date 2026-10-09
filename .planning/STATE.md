@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 03-19-PLAN.md
-last_updated: "2026-10-09T05:54:16.184Z"
+stopped_at: Completed 03-27-PLAN.md
+last_updated: "2026-10-09T10:29:18.403Z"
 last_activity: 2026-10-09
 progress:
   total_phases: 8
   completed_phases: 2
   total_plans: 83
-  completed_plans: 71
-  percent: 26
+  completed_plans: 72
+  percent: 25
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-10-05)
 ## Current Position
 
 Phase: 3 (Models, Knowledge Bases and Upload) — EXECUTING
-Plan: next is 03-27 of 31 (03-14 to 03-19 are done; 03-20 follows 03-27)
+Plan: next is 03-20 of 31 (03-14 to 03-19 and 03-27 are done)
 Status: Ready to execute
 Last activity: 2026-10-09
 
-Progress: [████████░░] 86%
+Progress: [█████████░] 87%
 
 ## Performance Metrics
 
@@ -124,6 +124,7 @@ Recent decisions affecting current work:
 - [Phase 03]: 03-17: delete locks the file rows (sorted) before deleting links and counts remaining links with a locking read; documents are re-locked by primary key inside the dataset lock so a racing delete is the one 404; can_remove_document gets the permission subject so API tokens are not elevated to the owner role; ids shape errors are ids_invalid, list query errors query_invalid
 - [Phase 03]: 03-18: dataset delete removes the dataset's rows from the shared tenant index and never drops it (R-136); update runs in the docstore executor; delete_datasets returns the deleted ids (not a count) and a part-way failure carries data.deleted; embd_id changes only while doc_num and chunk_num are 0, re-read under kb-upload
 - [Phase 03]: 03-19: the isolation table is registry-driven (INVOKERS plus a unit guard); rows whose registry roles admit normal but whose object rule refuses a member for A's resource are listed in NORMAL_IS_REFUSED_ON_A_RESOURCE; a token created by a member is pinned to the member's own workspace; the Python request log records a matched route as its template and an unmatched path through the redactor; no product defect found
+- [Phase 03]: 03-27: live_model tier runs against the real OpenRouter (llama-3.1-8b-instruct, bge-m3 at 1024 dims, 4 chat-class and 2 embedding calls per run); missing key fails the fixture and the preflight; bad key is 400 provider_refused with the session kept; gc_at_loop_teardown lives in test/conftest.py
 - [Phase 03]: 03-12: GET /providers/{provider}/instances/{instance} tightened to auth jwt (shows last4 and address; no token subject holds update_llm_keys) — Keeps the cross-tenant matrix rule (jwt row, API token, 401) and avoids a dead 403 for tokens
 - [Phase 03]: 03-12: secretbox.seal drops base64 padding; envelopes whose payload needed padding could not be opened — Regression fix with a test for key lengths 0..69; affects every real provider key not of length 2 mod 3
 - [Phase 03]: 03-12: handlers read settings on the loop and run blocking work via run_blocking(named executor, timeout); credentials_visible decides address and last4 by subject (owner, admin) — Worker threads have no app context; a token inherits the owner's role but not its subject
@@ -165,5 +166,5 @@ Items acknowledged and carried forward from previous milestone close:
 ## Session Continuity
 
 Last session: 2026-10-09T11:00:00.000Z
-Stopped at: Completed 03-19-PLAN.md
+Stopped at: Completed 03-27-PLAN.md
 Resume file: None

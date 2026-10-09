@@ -264,7 +264,7 @@ Plans:
 
 **Wave 12** *(blocked on Wave 11 completion)*
 
-- [ ] 03-27-PLAN.md — live_model tier, gate step and key presence check
+- [x] 03-27-PLAN.md — live_model tier, gate step and key presence check
 
 **Wave 13** *(blocked on Wave 12 completion)*
 
