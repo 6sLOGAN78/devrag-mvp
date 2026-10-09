@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 03-20-PLAN.md
-last_updated: "2026-10-09T10:29:18.403Z"
+stopped_at: Completed 03-21-PLAN.md
+last_updated: "2026-10-09T11:05:00.000Z"
 last_activity: 2026-10-09
 progress:
   total_phases: 8
   completed_phases: 2
   total_plans: 83
-  completed_plans: 73
+  completed_plans: 74
   percent: 25
 ---
 
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-10-05)
 ## Current Position
 
 Phase: 3 (Models, Knowledge Bases and Upload) — EXECUTING
-Plan: next is 03-21 of 31 (03-14 to 03-20 and 03-27 are done)
+Plan: next is 03-22 of 31 (03-14 to 03-21 and 03-27 are done)
 Status: Ready to execute
 Last activity: 2026-10-09
 
@@ -78,6 +78,7 @@ Progress: [█████████░] 87%
 | Phase 03 P15 | 15min | 2 tasks | 2 files |
 | Phase 03 P12 | 90min | 3 tasks | 23 files |
 | Phase 03 P13 | 50m | 3 tasks | 12 files |
+| Phase 03 P21 | 1h30m | 3 tasks | 17 files |
 | Phase 03 P17 | 90min | 3 tasks | 11 files |
 | Phase 03 P18 | resumed after interruption | 3 tasks | 11 files |
 | Phase 03 P20 | ~1h | 3 tasks | 18 files |
@@ -133,6 +134,7 @@ Recent decisions affecting current work:
 - [Phase 03]: 03-13: absent key leaves a default slot alone (model_fields_set), null clears it, a refused slot in a two-slot body writes nothing — T-03-13-05: unset vs null must never clear a default by accident; set_defaults verifies both before one UPDATE
 
 - [Phase 03]: 03-20: provider names are literals except OpenAI-compatible (key models.provider.compatible.name); no defaults card or placeholder until 03-22; model data keys on [ws, tenantId, ...] and the role comes from useActiveWorkspace; UI-37 stays pending until 03-21 and 03-22
+- [Phase 03]: 03-21: a provider call is classified by HTTP status plus data.reason (only 400 provider_refused carries server text, <=300 chars); a refusal is inline and never a session event; Change key and Change address send one registered model from the provider view; dialog content is unmounted on close so the typed key, request and mutation are dropped; UI-37 now waits only on 03-22 (defaults card)
 
 ### Pending Todos
 

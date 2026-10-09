@@ -272,7 +272,7 @@ Plans:
 
 **Wave 14** *(blocked on Wave 13 completion)*
 
-- [ ] 03-21-PLAN.md — Provider dialogs
+- [x] 03-21-PLAN.md — Provider dialogs
 
 **Wave 15** *(blocked on Wave 14 completion)*
 
